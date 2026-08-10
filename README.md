@@ -1,4 +1,4 @@
-# Angler's Jigsaw v0.2
+# Angler's Jigsaw v0.3
 
 A starter Progressive Web App for GitHub Pages.
 
@@ -44,3 +44,17 @@ This folder can be pushed directly to a GitHub Pages repo root or to a project s
 Puzzle pieces can now be dragged directly from the Tackle Tray to the board.
 
 The implementation uses the browser Pointer Events API rather than old desktop-only HTML5 drag-and-drop. This gives one interaction model for iOS/iPadOS, Android, Windows, macOS, and Linux, including mouse, touch, stylus, and trackpad input.
+
+
+## v0.3 — true jigsaw pieces
+- Replaced square puzzle tiles with interlocking SVG jigsaw-piece shapes.
+- Every adjoining edge is generated as an exact tab/blank opposite so pieces visually fit.
+- Pieces drag with Pointer Events: mouse, touch, pen, stylus, and trackpad.
+- Drop near the correct location and the piece snaps into place.
+- Edges Only still works and automatically reveals all pieces after the border is completed.
+- Tap-to-place remains available as a fallback.
+- Board resizes responsively for iOS, Android, Windows, macOS, and Linux browsers.
+
+### Important
+This is still the starter 3x3 difficulty so the interaction can be tested cleanly.
+The engine is structured to support larger piece counts next.
