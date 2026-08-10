@@ -253,8 +253,139 @@ function createPieceElement(piece, forBoard = false) {
   el.dataset.id = piece.id;
   el.style.backgroundImage = `url("${puzzleState.species.image}")`;
   el.style.backgroundPosition = `${(col / (size - 1)) * 100}% ${(row / (size - 1)) * 100}%`;
-  if (forBoard) el.classList.remove('selected');
+
+  if (!forBoard) {
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', `Puzzle piece ${piece.correctIndex + 1}`);
+    el.addEventListener('pointerdown', beginPieceDrag);
+    el.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectedPieceId = piece.id;
+        renderPuzzle();
+      }
+    });
+  } else {
+    el.classList.remove('selected');
+  }
   return el;
+}
+
+let dragState = {
+  active: false,
+  pieceId: null,
+  pointerId: null,
+  sourceEl: null,
+  ghostEl: null,
+  startX: 0,
+  startY: 0,
+  moved: false
+};
+
+function beginPieceDrag(event) {
+  if (!puzzleState) return;
+  const sourceEl = event.currentTarget;
+  const pieceId = sourceEl.dataset.id;
+  const piece = puzzleState.pieces.find(p => p.id === pieceId);
+  if (!piece || piece.placed) return;
+
+  dragState.active = true;
+  dragState.pieceId = pieceId;
+  dragState.pointerId = event.pointerId;
+  dragState.sourceEl = sourceEl;
+  dragState.startX = event.clientX;
+  dragState.startY = event.clientY;
+  dragState.moved = false;
+  selectedPieceId = pieceId;
+  sourceEl.classList.add('drag-source');
+
+  try { sourceEl.setPointerCapture(event.pointerId); } catch (e) {}
+  sourceEl.addEventListener('pointermove', movePieceDrag);
+  sourceEl.addEventListener('pointerup', endPieceDrag);
+  sourceEl.addEventListener('pointercancel', cancelPieceDrag);
+}
+
+function movePieceDrag(event) {
+  if (!dragState.active || event.pointerId !== dragState.pointerId) return;
+  const dx = event.clientX - dragState.startX;
+  const dy = event.clientY - dragState.startY;
+  const distance = Math.hypot(dx, dy);
+  if (!dragState.moved && distance < 7) return;
+
+  if (!dragState.moved) {
+    dragState.moved = true;
+    createDragGhost(event.clientX, event.clientY);
+  }
+
+  event.preventDefault();
+  positionDragGhost(event.clientX, event.clientY);
+  document.querySelectorAll('.board-slot.drop-target').forEach(slot => slot.classList.remove('drop-target'));
+  const target = document.elementFromPoint(event.clientX, event.clientY);
+  const slot = target?.closest?.('.board-slot');
+  if (slot) slot.classList.add('drop-target');
+}
+
+function createDragGhost(x, y) {
+  const source = dragState.sourceEl;
+  if (!source) return;
+  const rect = source.getBoundingClientRect();
+  const ghost = source.cloneNode(true);
+  ghost.classList.remove('selected', 'drag-source');
+  ghost.classList.add('drag-ghost');
+  ghost.style.width = `${rect.width}px`;
+  ghost.style.height = `${rect.height}px`;
+  document.body.appendChild(ghost);
+  dragState.ghostEl = ghost;
+  positionDragGhost(x, y);
+}
+
+function positionDragGhost(x, y) {
+  if (!dragState.ghostEl) return;
+  dragState.ghostEl.style.left = `${x}px`;
+  dragState.ghostEl.style.top = `${y}px`;
+}
+
+function cleanupDrag() {
+  if (dragState.sourceEl) {
+    dragState.sourceEl.classList.remove('drag-source');
+    dragState.sourceEl.removeEventListener('pointermove', movePieceDrag);
+    dragState.sourceEl.removeEventListener('pointerup', endPieceDrag);
+    dragState.sourceEl.removeEventListener('pointercancel', cancelPieceDrag);
+  }
+  if (dragState.ghostEl) dragState.ghostEl.remove();
+  document.querySelectorAll('.board-slot.drop-target').forEach(slot => slot.classList.remove('drop-target'));
+  dragState = {active:false,pieceId:null,pointerId:null,sourceEl:null,ghostEl:null,startX:0,startY:0,moved:false};
+}
+
+function cancelPieceDrag() { cleanupDrag(); }
+
+function endPieceDrag(event) {
+  if (!dragState.active || event.pointerId !== dragState.pointerId) return;
+  const pieceId = dragState.pieceId;
+  const wasMoved = dragState.moved;
+
+  if (!wasMoved) {
+    selectedPieceId = pieceId;
+    cleanupDrag();
+    renderPuzzle();
+    return;
+  }
+
+  const target = document.elementFromPoint(event.clientX, event.clientY);
+  const slot = target?.closest?.('.board-slot');
+  cleanupDrag();
+
+  if (!slot) {
+    selectedPieceId = pieceId;
+    renderPuzzle();
+    showToast('Drop the piece onto the puzzle board.');
+    return;
+  }
+
+  const slotIndex = Number(slot.dataset.slot);
+  selectedPieceId = pieceId;
+  handleBoardSlotClick(slotIndex, slot);
 }
 
 function renderPuzzle() {
@@ -279,10 +410,6 @@ function renderPuzzle() {
   trayPieces.innerHTML = '';
   getVisiblePieces().forEach(piece => {
     const el = createPieceElement(piece);
-    el.addEventListener('click', () => {
-      selectedPieceId = piece.id;
-      renderPuzzle();
-    });
     trayPieces.appendChild(el);
   });
 
