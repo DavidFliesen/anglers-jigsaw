@@ -244,3 +244,28 @@ body{min-height:100vh}
   .puzzle-board .board-slot{min-height:92px}
   .piece{width:78px}
 }
+
+
+/* v0.2 cross-platform puzzle dragging. Pointer Events cover mouse, touch, and pen. */
+.piece{
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+.piece.drag-source{opacity:.35}
+.drag-ghost{
+  position:fixed !important;
+  z-index:9999;
+  pointer-events:none;
+  transform:translate(-50%,-50%) scale(1.08);
+  opacity:.92;
+  box-shadow:0 16px 30px rgba(0,0,0,.35);
+  outline:3px solid var(--accent);
+}
+.board-slot.drop-target{
+  border-color:var(--accent);
+  background:#2c654a;
+  transform:scale(1.02);
+}
+.board-slot{touch-action:none}
