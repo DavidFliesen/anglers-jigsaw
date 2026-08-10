@@ -975,6 +975,31 @@ window.addEventListener('resize', () => {
   }
 });
 
+
+
+function initWaterBubbles() {
+  const box = document.getElementById('water-bubbles');
+  if (!box || box.childElementCount) return;
+
+  const count = 12;
+
+  for (let i = 0; i < count; i += 1) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    const size = 4 + Math.random() * 13;
+
+    bubble.style.width = `${size}px`;
+    bubble.style.height = `${size}px`;
+    bubble.style.left = `${Math.random() * 100}%`;
+    bubble.style.setProperty('--drift', `${Math.random() * 40 - 20}px`);
+    bubble.style.animationDuration = `${10 + Math.random() * 12}s`;
+    bubble.style.animationDelay = `${-Math.random() * 18}s`;
+
+    box.appendChild(bubble);
+  }
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -985,4 +1010,5 @@ wireButtons();
 renderDifficulties();
 renderCooler();
 updateCoolerChip();
+initWaterBubbles();
 showScreen('home');
