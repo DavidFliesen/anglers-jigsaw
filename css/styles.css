@@ -906,3 +906,97 @@ body {
     display: none;
   }
 }
+
+
+/* === Angler's Jigsaw v1.0 — visible water bubbles on black === */
+
+/*
+  The earlier bubble layer was technically running, but it was too small and
+  too transparent to read against pure black. This version intentionally
+  matches the visibility of Angler's Arrows while keeping the Jigsaw
+  background black.
+*/
+
+.water-bubbles {
+  z-index: 1;
+}
+
+.app-header,
+.app-shell {
+  position: relative;
+  z-index: 3;
+}
+
+/* Bubbles are brighter and larger so the animation is actually visible. */
+.water-bubbles .bubble {
+  background:
+    radial-gradient(
+      circle at 30% 28%,
+      rgba(255,255,255,.72) 0%,
+      rgba(203,245,255,.34) 18%,
+      rgba(98,213,238,.13) 48%,
+      rgba(76,190,220,.045) 66%,
+      transparent 72%
+    );
+  border: 1px solid rgba(168,235,249,.13);
+  box-shadow:
+    inset 0 0 8px rgba(255,255,255,.10),
+    0 0 10px rgba(90,205,232,.08);
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(.86);
+    opacity: 0;
+  }
+  10% {
+    opacity: .48;
+  }
+  48% {
+    opacity: .38;
+  }
+  82% {
+    opacity: .28;
+  }
+  100% {
+    transform:
+      translate3d(var(--drift, 0), -112vh, 0)
+      scale(1.06);
+    opacity: 0;
+  }
+}
+
+/*
+  A very subtle "surface light" at the top makes the bubbles read as water
+  without turning the whole app blue or green.
+*/
+body::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0 0 auto 0;
+  height: 18vh;
+  background:
+    radial-gradient(
+      90% 100% at 50% -35%,
+      rgba(57,164,194,.13) 0%,
+      rgba(31,111,138,.055) 42%,
+      transparent 72%
+    );
+}
+
+/* Keep the puzzle board itself clean black; bubbles drift behind it/page UI. */
+.puzzle-board,
+.tray-pieces,
+.workspace-panel,
+.panel {
+  position: relative;
+}
+
+/* Ensure accessibility preference still wins over the override above. */
+@media (prefers-reduced-motion: reduce) {
+  .water-bubbles .bubble {
+    display: none !important;
+  }
+}
