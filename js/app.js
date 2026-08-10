@@ -3,7 +3,6 @@ const screens = {
   home: document.getElementById('screen-home'),
   how: document.getElementById('screen-how'),
   waters: document.getElementById('screen-waters'),
-  fishing: document.getElementById('screen-fishing'),
   puzzle: document.getElementById('screen-puzzle'),
   complete: document.getElementById('screen-complete'),
   cooler: document.getElementById('screen-cooler')
@@ -16,14 +15,6 @@ let currentWater = null;
 let currentSpecies = null;
 let selectedPieceId = null;
 let puzzleState = null;
-
-let fishingState = {
-  reeling: false,
-  clicks: 0,
-  requiredClicks: 14,
-  biteTimer: null,
-  escapeTimer: null
-};
 
 let dragState = {
   active: false,
@@ -42,14 +33,6 @@ const startFishingBtn = document.getElementById('startFishingBtn');
 const howToPlayBtn = document.getElementById('howToPlayBtn');
 const howStartBtn = document.getElementById('howStartBtn');
 const watersGrid = document.getElementById('watersGrid');
-const waterTitle = document.getElementById('waterTitle');
-const waterTagline = document.getElementById('waterTagline');
-const hotspotsWrap = document.getElementById('hotspots');
-const fishingStatus = document.getElementById('fishingStatus');
-const reelPanel = document.getElementById('reelPanel');
-const reelFill = document.getElementById('reelFill');
-const reelBtn = document.getElementById('reelBtn');
-const backToWatersBtn = document.getElementById('backToWatersBtn');
 
 const puzzleBoard = document.getElementById('puzzleBoard');
 const trayPieces = document.getElementById('trayPieces');
@@ -108,6 +91,7 @@ function wireGlobalButtons() {
   startFishingBtn.addEventListener('click', () => showScreen('waters'));
   howToPlayBtn.addEventListener('click', () => showScreen('how'));
   howStartBtn.addEventListener('click', () => showScreen('waters'));
+
   document.querySelectorAll('[data-back-home="true"]').forEach(btn => {
     btn.addEventListener('click', () => showScreen('home'));
   });
@@ -115,101 +99,44 @@ function wireGlobalButtons() {
 
 function renderWaters() {
   watersGrid.innerHTML = '';
+
   waters.forEach(water => {
     const card = document.createElement('article');
     card.className = 'water-card';
+
     card.innerHTML = `
       <div class="water-tag">${water.name}</div>
       <h3>${water.name}</h3>
       <p>${water.tagline}</p>
-      <div class="water-hotspots"><strong>Hotspots:</strong> ${water.hotspots.join(', ')}</div>
-      <button class="primary-btn">Fish Here</button>
+      <div class="water-hotspots"><strong>Possible catches:</strong> ${water.species.length} species</div>
+      <button class="primary-btn">Choose This Water</button>
     `;
-    card.querySelector('button').addEventListener('click', () => startFishing(water.id));
+
+    card.querySelector('button').addEventListener('click', () => chooseWater(water.id));
     watersGrid.appendChild(card);
   });
 }
 
-function startFishing(waterId) {
+function chooseWater(waterId) {
   currentWater = waters.find(w => w.id === waterId);
-  waterTitle.textContent = currentWater.name;
-  waterTagline.textContent = currentWater.tagline;
-  fishingStatus.textContent = 'Pick a hotspot to cast your line.';
-  reelPanel.classList.add('hidden');
-  reelFill.style.width = '0%';
-  hotspotsWrap.innerHTML = '';
 
-  currentWater.hotspots.forEach(spot => {
-    const btn = document.createElement('button');
-    btn.className = 'hotspot-btn';
-    btn.textContent = spot;
-    btn.addEventListener('click', () => castLine(spot));
-    hotspotsWrap.appendChild(btn);
-  });
+  const speciesId =
+    currentWater.species[Math.floor(Math.random() * currentWater.species.length)];
 
-  showScreen('fishing');
+  currentSpecies = speciesData[speciesId];
+
+  showToast(`Something is waiting in ${currentWater.name}...`);
+  setTimeout(() => startPuzzle(currentSpecies), 450);
 }
-
-function clearFishingTimers() {
-  clearTimeout(fishingState.biteTimer);
-  clearTimeout(fishingState.escapeTimer);
-}
-
-function castLine(spot) {
-  clearFishingTimers();
-  fishingState.reeling = false;
-  fishingState.clicks = 0;
-  reelFill.style.width = '0%';
-
-  document.querySelectorAll('.hotspot-btn').forEach(btn => btn.disabled = true);
-  fishingStatus.textContent = `Casting toward ${spot}... wait for the line to tighten.`;
-
-  fishingState.biteTimer = setTimeout(() => {
-    fishingStatus.textContent = `BITE at ${spot}! Reel quickly before it gets away!`;
-    reelPanel.classList.remove('hidden');
-    fishingState.reeling = true;
-    fishingState.requiredClicks = 11 + Math.floor(Math.random() * 7);
-
-    fishingState.escapeTimer = setTimeout(() => {
-      if (fishingState.reeling) {
-        fishingState.reeling = false;
-        reelPanel.classList.add('hidden');
-        fishingStatus.textContent = 'The fish got away. Pick another hotspot and cast again.';
-        document.querySelectorAll('.hotspot-btn').forEach(btn => btn.disabled = false);
-        showToast('That one slipped the hook.');
-      }
-    }, 9000);
-  }, 1200);
-}
-
-reelBtn.addEventListener('click', () => {
-  if (!fishingState.reeling) return;
-  fishingState.clicks += 1;
-  const pct = Math.min(100, (fishingState.clicks / fishingState.requiredClicks) * 100);
-  reelFill.style.width = `${pct}%`;
-
-  if (pct >= 100) {
-    fishingState.reeling = false;
-    clearFishingTimers();
-    reelPanel.classList.add('hidden');
-    fishingStatus.textContent = 'You landed something! Your catch is becoming a jigsaw...';
-
-    setTimeout(() => {
-      const speciesId = currentWater.species[Math.floor(Math.random() * currentWater.species.length)];
-      currentSpecies = speciesData[speciesId];
-      startPuzzle(currentSpecies);
-    }, 900);
-  }
-});
-
-backToWatersBtn.addEventListener('click', () => showScreen('waters'));
 
 function shuffled(array) {
   const arr = [...array];
+
   for (let i = arr.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+
   return arr;
 }
 
@@ -220,42 +147,52 @@ function isEdgeIndex(index, size) {
 }
 
 /*
-  Edge codes:
-  0 = outside border / flat
+  0 = flat border
   1 = outward tab
  -1 = inward blank
 
-  Shared edges are generated as exact opposites so adjoining pieces fit.
+  Every shared edge is generated once and mirrored on its neighbor,
+  so adjacent pieces fit like a traditional jigsaw.
 */
 function generatePieceEdges(size) {
-  const rightEdges = Array.from({ length: size }, () => Array(size).fill(0));
-  const bottomEdges = Array.from({ length: size }, () => Array(size).fill(0));
+  const horizontal = Array.from({ length: size - 1 }, () =>
+    Array(size).fill(0)
+  );
+  const vertical = Array.from({ length: size }, () =>
+    Array(size - 1).fill(0)
+  );
 
-  for (let row = 0; row < size; row += 1) {
+  for (let row = 0; row < size - 1; row += 1) {
     for (let col = 0; col < size; col += 1) {
-      if (col < size - 1) rightEdges[row][col] = Math.random() < 0.5 ? 1 : -1;
-      if (row < size - 1) bottomEdges[row][col] = Math.random() < 0.5 ? 1 : -1;
+      horizontal[row][col] = Math.random() < 0.5 ? 1 : -1;
     }
   }
 
-  const result = [];
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size - 1; col += 1) {
+      vertical[row][col] = Math.random() < 0.5 ? 1 : -1;
+    }
+  }
+
+  const edges = [];
+
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
-      result.push({
-        top: row === 0 ? 0 : -bottomEdges[row - 1][col],
-        right: col === size - 1 ? 0 : rightEdges[row][col],
-        bottom: row === size - 1 ? 0 : bottomEdges[row][col],
-        left: col === 0 ? 0 : -rightEdges[row][col - 1]
+      edges.push({
+        top: row === 0 ? 0 : -horizontal[row - 1][col],
+        right: col === size - 1 ? 0 : vertical[row][col],
+        bottom: row === size - 1 ? 0 : horizontal[row][col],
+        left: col === 0 ? 0 : -vertical[row][col - 1]
       });
     }
   }
-  return result;
+
+  return edges;
 }
 
 function startPuzzle(species) {
   selectedPieceId = null;
 
-  // Starter difficulty remains 3x3, but pieces are now true interlocking shapes.
   const size = 3;
   const edges = generatePieceEdges(size);
   const pieces = [];
@@ -263,6 +200,7 @@ function startPuzzle(species) {
   for (let i = 0; i < size * size; i += 1) {
     const row = Math.floor(i / size);
     const col = i % size;
+
     pieces.push({
       id: `piece-${i}`,
       correctIndex: i,
@@ -280,116 +218,144 @@ function startPuzzle(species) {
     pieces: shuffled(pieces),
     filterMode: 'edges',
     borderPromptShown: false,
-    piecePx: 110,
-    stepPx: 88,
-    puzzlePx: 286,
-    snapDistance: 46
+    piecePx: 130,
+    stepPx: 100,
+    puzzlePx: 330,
+    snapDistance: 58
   };
 
   showScreen('puzzle');
-  requestAnimationFrame(renderPuzzle);
-  showToast('Edges Only is on. Drag the border pieces into place.');
+  showToast('Edges Only is on. Build the border first.');
 }
 
 function updatePuzzleGeometry() {
   if (!puzzleState) return;
+
   const boardRect = puzzleBoard.getBoundingClientRect();
-  const usable = Math.max(240, Math.min(boardRect.width || 560, boardRect.height || 560));
+  const usable = Math.max(260, Math.min(boardRect.width || 560, boardRect.height || 560));
   const size = puzzleState.size;
 
-  // Each 100x100 piece advances 80 units so tabs overlap neighbors.
-  const piecePx = usable / (0.8 * size + 0.2);
-  const stepPx = piecePx * 0.8;
+  // Piece viewBox is 120×120 and logical cell step is 90.
+  const piecePx = usable / (0.75 * size + 0.25);
+  const stepPx = piecePx * 0.75;
   const puzzlePx = stepPx * (size - 1) + piecePx;
 
   puzzleState.piecePx = piecePx;
   puzzleState.stepPx = stepPx;
   puzzleState.puzzlePx = puzzlePx;
-  puzzleState.snapDistance = Math.max(28, piecePx * 0.38);
+  puzzleState.snapDistance = Math.max(32, piecePx * 0.42);
 }
 
+/*
+  Traditional jigsaw silhouette.
+  The outline lives inside a 120×120 box. The normal cell body is 90×90
+  from 15..105, leaving room for tabs to protrude to 0 or 120.
+*/
 function piecePath(edges) {
   const { top, right, bottom, left } = edges;
-  const out = 0;
-  const flat = 10;
-  const inner = 20;
 
-  const tY = type => type === 1 ? out : type === -1 ? inner : flat;
-  const rX = type => type === 1 ? 100 : type === -1 ? 80 : 90;
-  const bY = type => type === 1 ? 100 : type === -1 ? 80 : 90;
-  const lX = type => type === 1 ? out : type === -1 ? inner : flat;
+  const leftBase = 15;
+  const topBase = 15;
+  const rightBase = 105;
+  const bottomBase = 105;
 
-  let d = `M 10 10 `;
+  const outerTop = 0;
+  const innerTop = 30;
+  const outerRight = 120;
+  const innerRight = 90;
+  const outerBottom = 120;
+  const innerBottom = 90;
+  const outerLeft = 0;
+  const innerLeft = 30;
 
-  // TOP: left -> right
+  let d = `M ${leftBase} ${topBase}`;
+
+  // TOP — left to right
   if (top === 0) {
-    d += `L 90 10 `;
+    d += ` L ${rightBase} ${topBase}`;
   } else {
-    const y = tY(top);
-    d += `L 38 10
-          C 42 10, 42 ${y}, 50 ${y}
-          C 58 ${y}, 58 10, 62 10
-          L 90 10 `;
+    const y = top === 1 ? outerTop : innerTop;
+    d += `
+      L 48 ${topBase}
+      C 50 ${topBase}, 50 ${y}, 60 ${y}
+      C 70 ${y}, 70 ${topBase}, 72 ${topBase}
+      L ${rightBase} ${topBase}`;
   }
 
-  // RIGHT: top -> bottom
+  // RIGHT — top to bottom
   if (right === 0) {
-    d += `L 90 90 `;
+    d += ` L ${rightBase} ${bottomBase}`;
   } else {
-    const x = rX(right);
-    d += `L 90 38
-          C 90 42, ${x} 42, ${x} 50
-          C ${x} 58, 90 58, 90 62
-          L 90 90 `;
+    const x = right === 1 ? outerRight : innerRight;
+    d += `
+      L ${rightBase} 48
+      C ${rightBase} 50, ${x} 50, ${x} 60
+      C ${x} 70, ${rightBase} 70, ${rightBase} 72
+      L ${rightBase} ${bottomBase}`;
   }
 
-  // BOTTOM: right -> left
+  // BOTTOM — right to left
   if (bottom === 0) {
-    d += `L 10 90 `;
+    d += ` L ${leftBase} ${bottomBase}`;
   } else {
-    const y = bY(bottom);
-    d += `L 62 90
-          C 58 90, 58 ${y}, 50 ${y}
-          C 42 ${y}, 42 90, 38 90
-          L 10 90 `;
+    const y = bottom === 1 ? outerBottom : innerBottom;
+    d += `
+      L 72 ${bottomBase}
+      C 70 ${bottomBase}, 70 ${y}, 60 ${y}
+      C 50 ${y}, 50 ${bottomBase}, 48 ${bottomBase}
+      L ${leftBase} ${bottomBase}`;
   }
 
-  // LEFT: bottom -> top
+  // LEFT — bottom to top
   if (left === 0) {
-    d += `L 10 10 `;
+    d += ` L ${leftBase} ${topBase}`;
   } else {
-    const x = lX(left);
-    d += `L 10 62
-          C 10 58, ${x} 58, ${x} 50
-          C ${x} 42, 10 42, 10 38
-          L 10 10 `;
+    const x = left === 1 ? outerLeft : innerLeft;
+    d += `
+      L ${leftBase} 72
+      C ${leftBase} 70, ${x} 70, ${x} 60
+      C ${x} 50, ${leftBase} 50, ${leftBase} 48
+      L ${leftBase} ${topBase}`;
   }
 
-  return d + 'Z';
+  return d + ' Z';
 }
 
+/*
+  Uses an SVG <pattern> filled into the jigsaw path instead of clipping a
+  rectangular image. This makes the transparent tabs/blanks render reliably
+  in Safari/iPadOS as well as Chrome/Firefox/desktop browsers.
+*/
 function pieceSvgMarkup(piece, uniqueId) {
   const size = puzzleState.size;
-  const stepUnits = 80;
-  const fullUnits = 80 * (size - 1) + 100;
-  const x = -(piece.col * stepUnits);
-  const y = -(piece.row * stepUnits);
+  const imageStep = 90;
+  const fullImageSize = imageStep * size;
+
+  // Each piece image is shifted so its own cell lines up inside its silhouette.
+  const imageX = 15 - (piece.col * imageStep);
+  const imageY = 15 - (piece.row * imageStep);
+
+  const path = piecePath(piece.edges);
 
   return `
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <svg viewBox="0 0 120 120" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <clipPath id="${uniqueId}">
-          <path d="${piecePath(piece.edges)}"></path>
-        </clipPath>
+        <pattern id="${uniqueId}" patternUnits="userSpaceOnUse"
+                 x="${imageX}" y="${imageY}"
+                 width="${fullImageSize}" height="${fullImageSize}">
+          <image href="${puzzleState.species.image}"
+                 x="0" y="0"
+                 width="${fullImageSize}" height="${fullImageSize}"
+                 preserveAspectRatio="xMidYMid slice"></image>
+        </pattern>
       </defs>
-      <image
-        href="${puzzleState.species.image}"
-        x="${x}" y="${y}"
-        width="${fullUnits}" height="${fullUnits}"
-        preserveAspectRatio="xMidYMid slice"
-        clip-path="url(#${uniqueId})">
-      </image>
-      <path class="piece-outline" d="${piecePath(piece.edges)}"></path>
+
+      <path d="${path}"
+            fill="url(#${uniqueId})"
+            class="piece-fill"></path>
+
+      <path d="${path}"
+            class="piece-outline"></path>
     </svg>
   `;
 }
@@ -399,16 +365,20 @@ function createPieceElement(piece, context = 'tray') {
   el.className = `jigsaw-piece ${context === 'board' ? 'board-piece' : 'tray-piece'}`;
   el.dataset.id = piece.id;
 
-  const uid = `clip-${piece.id}-${context}-${Math.random().toString(36).slice(2)}`;
+  const uid = `pat-${piece.id}-${context}-${Math.random().toString(36).slice(2)}`;
   el.innerHTML = pieceSvgMarkup(piece, uid);
 
   if (context === 'tray') {
-    if (selectedPieceId === piece.id) el.classList.add('selected');
+    if (selectedPieceId === piece.id) {
+      el.classList.add('selected');
+    }
+
     el.setAttribute('role', 'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label', `Puzzle piece ${piece.correctIndex + 1}`);
 
     el.addEventListener('pointerdown', beginPieceDrag);
+
     el.addEventListener('keydown', event => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -423,6 +393,7 @@ function createPieceElement(piece, context = 'tray') {
 
 function getVisiblePieces() {
   if (!puzzleState) return [];
+
   return puzzleState.pieces.filter(piece => {
     if (piece.placed) return false;
     if (puzzleState.filterMode === 'edges') return piece.isEdge;
@@ -432,7 +403,7 @@ function getVisiblePieces() {
 
 function updatePieceCounter() {
   const total = puzzleState.pieces.length;
-  const placed = puzzleState.pieces.filter(p => p.placed).length;
+  const placed = puzzleState.pieces.filter(piece => piece.placed).length;
   pieceCounterChip.textContent = `${placed} / ${total} placed`;
 }
 
@@ -446,42 +417,25 @@ function renderPuzzle() {
   puzzleBoard.style.setProperty('--puzzle-px', `${puzzleState.puzzlePx}px`);
   puzzleBoard.style.setProperty('--piece-px', `${puzzleState.piecePx}px`);
 
-  // Very faint completed-image guide under the board. It helps without solving it for the player.
   const guide = document.createElement('img');
   guide.className = 'puzzle-guide';
   guide.src = puzzleState.species.image;
   guide.alt = '';
   puzzleBoard.appendChild(guide);
 
-  puzzleState.pieces.filter(p => p.placed).forEach(piece => {
-    const el = createPieceElement(piece, 'board');
-    const left = piece.col * puzzleState.stepPx;
-    const top = piece.row * puzzleState.stepPx;
-    el.style.width = `${puzzleState.piecePx}px`;
-    el.style.height = `${puzzleState.piecePx}px`;
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-    puzzleBoard.appendChild(el);
-  });
-
-  // Optional tap-target markers are invisible until a piece is selected.
-  if (selectedPieceId) {
-    const selected = puzzleState.pieces.find(p => p.id === selectedPieceId && !p.placed);
-    if (selected) {
-      const target = document.createElement('button');
-      target.className = 'tap-snap-target';
-      target.type = 'button';
-      target.style.width = `${puzzleState.piecePx}px`;
-      target.style.height = `${puzzleState.piecePx}px`;
-      target.style.left = `${selected.col * puzzleState.stepPx}px`;
-      target.style.top = `${selected.row * puzzleState.stepPx}px`;
-      target.setAttribute('aria-label', 'Place selected piece here');
-      target.addEventListener('click', () => placePiece(selected));
-      puzzleBoard.appendChild(target);
-    }
-  }
+  puzzleState.pieces
+    .filter(piece => piece.placed)
+    .forEach(piece => {
+      const el = createPieceElement(piece, 'board');
+      el.style.width = `${puzzleState.piecePx}px`;
+      el.style.height = `${puzzleState.piecePx}px`;
+      el.style.left = `${piece.col * puzzleState.stepPx}px`;
+      el.style.top = `${piece.row * puzzleState.stepPx}px`;
+      puzzleBoard.appendChild(el);
+    });
 
   trayPieces.innerHTML = '';
+
   getVisiblePieces().forEach(piece => {
     const el = createPieceElement(piece, 'tray');
     trayPieces.appendChild(el);
@@ -496,10 +450,16 @@ function renderPuzzle() {
 function beginPieceDrag(event) {
   if (!puzzleState) return;
 
+  // Ignore non-primary mouse buttons.
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+
   const sourceEl = event.currentTarget;
   const pieceId = sourceEl.dataset.id;
   const piece = puzzleState.pieces.find(p => p.id === pieceId);
+
   if (!piece || piece.placed) return;
+
+  event.preventDefault();
 
   dragState.active = true;
   dragState.pieceId = pieceId;
@@ -514,7 +474,7 @@ function beginPieceDrag(event) {
 
   try {
     sourceEl.setPointerCapture(event.pointerId);
-  } catch (e) {}
+  } catch (error) {}
 
   sourceEl.addEventListener('pointermove', movePieceDrag);
   sourceEl.addEventListener('pointerup', endPieceDrag);
@@ -529,7 +489,7 @@ function movePieceDrag(event) {
     event.clientY - dragState.startY
   );
 
-  if (!dragState.moved && distance < 6) return;
+  if (!dragState.moved && distance < 5) return;
 
   if (!dragState.moved) {
     dragState.moved = true;
@@ -547,20 +507,25 @@ function createDragGhost() {
 
   const ghost = createPieceElement(piece, 'ghost');
   ghost.classList.add('drag-ghost');
-  ghost.style.width = `${Math.min(130, puzzleState.piecePx)}px`;
-  ghost.style.height = `${Math.min(130, puzzleState.piecePx)}px`;
+
+  const ghostSize = Math.min(150, puzzleState.piecePx);
+  ghost.style.width = `${ghostSize}px`;
+  ghost.style.height = `${ghostSize}px`;
+
   document.body.appendChild(ghost);
   dragState.ghostEl = ghost;
 }
 
 function positionDragGhost(x, y) {
   if (!dragState.ghostEl) return;
+
   dragState.ghostEl.style.left = `${x}px`;
   dragState.ghostEl.style.top = `${y}px`;
 }
 
 function getTargetCenter(piece) {
   const rect = puzzleBoard.getBoundingClientRect();
+
   return {
     x: rect.left + piece.col * puzzleState.stepPx + puzzleState.piecePx / 2,
     y: rect.top + piece.row * puzzleState.stepPx + puzzleState.piecePx / 2
@@ -569,10 +534,12 @@ function getTargetCenter(piece) {
 
 function updateSnapPreview(pointerX, pointerY) {
   puzzleBoard.classList.remove('snap-ready');
+
   const piece = puzzleState.pieces.find(p => p.id === dragState.pieceId);
   if (!piece) return;
 
   const boardRect = puzzleBoard.getBoundingClientRect();
+
   const overBoard =
     pointerX >= boardRect.left &&
     pointerX <= boardRect.right &&
@@ -583,6 +550,7 @@ function updateSnapPreview(pointerX, pointerY) {
 
   const target = getTargetCenter(piece);
   const distance = Math.hypot(pointerX - target.x, pointerY - target.y);
+
   if (distance <= puzzleState.snapDistance) {
     puzzleBoard.classList.add('snap-ready');
   }
@@ -621,11 +589,13 @@ function endPieceDrag(event) {
   const pieceId = dragState.pieceId;
   const moved = dragState.moved;
   const piece = puzzleState.pieces.find(p => p.id === pieceId);
+
   if (!piece) {
     cleanupDrag();
     return;
   }
 
+  // A simple tap selects the piece, useful with keyboard/touch accessibility.
   if (!moved) {
     selectedPieceId = pieceId;
     cleanupDrag();
@@ -634,6 +604,7 @@ function endPieceDrag(event) {
   }
 
   const boardRect = puzzleBoard.getBoundingClientRect();
+
   const overBoard =
     event.clientX >= boardRect.left &&
     event.clientX <= boardRect.right &&
@@ -641,9 +612,13 @@ function endPieceDrag(event) {
     event.clientY <= boardRect.bottom;
 
   let canSnap = false;
+
   if (overBoard) {
     const target = getTargetCenter(piece);
-    const distance = Math.hypot(event.clientX - target.x, event.clientY - target.y);
+    const distance = Math.hypot(
+      event.clientX - target.x,
+      event.clientY - target.y
+    );
     canSnap = distance <= puzzleState.snapDistance;
   }
 
@@ -652,9 +627,13 @@ function endPieceDrag(event) {
   if (canSnap) {
     placePiece(piece);
   } else {
-    selectedPieceId = pieceId;
+    selectedPieceId = null;
     renderPuzzle();
-    showToast(overBoard ? 'Close — move it nearer its matching shape.' : 'Drop the piece onto the puzzle board.');
+    showToast(
+      overBoard
+        ? 'Close — move it nearer its matching position.'
+        : 'Drop the piece onto the puzzle board.'
+    );
   }
 }
 
@@ -663,11 +642,12 @@ function placePiece(piece) {
 
   piece.placed = true;
   selectedPieceId = null;
+
   checkBorderComplete();
 
   if (puzzleState.pieces.every(p => p.placed)) {
     renderPuzzle();
-    setTimeout(finishPuzzle, 280);
+    setTimeout(finishPuzzle, 300);
   } else {
     renderPuzzle();
     showToast('Click! Nice fit.');
@@ -676,7 +656,10 @@ function placePiece(piece) {
 
 function checkBorderComplete() {
   if (puzzleState.borderPromptShown) return;
-  const edgesDone = puzzleState.pieces.filter(p => p.isEdge).every(p => p.placed);
+
+  const edgesDone = puzzleState.pieces
+    .filter(piece => piece.isEdge)
+    .every(piece => piece.placed);
 
   if (edgesDone) {
     puzzleState.borderPromptShown = true;
@@ -697,6 +680,7 @@ function finishPuzzle() {
 
   cooler[id].catches += 1;
   cooler[id].lastWater = currentWater?.name || puzzleState.species.water;
+
   saveCooler();
 
   completeImage.src = puzzleState.species.image;
@@ -704,6 +688,7 @@ function finishPuzzle() {
   completeScientific.textContent = puzzleState.species.scientificName;
   completeDescription.textContent = puzzleState.species.description;
   completeHistory.textContent = puzzleState.species.history;
+
   updateCoolerChip();
 
   showScreen('complete');
@@ -712,6 +697,7 @@ function finishPuzzle() {
 
 edgesOnlyBtn.addEventListener('click', () => {
   if (!puzzleState) return;
+
   puzzleState.filterMode = 'edges';
   selectedPieceId = null;
   renderPuzzle();
@@ -719,6 +705,7 @@ edgesOnlyBtn.addEventListener('click', () => {
 
 allPiecesBtn.addEventListener('click', () => {
   if (!puzzleState) return;
+
   puzzleState.filterMode = 'all';
   selectedPieceId = null;
   renderPuzzle();
@@ -726,18 +713,19 @@ allPiecesBtn.addEventListener('click', () => {
 
 spreadPiecesBtn.addEventListener('click', () => {
   if (!puzzleState) return;
-  // "Spread" only rearranges the visible tray order; it never moves board pieces.
-  const placed = puzzleState.pieces.filter(p => p.placed);
-  const loose = puzzleState.pieces.filter(p => !p.placed);
+
+  const placed = puzzleState.pieces.filter(piece => piece.placed);
+  const loose = puzzleState.pieces.filter(piece => !piece.placed);
+
   puzzleState.pieces = [...placed, ...shuffled(loose)];
   selectedPieceId = null;
+
   renderPuzzle();
   showToast('Loose pieces have been spread through the Tackle Tray.');
 });
 
 fishAgainBtn.addEventListener('click', () => {
-  if (currentWater) startFishing(currentWater.id);
-  else showScreen('waters');
+  showScreen('waters');
 });
 
 openCoolerBtn.addEventListener('click', () => {
@@ -753,11 +741,13 @@ function renderCooler() {
     const fish = speciesData[id];
     const caught = !!cooler[id];
     const card = document.createElement('article');
+
     card.className = `cooler-card ${caught ? '' : 'locked'}`;
 
     if (caught) {
       const meta = cooler[id];
       const discoveredDate = new Date(meta.firstCaughtAt);
+
       card.innerHTML = `
         <img src="${fish.image}" alt="${fish.commonName}" />
         <div class="cooler-body">
@@ -774,7 +764,7 @@ function renderCooler() {
         <div class="locked-art">🎣</div>
         <div class="cooler-body">
           <h3>Unknown Species</h3>
-          <p class="muted">Keep fishing to discover this entry for your Fish Cooler.</p>
+          <p class="muted">Keep solving to discover this entry for your Fish Cooler.</p>
           <p><strong>Likely water:</strong> ${fish.water}</p>
         </div>
       `;
