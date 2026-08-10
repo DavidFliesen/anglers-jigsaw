@@ -433,3 +433,82 @@ body{min-height:100vh}
     width:min(100%, 520px);
   }
 }
+
+
+/* === Angler's Jigsaw v0.4 fixes === */
+
+/* Prevent iPad/iPhone double-tap zoom during game controls and dragging. */
+html, body, button, .jigsaw-piece, .puzzle-board, .tray-pieces {
+  touch-action: manipulation;
+}
+
+.jigsaw-piece,
+.puzzle-board,
+.tray-pieces {
+  touch-action: none;
+}
+
+/* True transparent jigsaw silhouettes. */
+.jigsaw-piece {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.jigsaw-piece svg {
+  overflow: visible;
+}
+
+.piece-fill {
+  stroke: none;
+}
+
+.piece-outline {
+  fill: none;
+  stroke: rgba(250, 246, 226, .92);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1.5px 1px rgba(0,0,0,.65));
+}
+
+.tray-piece {
+  width: 120px;
+  height: 120px;
+  padding: 0;
+  box-shadow: none !important;
+  filter: drop-shadow(0 8px 7px rgba(0,0,0,.34));
+}
+
+.board-piece {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Remove old square puzzle-slot visuals if cached CSS contains them. */
+.board-slot,
+.piece {
+  background: transparent;
+}
+
+/* Water cards now function as simple habitat selectors. */
+.water-card .water-hotspots {
+  margin-top: auto;
+}
+
+/* No fishing mini-game is used in v0.4. */
+.fishing-scene,
+.cast-panel,
+.hotspots,
+.reel-panel {
+  display: none !important;
+}
+
+@media (max-width: 740px) {
+  .tray-piece {
+    width: 102px;
+    height: 102px;
+  }
+}
