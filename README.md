@@ -58,3 +58,12 @@ The implementation uses the browser Pointer Events API rather than old desktop-o
 ### Important
 This is still the starter 3x3 difficulty so the interaction can be tested cleanly.
 The engine is structured to support larger piece counts next.
+
+
+## v0.4 — puzzle silhouette and iPad interaction fix
+- Removed the fishing/reel mini-game. Choosing a body of water now immediately selects a fish from that habitat and starts the puzzle.
+- Rebuilt the puzzle-piece renderer to use SVG image patterns inside traditional jigsaw silhouettes instead of clipped rectangular images.
+- Tabs and blanks now render transparently outside the actual piece shape.
+- Matching shared edges are exact opposites, so neighboring pieces visually interlock.
+- Added iOS/iPadOS touch handling to prevent repeated taps and puzzle dragging from triggering browser zoom.
+- Kept Edges Only, All Pieces, Spread Pieces, snapping, and the Fish Cooler.

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#173d2d" />
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
@@ -44,8 +44,8 @@
 
       <div class="feature-grid">
         <article class="feature-card">
-          <h3>Fishing First</h3>
-          <p>Choose a water, fish a hotspot, and trigger the catch before the puzzle begins.</p>
+          <h3>Choose Your Water</h3>
+          <p>Pick a habitat and discover a fish from that body of water. The puzzle starts immediately.</p>
         </article>
         <article class="feature-card">
           <h3>Edges Only</h3>
@@ -63,12 +63,11 @@
         <h2>How to Play</h2>
         <ol class="how-list">
           <li>Choose a body of water.</li>
-          <li>Tap a fishing hotspot to cast your line.</li>
-          <li>When you get a bite, reel the fish in before it gets away.</li>
-          <li>The catch transforms into a puzzle.</li>
-          <li>Drag true interlocking jigsaw pieces from the Tackle Tray onto the board. Pieces snap into place when they are close to the correct position.</li>
+          <li>A fish from that habitat is selected for your puzzle.</li>
+          <li>Drag traditional interlocking jigsaw pieces from the Tackle Tray onto the board.</li>
+          <li>Pieces snap into place when they are close to the correct position.</li>
           <li>Use <strong>Edges Only</strong> if you like starting with the border.</li>
-          <li>Complete the fish to finish the level and add it to your Fish Cooler.</li>
+          <li>Complete the fish to learn about the species and add it to your Fish Cooler.</li>
         </ol>
         <div class="button-row">
           <button class="primary-btn" id="howStartBtn">Choose Water</button>
@@ -80,41 +79,8 @@
     <section id="screen-waters" class="screen">
       <div class="panel-card">
         <h2>Choose a Body of Water</h2>
-        <p class="muted">Each water has its own fish species and fishing hotspots.</p>
+        <p class="muted">Choose a habitat. Angler’s Jigsaw will select a fish from that water and begin the puzzle.</p>
         <div id="watersGrid" class="waters-grid"></div>
-      </div>
-    </section>
-
-    <section id="screen-fishing" class="screen">
-      <div class="panel-card">
-        <div class="water-header">
-          <div>
-            <h2 id="waterTitle">Fishing Water</h2>
-            <p id="waterTagline" class="muted"></p>
-          </div>
-          <div class="chip">Hotspots</div>
-        </div>
-
-        <div class="fishing-scene">
-          <div class="scene-overlay">
-            <div class="cast-panel">
-              <p id="fishingStatus">Pick a hotspot to cast your line.</p>
-              <div id="hotspots" class="hotspots"></div>
-              <div id="reelPanel" class="reel-panel hidden">
-                <div class="meter-wrap">
-                  <label>Line Tension</label>
-                  <div class="meter"><div id="reelFill" class="meter-fill"></div></div>
-                </div>
-                <button class="primary-btn" id="reelBtn">Reel In</button>
-                <p id="reelHelp" class="tiny-copy">Tap quickly to land your fish before it gets away.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="button-row">
-          <button class="secondary-btn" id="backToWatersBtn">Choose Another Water</button>
-        </div>
       </div>
     </section>
 
