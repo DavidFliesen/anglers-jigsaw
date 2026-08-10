@@ -9,8 +9,8 @@
       <stop offset="1" stop-color="#295d67"/>
     </linearGradient>
     <linearGradient id="fishGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f0c85d"/>
-      <stop offset="1" stop-color="#4f89a8"/>
+      <stop offset="0" stop-color="#d9c6a6"/>
+      <stop offset="1" stop-color="#8a7b68"/>
     </linearGradient>
   </defs>
 
@@ -22,26 +22,27 @@
     <circle cx="710" cy="130" r="52"/><circle cx="775" cy="110" r="45"/><circle cx="835" cy="145" r="58"/>
   </g>
 
-  <text x="450" y="72" text-anchor="middle" font-size="40" font-family="Arial, sans-serif" fill="#16353a" font-weight="700">Bluegill</text>
-  <text x="450" y="108" text-anchor="middle" font-size="20" font-family="Georgia, serif" fill="#20424a" font-style="italic">Lepomis macrochirus</text>
+  <text x="450" y="72" text-anchor="middle" font-size="40" font-family="Arial, sans-serif" fill="#16353a" font-weight="700">Channel Catfish</text>
+  <text x="450" y="108" text-anchor="middle" font-size="20" font-family="Georgia, serif" fill="#20424a" font-style="italic">Ictalurus punctatus</text>
   <text x="450" y="840" text-anchor="middle" font-size="24" font-family="Arial, sans-serif" fill="#f4faf9" font-weight="700">Caught in Farm Pond</text>
 
   <g>
     <ellipse cx="425" cy="235" rx="255" ry="115" fill="url(#fishGrad)" stroke="#f6f2dc" stroke-width="8"/>
-    <polygon points="165,235 70,155 70,315" fill="#4f89a8" stroke="#f6f2dc" stroke-width="8"/>
-    <polygon points="352,135 455,70 520,140" fill="#4f89a8" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
-    <polygon points="375,335 500,310 445,390" fill="#4f89a8" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
-    <polygon points="520,315 620,375 555,278" fill="#4f89a8" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
+    <polygon points="165,235 70,155 70,315" fill="#8a7b68" stroke="#f6f2dc" stroke-width="8"/>
+    <polygon points="352,135 455,70 520,140" fill="#8a7b68" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
+    <polygon points="375,335 500,310 445,390" fill="#8a7b68" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
+    <polygon points="520,315 620,375 555,278" fill="#8a7b68" opacity="0.95" stroke="#f6f2dc" stroke-width="7"/>
     <circle cx="625" cy="210" r="16" fill="#0d1d22"/><circle cx="630" cy="205" r="5" fill="#fff"/>
     <path d="M660 220 Q720 250 760 228 Q720 278 648 268" fill="#f1ecd6" opacity="0.95" stroke="#f6f2dc" stroke-width="6"/>
     <path d="M190 235 Q270 270 390 286 Q530 304 635 285" stroke="#f1ecd6" stroke-width="6" fill="none" opacity="0.7"/>
     
-        <g opacity="0.32" stroke="#2a4b5c" stroke-width="16">
-          <line x1="255" y1="142" x2="225" y2="300"/><line x1="320" y1="132" x2="290" y2="318"/>
-          <line x1="390" y1="130" x2="360" y2="325"/><line x1="460" y1="138" x2="430" y2="320"/>
-          <line x1="530" y1="145" x2="500" y2="305"/>
-        </g>
     
+        <g stroke="#d9c6a6" stroke-width="5" fill="none" opacity="0.9">
+          <path d="M675 205 C730 200, 770 220, 790 242"/>
+          <path d="M675 215 C735 220, 770 252, 790 282"/>
+          <path d="M670 195 C735 178, 770 160, 792 132"/>
+          <path d="M670 225 C735 244, 770 292, 790 322"/>
+        </g>
   </g>
 
   <g opacity="0.45" stroke="#f7f8f0" stroke-width="4" fill="none">
