@@ -672,3 +672,136 @@ button {
     flex-direction: column;
   }
 }
+
+
+/* === Angler's Jigsaw v0.8 — animated water backgrounds === */
+
+/* Home screen water backdrop behind the centered logo/text/buttons */
+#screen-home .home-simple {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 34px;
+  border: 1px solid rgba(226, 198, 130, .16);
+  background:
+    linear-gradient(180deg, rgba(11, 42, 31, .78), rgba(7, 27, 20, .88));
+  box-shadow: var(--shadow);
+}
+
+#screen-home .home-simple > * {
+  position: relative;
+  z-index: 2;
+}
+
+#screen-home .home-simple::before,
+#screen-home .home-simple::after,
+.puzzle-board::before,
+.puzzle-board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Deeper moving water body */
+#screen-home .home-simple::before,
+.puzzle-board::before {
+  z-index: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(13, 72, 108, .42) 0%,
+      rgba(18, 85, 119, .34) 24%,
+      rgba(13, 68, 94, .40) 50%,
+      rgba(9, 47, 69, .48) 76%,
+      rgba(6, 32, 45, .56) 100%
+    );
+}
+
+/* Shimmering wave bands */
+#screen-home .home-simple::after,
+.puzzle-board::after {
+  z-index: 1;
+  background:
+    radial-gradient(120% 26% at 12% 18%,
+      rgba(180, 233, 255, .18) 0%,
+      rgba(180, 233, 255, .08) 23%,
+      rgba(180, 233, 255, 0) 24%) 0 0 / 260px 130px repeat-x,
+    radial-gradient(120% 24% at 52% 42%,
+      rgba(255, 255, 255, .12) 0%,
+      rgba(255, 255, 255, .05) 22%,
+      rgba(255, 255, 255, 0) 23%) 0 42px / 220px 118px repeat-x,
+    radial-gradient(120% 24% at 72% 70%,
+      rgba(138, 214, 248, .13) 0%,
+      rgba(138, 214, 248, .05) 20%,
+      rgba(138, 214, 248, 0) 21%) 0 78px / 240px 120px repeat-x,
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+  opacity: .82;
+  mix-blend-mode: screen;
+  animation: waterWaveDrift 18s linear infinite;
+}
+
+/* Extra caustic shimmer layer on the home screen */
+#screen-home .home-simple {
+  background-image:
+    radial-gradient(circle at 24% 18%, rgba(255,255,255,.05), transparent 16%),
+    radial-gradient(circle at 70% 28%, rgba(255,255,255,.04), transparent 18%),
+    linear-gradient(180deg, rgba(11, 42, 31, .78), rgba(7, 27, 20, .88));
+  animation: waterGlowPulse 8s ease-in-out infinite alternate;
+}
+
+/* Keep puzzle pieces above the animated water */
+.puzzle-board {
+  isolation: isolate;
+}
+
+.puzzle-board > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Slow wave movement */
+@keyframes waterWaveDrift {
+  0% {
+    background-position:
+      0 0,
+      0 42px,
+      0 78px,
+      0 0;
+    transform: translateX(0);
+  }
+  50% {
+    background-position:
+      -130px 8px,
+      -100px 34px,
+      -120px 86px,
+      0 0;
+    transform: translateX(-4px);
+  }
+  100% {
+    background-position:
+      -260px 0,
+      -220px 42px,
+      -240px 78px,
+      0 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes waterGlowPulse {
+  0% {
+    box-shadow: var(--shadow);
+    filter: saturate(1) brightness(1);
+  }
+  100% {
+    box-shadow:
+      0 18px 38px rgba(0, 0, 0, .26),
+      inset 0 0 0 1px rgba(226, 198, 130, .05);
+    filter: saturate(1.05) brightness(1.03);
+  }
+}
+
+/* Slightly subtler motion inside the puzzle table so the pieces remain readable */
+.puzzle-board::after {
+  opacity: .58;
+  animation-duration: 22s;
+}
