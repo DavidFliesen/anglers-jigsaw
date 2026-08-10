@@ -190,6 +190,7 @@ function generatePieceEdges(size) {
   return edges;
 }
 
+
 function startPuzzle(species) {
   selectedPieceId = null;
 
@@ -206,9 +207,14 @@ function startPuzzle(species) {
       correctIndex: i,
       row,
       col,
-      placed: false,
       isEdge: isEdgeIndex(i, size),
-      edges: edges[i]
+      edges: edges[i],
+
+      // Real jigsaw state:
+      onBoard: false,
+      boardX: 0,
+      boardY: 0,
+      clusterId: null
     });
   }
 
@@ -219,45 +225,53 @@ function startPuzzle(species) {
     filterMode: 'edges',
     borderPromptShown: false,
     piecePx: 130,
-    stepPx: 100,
-    puzzlePx: 330,
-    snapDistance: 58
+    stepPx: 97.5,
+    puzzlePx: 325,
+    snapDistance: 46,
+    nextClusterId: 1
   };
 
   showScreen('puzzle');
-  showToast('Edges Only is on. Build the border first.');
+  showToast('Edges Only is on. Put the border pieces out first.');
 }
 
 function updatePuzzleGeometry() {
   if (!puzzleState) return;
 
   const boardRect = puzzleBoard.getBoundingClientRect();
-  const usable = Math.max(260, Math.min(boardRect.width || 560, boardRect.height || 560));
-  const size = puzzleState.size;
+  const usable = Math.max(
+    260,
+    Math.min(boardRect.width || 560, boardRect.height || 560)
+  );
 
-  // Piece viewBox is 120×120 and logical cell step is 90.
-  const piecePx = usable / (0.75 * size + 0.25);
+  const oldPiecePx = puzzleState.piecePx || 0;
+
+  // Piece SVG is 120×120. Neighboring cell bodies advance 90 SVG units,
+  // so the visual overlap is 75% of a full piece.
+  const piecePx = Math.min(172, Math.max(108, usable * 0.29));
   const stepPx = piecePx * 0.75;
-  const puzzlePx = stepPx * (size - 1) + piecePx;
 
   puzzleState.piecePx = piecePx;
   puzzleState.stepPx = stepPx;
-  puzzleState.puzzlePx = puzzlePx;
+  puzzleState.puzzlePx = stepPx * (puzzleState.size - 1) + piecePx;
+  puzzleState.snapDistance = Math.max(38, piecePx * 0.34);
 
-  // The completed puzzle is centered inside the larger play board.
-  // All placed pieces and snap targets must use this same origin.
-  puzzleState.originX = Math.max(0, (boardRect.width - puzzlePx) / 2);
-  puzzleState.originY = Math.max(0, (boardRect.height - puzzlePx) / 2);
-
-  // Generous snap radius for touch devices. The actual piece still lands
-  // only in its correct location.
-  puzzleState.snapDistance = Math.max(48, piecePx * 0.58);
+  // Keep loose board arrangements proportional if the device rotates/resizes.
+  if (oldPiecePx > 0 && Math.abs(oldPiecePx - piecePx) > 0.5) {
+    const scale = piecePx / oldPiecePx;
+    puzzleState.pieces.forEach(piece => {
+      if (piece.onBoard) {
+        piece.boardX *= scale;
+        piece.boardY *= scale;
+      }
+    });
+  }
 }
 
 /*
   Traditional jigsaw silhouette.
-  The outline lives inside a 120×120 box. The normal cell body is 90×90
-  from 15..105, leaving room for tabs to protrude to 0 or 120.
+  Normal cell body is 90×90 inside a 120×120 box, leaving 15 units around
+  the body for outward tabs.
 */
 function piecePath(edges) {
   const { top, right, bottom, left } = edges;
@@ -278,51 +292,47 @@ function piecePath(edges) {
 
   let d = `M ${leftBase} ${topBase}`;
 
-  // TOP — left to right
   if (top === 0) {
     d += ` L ${rightBase} ${topBase}`;
   } else {
     const y = top === 1 ? outerTop : innerTop;
     d += `
-      L 48 ${topBase}
-      C 50 ${topBase}, 50 ${y}, 60 ${y}
-      C 70 ${y}, 70 ${topBase}, 72 ${topBase}
+      L 46 ${topBase}
+      C 50 ${topBase}, 49 ${y}, 60 ${y}
+      C 71 ${y}, 70 ${topBase}, 74 ${topBase}
       L ${rightBase} ${topBase}`;
   }
 
-  // RIGHT — top to bottom
   if (right === 0) {
     d += ` L ${rightBase} ${bottomBase}`;
   } else {
     const x = right === 1 ? outerRight : innerRight;
     d += `
-      L ${rightBase} 48
-      C ${rightBase} 50, ${x} 50, ${x} 60
-      C ${x} 70, ${rightBase} 70, ${rightBase} 72
+      L ${rightBase} 46
+      C ${rightBase} 50, ${x} 49, ${x} 60
+      C ${x} 71, ${rightBase} 70, ${rightBase} 74
       L ${rightBase} ${bottomBase}`;
   }
 
-  // BOTTOM — right to left
   if (bottom === 0) {
     d += ` L ${leftBase} ${bottomBase}`;
   } else {
     const y = bottom === 1 ? outerBottom : innerBottom;
     d += `
-      L 72 ${bottomBase}
-      C 70 ${bottomBase}, 70 ${y}, 60 ${y}
-      C 50 ${y}, 50 ${bottomBase}, 48 ${bottomBase}
+      L 74 ${bottomBase}
+      C 70 ${bottomBase}, 71 ${y}, 60 ${y}
+      C 49 ${y}, 50 ${bottomBase}, 46 ${bottomBase}
       L ${leftBase} ${bottomBase}`;
   }
 
-  // LEFT — bottom to top
   if (left === 0) {
     d += ` L ${leftBase} ${topBase}`;
   } else {
     const x = left === 1 ? outerLeft : innerLeft;
     d += `
-      L ${leftBase} 72
-      C ${leftBase} 70, ${x} 70, ${x} 60
-      C ${x} 50, ${leftBase} 50, ${leftBase} 48
+      L ${leftBase} 74
+      C ${leftBase} 70, ${x} 71, ${x} 60
+      C ${x} 49, ${leftBase} 50, ${leftBase} 46
       L ${leftBase} ${topBase}`;
   }
 
@@ -330,40 +340,38 @@ function piecePath(edges) {
 }
 
 /*
-  Uses an SVG <pattern> filled into the jigsaw path instead of clipping a
-  rectangular image. This makes the transparent tabs/blanks render reliably
-  in Safari/iPadOS as well as Chrome/Firefox/desktop browsers.
+  Paint the same source image across every piece in one common coordinate
+  system. When two pieces snap together, their image portions line up too.
 */
 function pieceSvgMarkup(piece, uniqueId) {
   const size = puzzleState.size;
   const imageStep = 90;
   const fullImageSize = imageStep * size;
-
-  // Each piece image is shifted so its own cell lines up inside its silhouette.
-  const imageX = 15 - (piece.col * imageStep);
-  const imageY = 15 - (piece.row * imageStep);
-
   const path = piecePath(piece.edges);
+
+  const imageX = 15 - piece.col * imageStep;
+  const imageY = 15 - piece.row * imageStep;
 
   return `
     <svg viewBox="0 0 120 120" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <pattern id="${uniqueId}" patternUnits="userSpaceOnUse"
-                 x="${imageX}" y="${imageY}"
-                 width="${fullImageSize}" height="${fullImageSize}">
-          <image href="${puzzleState.species.image}"
-                 x="0" y="0"
-                 width="${fullImageSize}" height="${fullImageSize}"
-                 preserveAspectRatio="xMidYMid slice"></image>
-        </pattern>
+        <clipPath id="${uniqueId}">
+          <path d="${path}"></path>
+        </clipPath>
       </defs>
 
-      <path d="${path}"
-            fill="url(#${uniqueId})"
-            class="piece-fill"></path>
+      <g clip-path="url(#${uniqueId})">
+        <image
+          href="${puzzleState.species.image}"
+          x="${imageX}"
+          y="${imageY}"
+          width="${fullImageSize}"
+          height="${fullImageSize}"
+          preserveAspectRatio="none">
+        </image>
+      </g>
 
-      <path d="${path}"
-            class="piece-outline"></path>
+      <path d="${path}" class="piece-outline"></path>
     </svg>
   `;
 }
@@ -373,27 +381,18 @@ function createPieceElement(piece, context = 'tray') {
   el.className = `jigsaw-piece ${context === 'board' ? 'board-piece' : 'tray-piece'}`;
   el.dataset.id = piece.id;
 
-  const uid = `pat-${piece.id}-${context}-${Math.random().toString(36).slice(2)}`;
+  if (piece.clusterId != null) {
+    el.dataset.cluster = String(piece.clusterId);
+  }
+
+  const uid = `clip-${piece.id}-${context}-${Math.random().toString(36).slice(2)}`;
   el.innerHTML = pieceSvgMarkup(piece, uid);
 
-  if (context === 'tray') {
-    if (selectedPieceId === piece.id) {
-      el.classList.add('selected');
-    }
-
+  if (context === 'tray' || context === 'board') {
     el.setAttribute('role', 'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label', `Puzzle piece ${piece.correctIndex + 1}`);
-
     el.addEventListener('pointerdown', beginPieceDrag);
-
-    el.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        selectedPieceId = piece.id;
-        renderPuzzle();
-      }
-    });
   }
 
   return el;
@@ -403,7 +402,7 @@ function getVisiblePieces() {
   if (!puzzleState) return [];
 
   return puzzleState.pieces.filter(piece => {
-    if (piece.placed) return false;
+    if (piece.onBoard) return false;
     if (puzzleState.filterMode === 'edges') return piece.isEdge;
     return true;
   });
@@ -411,8 +410,13 @@ function getVisiblePieces() {
 
 function updatePieceCounter() {
   const total = puzzleState.pieces.length;
-  const placed = puzzleState.pieces.filter(piece => piece.placed).length;
-  pieceCounterChip.textContent = `${placed} / ${total} placed`;
+  const onBoard = puzzleState.pieces.filter(piece => piece.onBoard).length;
+
+  if (isPuzzleComplete()) {
+    pieceCounterChip.textContent = `${total} / ${total} connected`;
+  } else {
+    pieceCounterChip.textContent = `${onBoard} / ${total} on board`;
+  }
 }
 
 function renderPuzzle() {
@@ -422,23 +426,18 @@ function renderPuzzle() {
   updatePieceCounter();
 
   puzzleBoard.innerHTML = '';
-  puzzleBoard.style.setProperty('--puzzle-px', `${puzzleState.puzzlePx}px`);
-  puzzleBoard.style.setProperty('--piece-px', `${puzzleState.piecePx}px`);
-
-  const guide = document.createElement('img');
-  guide.className = 'puzzle-guide';
-  guide.src = puzzleState.species.image;
-  guide.alt = '';
-  puzzleBoard.appendChild(guide);
+  puzzleBoard.classList.add('free-jigsaw-board');
 
   puzzleState.pieces
-    .filter(piece => piece.placed)
+    .filter(piece => piece.onBoard)
     .forEach(piece => {
       const el = createPieceElement(piece, 'board');
+
       el.style.width = `${puzzleState.piecePx}px`;
       el.style.height = `${puzzleState.piecePx}px`;
-      el.style.left = `${puzzleState.originX + piece.col * puzzleState.stepPx}px`;
-      el.style.top = `${puzzleState.originY + piece.row * puzzleState.stepPx}px`;
+      el.style.left = `${piece.boardX}px`;
+      el.style.top = `${piece.boardY}px`;
+
       puzzleBoard.appendChild(el);
     });
 
@@ -455,19 +454,24 @@ function renderPuzzle() {
   allPiecesBtn.classList.toggle('secondary-btn', puzzleState.filterMode !== 'all');
 }
 
+function getClusterPieces(clusterId) {
+  return puzzleState.pieces.filter(
+    piece => piece.onBoard && piece.clusterId === clusterId
+  );
+}
+
 function beginPieceDrag(event) {
   if (!puzzleState) return;
-
-  // Ignore non-primary mouse buttons.
   if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+  event.preventDefault();
 
   const sourceEl = event.currentTarget;
   const pieceId = sourceEl.dataset.id;
   const piece = puzzleState.pieces.find(p => p.id === pieceId);
+  if (!piece) return;
 
-  if (!piece || piece.placed) return;
-
-  event.preventDefault();
+  const rect = sourceEl.getBoundingClientRect();
 
   dragState.active = true;
   dragState.pieceId = pieceId;
@@ -477,8 +481,34 @@ function beginPieceDrag(event) {
   dragState.startY = event.clientY;
   dragState.moved = false;
 
-  selectedPieceId = pieceId;
-  sourceEl.classList.add('drag-source');
+  // Preserve where the finger/mouse grabbed the piece.
+  dragState.grabFracX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  dragState.grabFracY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+
+  if (piece.onBoard) {
+    dragState.fromTray = false;
+    dragState.clusterId = piece.clusterId;
+    dragState.anchorBoardX = piece.boardX;
+    dragState.anchorBoardY = piece.boardY;
+
+    const clusterPieces = getClusterPieces(piece.clusterId);
+    dragState.members = clusterPieces.map(member => ({
+      id: member.id,
+      relX: member.boardX - piece.boardX,
+      relY: member.boardY - piece.boardY
+    }));
+
+    document.querySelectorAll(
+      `.board-piece[data-cluster="${piece.clusterId}"]`
+    ).forEach(node => node.classList.add('drag-source'));
+  } else {
+    dragState.fromTray = true;
+    dragState.clusterId = null;
+    dragState.anchorBoardX = 0;
+    dragState.anchorBoardY = 0;
+    dragState.members = [{ id: piece.id, relX: 0, relY: 0 }];
+    sourceEl.classList.add('drag-source');
+  }
 
   try {
     sourceEl.setPointerCapture(event.pointerId);
@@ -501,87 +531,61 @@ function movePieceDrag(event) {
 
   if (!dragState.moved) {
     dragState.moved = true;
-    createDragGhost();
+    createDragGhosts();
   }
 
   event.preventDefault();
-  positionDragGhost(event.clientX, event.clientY);
-  updateSnapPreview(event.clientX, event.clientY);
+  positionDragGhosts(event.clientX, event.clientY);
+  updateSnapPreview();
 }
 
-function createDragGhost() {
-  const piece = puzzleState.pieces.find(p => p.id === dragState.pieceId);
-  if (!piece) return;
+function createDragGhosts() {
+  dragState.ghostEls = [];
 
-  const ghost = createPieceElement(piece, 'ghost');
-  ghost.classList.add('drag-ghost');
+  dragState.members.forEach(memberInfo => {
+    const piece = puzzleState.pieces.find(p => p.id === memberInfo.id);
+    if (!piece) return;
 
-  const ghostSize = Math.min(150, puzzleState.piecePx);
-  ghost.style.width = `${ghostSize}px`;
-  ghost.style.height = `${ghostSize}px`;
+    const ghost = createPieceElement(piece, 'ghost');
+    ghost.classList.add('drag-ghost', 'cluster-ghost');
 
-  document.body.appendChild(ghost);
-  dragState.ghostEl = ghost;
+    ghost.style.width = `${puzzleState.piecePx}px`;
+    ghost.style.height = `${puzzleState.piecePx}px`;
+
+    document.body.appendChild(ghost);
+
+    dragState.ghostEls.push({
+      el: ghost,
+      relX: memberInfo.relX,
+      relY: memberInfo.relY
+    });
+  });
 }
 
-function positionDragGhost(x, y) {
-  if (!dragState.ghostEl) return;
+function positionDragGhosts(pointerX, pointerY) {
+  const anchorLeft =
+    pointerX - dragState.grabFracX * puzzleState.piecePx;
+  const anchorTop =
+    pointerY - dragState.grabFracY * puzzleState.piecePx;
 
-  dragState.ghostEl.style.left = `${x}px`;
-  dragState.ghostEl.style.top = `${y}px`;
-}
-
-function getTargetCenter(piece) {
-  const rect = puzzleBoard.getBoundingClientRect();
-
-  return {
-    x: rect.left + puzzleState.originX +
-       piece.col * puzzleState.stepPx + puzzleState.piecePx / 2,
-    y: rect.top + puzzleState.originY +
-       piece.row * puzzleState.stepPx + puzzleState.piecePx / 2
-  };
-}
-
-function updateSnapPreview(pointerX, pointerY) {
-  puzzleBoard.classList.remove('snap-ready');
-
-  const piece = puzzleState.pieces.find(p => p.id === dragState.pieceId);
-  if (!piece) return;
-
-  const boardRect = puzzleBoard.getBoundingClientRect();
-
-  const overBoard =
-    pointerX >= boardRect.left &&
-    pointerX <= boardRect.right &&
-    pointerY >= boardRect.top &&
-    pointerY <= boardRect.bottom;
-
-  if (!overBoard) return;
-
-  const target = getTargetCenter(piece);
-  const distance = Math.hypot(pointerX - target.x, pointerY - target.y);
-  const half = puzzleState.piecePx * 0.62;
-
-  const insideTargetBox =
-    pointerX >= target.x - half &&
-    pointerX <= target.x + half &&
-    pointerY >= target.y - half &&
-    pointerY <= target.y + half;
-
-  if (distance <= puzzleState.snapDistance || insideTargetBox) {
-    puzzleBoard.classList.add('snap-ready');
-  }
+  (dragState.ghostEls || []).forEach(ghostInfo => {
+    ghostInfo.el.style.left = `${anchorLeft + ghostInfo.relX}px`;
+    ghostInfo.el.style.top = `${anchorTop + ghostInfo.relY}px`;
+  });
 }
 
 function cleanupDrag() {
   if (dragState.sourceEl) {
-    dragState.sourceEl.classList.remove('drag-source');
     dragState.sourceEl.removeEventListener('pointermove', movePieceDrag);
     dragState.sourceEl.removeEventListener('pointerup', endPieceDrag);
     dragState.sourceEl.removeEventListener('pointercancel', cancelPieceDrag);
   }
 
-  dragState.ghostEl?.remove();
+  document.querySelectorAll('.drag-source').forEach(node => {
+    node.classList.remove('drag-source');
+  });
+
+  (dragState.ghostEls || []).forEach(info => info.el.remove());
   puzzleBoard.classList.remove('snap-ready');
 
   dragState = {
@@ -589,7 +593,7 @@ function cleanupDrag() {
     pieceId: null,
     pointerId: null,
     sourceEl: null,
-    ghostEl: null,
+    ghostEls: [],
     startX: 0,
     startY: 0,
     moved: false
@@ -600,23 +604,44 @@ function cancelPieceDrag() {
   cleanupDrag();
 }
 
+function clampClusterToBoard(clusterPieces) {
+  const boardRect = puzzleBoard.getBoundingClientRect();
+  const piecePx = puzzleState.piecePx;
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  clusterPieces.forEach(piece => {
+    minX = Math.min(minX, piece.boardX);
+    minY = Math.min(minY, piece.boardY);
+    maxX = Math.max(maxX, piece.boardX + piecePx);
+    maxY = Math.max(maxY, piece.boardY + piecePx);
+  });
+
+  let shiftX = 0;
+  let shiftY = 0;
+
+  if (minX < 0) shiftX = -minX;
+  if (minY < 0) shiftY = -minY;
+  if (maxX > boardRect.width) shiftX = boardRect.width - maxX;
+  if (maxY > boardRect.height) shiftY = boardRect.height - maxY;
+
+  if (shiftX || shiftY) {
+    clusterPieces.forEach(piece => {
+      piece.boardX += shiftX;
+      piece.boardY += shiftY;
+    });
+  }
+}
+
 function endPieceDrag(event) {
   if (!dragState.active || event.pointerId !== dragState.pointerId) return;
 
-  const pieceId = dragState.pieceId;
-  const moved = dragState.moved;
-  const piece = puzzleState.pieces.find(p => p.id === pieceId);
-
+  const piece = puzzleState.pieces.find(p => p.id === dragState.pieceId);
   if (!piece) {
     cleanupDrag();
-    return;
-  }
-
-  // A simple tap selects the piece, useful with keyboard/touch accessibility.
-  if (!moved) {
-    selectedPieceId = pieceId;
-    cleanupDrag();
-    renderPuzzle();
     return;
   }
 
@@ -628,72 +653,191 @@ function endPieceDrag(event) {
     event.clientY >= boardRect.top &&
     event.clientY <= boardRect.bottom;
 
-  let canSnap = false;
-
-  if (overBoard) {
-    const target = getTargetCenter(piece);
-    const distance = Math.hypot(
-      event.clientX - target.x,
-      event.clientY - target.y
-    );
-
-    // On touch screens the finger hides part of the piece, so allow either
-    // a generous center-distance snap OR a drop anywhere over the expanded
-    // correct-piece footprint.
-    const half = puzzleState.piecePx * 0.62;
-    const insideTargetBox =
-      event.clientX >= target.x - half &&
-      event.clientX <= target.x + half &&
-      event.clientY >= target.y - half &&
-      event.clientY <= target.y + half;
-
-    canSnap = distance <= puzzleState.snapDistance || insideTargetBox;
+  if (!dragState.moved) {
+    cleanupDrag();
+    return;
   }
+
+  if (!overBoard) {
+    cleanupDrag();
+    renderPuzzle();
+    showToast('Keep the puzzle pieces on the board.');
+    return;
+  }
+
+  const anchorX =
+    event.clientX - boardRect.left -
+    dragState.grabFracX * puzzleState.piecePx;
+
+  const anchorY =
+    event.clientY - boardRect.top -
+    dragState.grabFracY * puzzleState.piecePx;
+
+  if (dragState.fromTray) {
+    piece.onBoard = true;
+    piece.clusterId = puzzleState.nextClusterId++;
+    piece.boardX = anchorX;
+    piece.boardY = anchorY;
+  } else {
+    const movingPieces = getClusterPieces(dragState.clusterId);
+    const deltaX = anchorX - dragState.anchorBoardX;
+    const deltaY = anchorY - dragState.anchorBoardY;
+
+    movingPieces.forEach(member => {
+      member.boardX += deltaX;
+      member.boardY += deltaY;
+    });
+  }
+
+  const movingClusterId = piece.clusterId;
+  clampClusterToBoard(getClusterPieces(movingClusterId));
 
   cleanupDrag();
 
-  if (canSnap) {
-    placePiece(piece);
-  } else {
-    selectedPieceId = null;
-    renderPuzzle();
-    showToast(
-      overBoard
-        ? 'Close — move it nearer its matching position.'
-        : 'Drop the piece onto the puzzle board.'
-    );
+  // Unlike the old version, the piece is allowed to stay anywhere on the
+  // table. It only snaps when a real matching neighbor is close.
+  snapClusterToNeighbors(movingClusterId);
+  checkBorderComplete();
+  renderPuzzle();
+
+  if (isPuzzleComplete()) {
+    setTimeout(finishPuzzle, 320);
   }
 }
 
-function placePiece(piece) {
-  if (!piece || piece.placed) return;
+function logicalNeighborIndex(piece, side) {
+  const { row, col } = piece;
+  const size = puzzleState.size;
 
-  piece.placed = true;
-  selectedPieceId = null;
+  if (side === 'left' && col > 0) return row * size + (col - 1);
+  if (side === 'right' && col < size - 1) return row * size + (col + 1);
+  if (side === 'top' && row > 0) return (row - 1) * size + col;
+  if (side === 'bottom' && row < size - 1) return (row + 1) * size + col;
 
-  checkBorderComplete();
+  return null;
+}
 
-  if (puzzleState.pieces.every(p => p.placed)) {
-    renderPuzzle();
-    setTimeout(finishPuzzle, 300);
-  } else {
-    renderPuzzle();
-    showToast('Click! Nice fit.');
+function desiredDeltaBetween(pieceA, pieceB) {
+  return {
+    x: (pieceA.col - pieceB.col) * puzzleState.stepPx,
+    y: (pieceA.row - pieceB.row) * puzzleState.stepPx
+  };
+}
+
+function findBestClusterSnap(clusterId) {
+  const movingPieces = getClusterPieces(clusterId);
+  let best = null;
+
+  movingPieces.forEach(pieceA => {
+    ['left', 'right', 'top', 'bottom'].forEach(side => {
+      const neighborIndex = logicalNeighborIndex(pieceA, side);
+      if (neighborIndex == null) return;
+
+      const pieceB = puzzleState.pieces.find(
+        candidate =>
+          candidate.correctIndex === neighborIndex &&
+          candidate.onBoard &&
+          candidate.clusterId !== clusterId
+      );
+
+      if (!pieceB) return;
+
+      const desired = desiredDeltaBetween(pieceA, pieceB);
+
+      const errorX =
+        (pieceA.boardX - pieceB.boardX) - desired.x;
+      const errorY =
+        (pieceA.boardY - pieceB.boardY) - desired.y;
+
+      const distance = Math.hypot(errorX, errorY);
+
+      if (
+        distance <= puzzleState.snapDistance &&
+        (!best || distance < best.distance)
+      ) {
+        best = {
+          pieceA,
+          pieceB,
+          shiftX: -errorX,
+          shiftY: -errorY,
+          distance
+        };
+      }
+    });
+  });
+
+  return best;
+}
+
+function mergeClusters(sourceClusterId, targetClusterId, shiftX, shiftY) {
+  const sourcePieces = getClusterPieces(sourceClusterId);
+
+  sourcePieces.forEach(piece => {
+    piece.boardX += shiftX;
+    piece.boardY += shiftY;
+    piece.clusterId = targetClusterId;
+  });
+
+  clampClusterToBoard(getClusterPieces(targetClusterId));
+}
+
+function snapClusterToNeighbors(clusterId) {
+  let activeClusterId = clusterId;
+  let snappedAny = false;
+
+  // A cluster may connect to more than one neighbor in one drop.
+  for (let pass = 0; pass < puzzleState.pieces.length; pass += 1) {
+    const best = findBestClusterSnap(activeClusterId);
+    if (!best) break;
+
+    const targetClusterId = best.pieceB.clusterId;
+
+    mergeClusters(
+      activeClusterId,
+      targetClusterId,
+      best.shiftX,
+      best.shiftY
+    );
+
+    activeClusterId = targetClusterId;
+    snappedAny = true;
   }
+
+  if (snappedAny) {
+    showToast('Click! Those pieces fit together.');
+  }
+
+  return activeClusterId;
+}
+
+function updateSnapPreview() {
+  // During dragging we keep this subtle because snapping is based on actual
+  // neighboring jigsaw pieces, not hidden fixed positions.
+  puzzleBoard.classList.add('dragging-active');
 }
 
 function checkBorderComplete() {
   if (puzzleState.borderPromptShown) return;
 
-  const edgesDone = puzzleState.pieces
-    .filter(piece => piece.isEdge)
-    .every(piece => piece.placed);
+  const edgePieces = puzzleState.pieces.filter(piece => piece.isEdge);
+  const allEdgesOnBoard = edgePieces.every(piece => piece.onBoard);
 
-  if (edgesDone) {
+  if (allEdgesOnBoard) {
     puzzleState.borderPromptShown = true;
     puzzleState.filterMode = 'all';
-    showToast('Border complete! The center pieces are now in the Tackle Tray.');
+    showToast('All edge pieces are out. The center pieces are now in the Tackle Tray.');
   }
+}
+
+function isPuzzleComplete() {
+  const allOnBoard = puzzleState.pieces.every(piece => piece.onBoard);
+  if (!allOnBoard) return false;
+
+  const clusters = new Set(
+    puzzleState.pieces.map(piece => piece.clusterId)
+  );
+
+  return clusters.size === 1;
 }
 
 function finishPuzzle() {
@@ -742,10 +886,10 @@ allPiecesBtn.addEventListener('click', () => {
 spreadPiecesBtn.addEventListener('click', () => {
   if (!puzzleState) return;
 
-  const placed = puzzleState.pieces.filter(piece => piece.placed);
-  const loose = puzzleState.pieces.filter(piece => !piece.placed);
+  const boardPieces = puzzleState.pieces.filter(piece => piece.onBoard);
+  const trayPiecesState = puzzleState.pieces.filter(piece => !piece.onBoard);
 
-  puzzleState.pieces = [...placed, ...shuffled(loose)];
+  puzzleState.pieces = [...boardPieces, ...shuffled(trayPiecesState)];
   selectedPieceId = null;
 
   renderPuzzle();
