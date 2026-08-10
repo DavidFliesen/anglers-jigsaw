@@ -1,444 +1,40 @@
 
-:root{
-  --bg:#0f261d;
-  --panel:#173d2d;
-  --panel-2:#204e3a;
-  --accent:#d8c086;
-  --accent-2:#f1e0ac;
-  --text:#f4f6ef;
-  --muted:#c7d7cd;
-  --danger:#d06355;
-  --success:#71bb88;
-  --shadow:0 12px 28px rgba(0,0,0,.22);
-  --radius:22px;
+:root {
+  --bg: #071b14;
+  --panel: #123b2c;
+  --panel-dark: #0b281e;
+  --panel-soft: #194b38;
+  --green: #2d674c;
+  --green-hover: #38795a;
+  --gold: #e2c682;
+  --gold-light: #f1dea8;
+  --text: #f5f4ec;
+  --muted: #c7d5cc;
+  --line: rgba(226, 198, 130, .22);
+  --shadow: 0 18px 38px rgba(0, 0, 0, .26);
+  --radius: 22px;
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;font-family:Arial, Helvetica, sans-serif;background:linear-gradient(180deg,#10271f,#0a1913);color:var(--text)}
-body{min-height:100vh}
-
-.app-header{
-  position:sticky; top:0; z-index:20;
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:12px 18px;
-  background:rgba(13,31,24,.92); backdrop-filter: blur(10px);
-  border-bottom:1px solid rgba(216,192,134,.15);
+* {
+  box-sizing: border-box;
 }
 
-.title-wrap{display:flex; align-items:center; gap:12px; min-width:0}
-.header-logo{width:58px; height:58px; border-radius:16px; box-shadow:var(--shadow)}
-.title-wrap h1{margin:0;font-size:1.35rem}
-.subtitle{margin:3px 0 0;color:var(--muted);font-size:.95rem}
-
-.app-shell{max-width:1240px; margin:0 auto; padding:20px}
-.screen{display:none}
-.screen.active{display:block}
-
-.hero-card, .panel-card{
-  background:linear-gradient(180deg,var(--panel),#143324);
-  border:1px solid rgba(216,192,134,.18);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-}
-
-.hero-card{
-  display:grid; grid-template-columns:320px 1fr;
-  gap:24px; padding:22px;
-}
-.hero-logo{
-  width:100%; max-width:320px; aspect-ratio:1/1;
-  object-fit:cover; border-radius:28px; border:1px solid rgba(255,255,255,.08);
-}
-.hero-copy h2{margin-top:8px;font-size:2rem}
-.hero-copy p{font-size:1.05rem;line-height:1.55}
-
-.feature-grid{
-  display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:20px;
-}
-.feature-card{
-  background:linear-gradient(180deg,#1a4432,#153625);
-  padding:18px;border-radius:18px;border:1px solid rgba(216,192,134,.16)
-}
-.feature-card h3{margin-top:0}
-
-.panel-card{padding:24px}
-.narrow{max-width:760px; margin:0 auto}
-.how-list{line-height:1.7}
-
-.button-row{
-  display:flex; flex-wrap:wrap; gap:12px; margin-top:18px;
-}
-.primary-btn, .secondary-btn, .ghost-btn{
-  border:none; cursor:pointer; transition:.18s ease;
-  padding:12px 18px; border-radius:999px; font-weight:700; font-size:.98rem;
-}
-.primary-btn{background:var(--accent); color:#182318}
-.primary-btn:hover{background:var(--accent-2); transform:translateY(-1px)}
-.secondary-btn{background:#29563f; color:var(--text); border:1px solid rgba(216,192,134,.2)}
-.secondary-btn:hover{background:#31684c}
-.ghost-btn{
-  background:transparent; color:var(--text); border:1px solid rgba(216,192,134,.18);
-  padding:10px 16px;
-}
-.ghost-btn:hover{background:rgba(255,255,255,.04)}
-
-.muted{color:var(--muted)}
-.tiny-copy{font-size:.88rem}
-.chip{
-  align-self:flex-start;
-  padding:9px 12px; border-radius:999px;
-  background:#244c39; color:var(--accent-2);
-  border:1px solid rgba(216,192,134,.2); font-weight:700;
-}
-
-.waters-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;
-}
-.water-card{
-  background:linear-gradient(180deg,#224d39,#173725);
-  border-radius:20px; padding:18px; border:1px solid rgba(216,192,134,.16);
-  display:flex; flex-direction:column; gap:12px;
-}
-.water-card h3{margin:0}
-.water-tag{font-size:.92rem; color:var(--accent-2)}
-.water-hotspots{font-size:.92rem; color:var(--muted); line-height:1.55}
-
-.water-header, .puzzle-header{
-  display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;
-}
-
-.fishing-scene{
-  margin-top:18px;
-  min-height:420px; border-radius:24px; overflow:hidden;
-  border:1px solid rgba(216,192,134,.18);
+html,
+body {
+  margin: 0;
+  min-height: 100%;
   background:
-    radial-gradient(circle at 22% 18%, rgba(255,255,255,.18), transparent 30%),
-    linear-gradient(180deg, rgba(203,237,244,1) 0%, rgba(109,174,178,1) 40%, rgba(58,99,87,1) 41%, rgba(47,88,74,1) 100%);
-  position:relative;
-}
-.fishing-scene::before{
-  content:""; position:absolute; inset:auto 0 0 0; height:48%;
-  background:
-    radial-gradient(circle at 18% 40%, rgba(48,87,58,.9) 0 18%, transparent 18.5%),
-    radial-gradient(circle at 29% 36%, rgba(48,87,58,.9) 0 14%, transparent 14.5%),
-    radial-gradient(circle at 83% 28%, rgba(38,76,57,.9) 0 20%, transparent 20.5%),
-    linear-gradient(180deg,#5f8f79 0%, #315743 100%);
-  opacity:.95;
-}
-.scene-overlay{position:relative; min-height:420px; display:flex; align-items:flex-end; justify-content:center; padding:20px}
-.cast-panel{
-  width:min(720px,100%); background:rgba(10,24,18,.68); backdrop-filter: blur(8px);
-  border:1px solid rgba(216,192,134,.15); border-radius:22px; padding:18px;
-}
-.hotspots{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px}
-.hotspot-btn{
-  border:none; cursor:pointer; padding:12px 14px; border-radius:14px; font-weight:700;
-  background:#d2e9de; color:#123223;
-}
-.hotspot-btn:hover{transform:translateY(-1px)}
-.hotspot-btn:disabled{opacity:.55; cursor:not-allowed}
-.reel-panel{margin-top:14px}
-.hidden{display:none !important}
-.meter-wrap{display:grid; gap:8px}
-.meter{
-  width:100%; height:16px; border-radius:999px; overflow:hidden;
-  background:#123123; border:1px solid rgba(255,255,255,.08)
-}
-.meter-fill{
-  width:0%; height:100%; background:linear-gradient(90deg,#6cda90,#e9d98b);
-  transition:width .12s linear;
+    radial-gradient(circle at 50% 0%, rgba(33, 87, 62, .22), transparent 42%),
+    var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
 }
 
-.filters{margin:18px 0 10px}
-.puzzle-layout{
-  display:grid; grid-template-columns:1.15fr .85fr; gap:20px; align-items:start;
-}
-.board-wrap{
-  background:#11281e; border-radius:24px; padding:18px;
-  border:1px solid rgba(216,192,134,.15)
-}
-.puzzle-board{
-  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
-  width:min(560px,100%); aspect-ratio:1/1; margin:0 auto;
-}
-.board-slot{
-  background:#1d4835; border:2px dashed rgba(216,192,134,.2);
-  border-radius:12px; position:relative; min-height:120px;
-  display:flex; align-items:center; justify-content:center;
-}
-.board-slot.correct{border-style:solid; border-color:rgba(113,187,136,.55)}
-.board-slot.wrong{animation:shake .25s linear 1}
-@keyframes shake{
-  0%,100%{transform:translateX(0)}
-  25%{transform:translateX(-4px)}
-  75%{transform:translateX(4px)}
-}
-
-.tray-wrap{
-  background:#11281e; border-radius:24px; padding:18px;
-  border:1px solid rgba(216,192,134,.15)
-}
-.tray-title{margin-top:0}
-.tray-pieces{
-  display:flex; flex-wrap:wrap; gap:10px; max-height:580px; overflow:auto;
-  padding-right:4px;
-}
-.piece{
-  width:100px; aspect-ratio:1/1; border-radius:10px;
-  border:2px solid rgba(255,255,255,.08); cursor:pointer;
-  background-repeat:no-repeat; background-size:300% 300%;
-  background-color:#2a5841;
-}
-.piece.selected{outline:4px solid var(--accent); transform:translateY(-2px)}
-.piece.placed{opacity:.22; pointer-events:none}
-.board-slot .piece{
-  width:100%; height:100%; border:none; border-radius:10px; cursor:default;
-  outline:none !important;
-}
-
-.complete-grid{
-  display:grid; grid-template-columns:340px 1fr; gap:24px; align-items:start;
-}
-.catch-art img{
-  width:100%; border-radius:22px; border:1px solid rgba(216,192,134,.16)
-}
-
-.cooler-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;
-}
-.cooler-card{
-  background:linear-gradient(180deg,#214735,#163624);
-  border-radius:20px; overflow:hidden; border:1px solid rgba(216,192,134,.15)
-}
-.cooler-card img{
-  width:100%; aspect-ratio:1/1; object-fit:cover; display:block;
-}
-.cooler-body{padding:16px}
-.cooler-card.locked{
-  opacity:.72;
-}
-.cooler-card.locked .locked-art{
-  aspect-ratio:1/1; display:grid; place-items:center; font-size:3rem;
-  background:linear-gradient(180deg,#315c46,#214031)
-}
-
-.toast{
-  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
-  background:rgba(10,18,14,.94); color:#fff; padding:14px 18px; border-radius:14px;
-  border:1px solid rgba(216,192,134,.18); box-shadow:var(--shadow); z-index:100;
-  max-width:min(92vw,680px);
-}
-
-@media (max-width: 980px){
-  .hero-card, .puzzle-layout, .complete-grid{grid-template-columns:1fr}
-  .feature-grid{grid-template-columns:1fr}
-}
-@media (max-width: 740px){
-  .app-header{padding:10px 12px}
-  .title-wrap h1{font-size:1.05rem}
-  .subtitle{font-size:.82rem}
-  .header-logo{width:48px;height:48px}
-  .app-shell{padding:14px}
-  .hero-card{padding:16px}
-  .hero-copy h2{font-size:1.55rem}
-  .puzzle-board .board-slot{min-height:92px}
-  .piece{width:78px}
-}
-
-
-/* v0.2 cross-platform puzzle dragging. Pointer Events cover mouse, touch, and pen. */
-.piece{
-  touch-action:none;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-}
-.piece.drag-source{opacity:.35}
-.drag-ghost{
-  position:fixed !important;
-  z-index:9999;
-  pointer-events:none;
-  transform:translate(-50%,-50%) scale(1.08);
-  opacity:.92;
-  box-shadow:0 16px 30px rgba(0,0,0,.35);
-  outline:3px solid var(--accent);
-}
-.board-slot.drop-target{
-  border-color:var(--accent);
-  background:#2c654a;
-  transform:scale(1.02);
-}
-.board-slot{touch-action:none}
-
-
-/* === Angler's Jigsaw v0.3: true interlocking SVG pieces === */
-
-.puzzle-layout{
-  grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);
-}
-
-.board-wrap{
-  min-width:0;
-}
-
-.puzzle-board{
-  position:relative;
-  display:block;
-  width:min(100%, 620px);
-  aspect-ratio:1/1;
-  margin:0 auto;
-  border-radius:18px;
-  overflow:visible;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255,255,255,.035), transparent 45%),
-    #173725;
-  border:1px solid rgba(216,192,134,.14);
-  touch-action:none;
-}
-
-.puzzle-guide{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:var(--puzzle-px);
-  height:var(--puzzle-px);
-  transform:translate(-50%,-50%);
-  object-fit:cover;
-  opacity:.075;
-  border-radius:10px;
-  pointer-events:none;
-  user-select:none;
-  -webkit-user-drag:none;
-}
-
-.board-piece{
-  position:absolute;
-  z-index:3;
-  pointer-events:none;
-  filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));
-}
-
-.jigsaw-piece{
-  position:relative;
-  flex:0 0 auto;
-  touch-action:none;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-  -webkit-user-drag:none;
-}
-
-.jigsaw-piece svg{
-  width:100%;
-  height:100%;
-  display:block;
-  overflow:visible;
-  pointer-events:none;
-}
-
-.piece-outline{
-  fill:none;
-  stroke:rgba(246,242,220,.78);
-  stroke-width:1.15;
-  vector-effect:non-scaling-stroke;
-  filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
-}
-
-.tray-pieces{
-  align-content:flex-start;
-  justify-content:flex-start;
-  gap:14px;
-  min-height:180px;
-  padding:8px;
-}
-
-.tray-piece{
-  width:108px;
-  height:108px;
-  cursor:grab;
-  transition:transform .14s ease, filter .14s ease, opacity .14s ease;
-  filter:drop-shadow(0 7px 7px rgba(0,0,0,.34));
-}
-
-.tray-piece:hover{
-  transform:translateY(-3px) scale(1.03);
-}
-
-.tray-piece:active{
-  cursor:grabbing;
-}
-
-.tray-piece.selected{
-  filter:
-    drop-shadow(0 0 0 rgba(0,0,0,0))
-    drop-shadow(0 0 7px rgba(241,224,172,.9));
-  transform:scale(1.05);
-}
-
-.tray-piece.drag-source{
-  opacity:.28;
-}
-
-.drag-ghost{
-  position:fixed !important;
-  z-index:9999;
-  pointer-events:none !important;
-  transform:translate(-50%,-50%) scale(1.06);
-  opacity:.94;
-  filter:
-    drop-shadow(0 14px 18px rgba(0,0,0,.46))
-    drop-shadow(0 0 5px rgba(241,224,172,.65));
-}
-
-.puzzle-board.snap-ready{
-  box-shadow:
-    inset 0 0 0 3px rgba(216,192,134,.62),
-    0 0 24px rgba(216,192,134,.16);
-}
-
-.tap-snap-target{
-  position:absolute;
-  z-index:5;
-  border:none;
-  background:rgba(216,192,134,.12);
-  outline:2px dashed rgba(241,224,172,.48);
-  border-radius:14px;
-  cursor:pointer;
-  animation:targetPulse 1.25s ease-in-out infinite alternate;
-}
-
-@keyframes targetPulse{
-  from{opacity:.38}
-  to{opacity:.76}
-}
-
-@media (max-width:980px){
-  .puzzle-layout{
-    grid-template-columns:1fr;
-  }
-
-  .tray-pieces{
-    max-height:none;
-    overflow:visible;
-  }
-}
-
-@media (max-width:740px){
-  .tray-piece{
-    width:92px;
-    height:92px;
-  }
-
-  .puzzle-board{
-    width:min(100%, 520px);
-  }
-}
-
-
-/* === Angler's Jigsaw v0.4 fixes === */
-
-/* Prevent iPad/iPhone double-tap zoom during game controls and dragging. */
-html, body, button, .jigsaw-piece, .puzzle-board, .tray-pieces {
+button,
+.jigsaw-piece,
+.puzzle-board,
+.tray-pieces {
   touch-action: manipulation;
 }
 
@@ -446,126 +42,633 @@ html, body, button, .jigsaw-piece, .puzzle-board, .tray-pieces {
 .puzzle-board,
 .tray-pieces {
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
-/* True transparent jigsaw silhouettes. */
+button {
+  font: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 130px 1fr 130px;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 18px;
+  background: rgba(6, 29, 21, .96);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.header-brand {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+
+.header-brand h1 {
+  margin: 0;
+  font-size: 1.42rem;
+}
+
+.header-brand p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.header-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 11px 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.header-btn:last-child {
+  justify-self: end;
+}
+
+.app-shell {
+  width: min(1240px, calc(100% - 30px));
+  margin: 0 auto;
+  padding: 22px 0 38px;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+.panel {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(27, 81, 58, .82), rgba(14, 53, 38, .92));
+  box-shadow: var(--shadow);
+}
+
+.panel.narrow {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.muted,
+.screen-heading p,
+.tray-help {
+  color: var(--muted);
+}
+
+.home-simple {
+  min-height: calc(100vh - 145px);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 28px;
+  padding: 24px;
+}
+
+.home-title {
+  margin: 0;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  line-height: .95;
+  text-align: center;
+  letter-spacing: .01em;
+}
+
+.home-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 500px) minmax(220px, 300px);
+  align-items: center;
+  gap: 42px;
+}
+
+.home-logo {
+  width: min(100%, 500px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 34px;
+  box-shadow: var(--shadow);
+}
+
+.home-actions {
+  display: grid;
+  gap: 28px;
+}
+
+.home-action,
+.primary-btn,
+.secondary-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+
+.home-action {
+  min-width: 230px;
+  min-height: 68px;
+  font-size: 1.25rem;
+}
+
+.home-action:hover,
+.primary-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.home-action.gold,
+.primary-btn {
+  background: var(--gold);
+  color: #172219;
+}
+
+.home-action.gold:hover,
+.primary-btn:hover {
+  background: var(--gold-light);
+}
+
+.home-action.green,
+.secondary-btn {
+  background: var(--green);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.home-action.green:hover,
+.secondary-btn:hover {
+  background: var(--green-hover);
+}
+
+.arteziq-wordmark {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
+  margin-top: 8px;
+  color: white;
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  font-weight: 300;
+  letter-spacing: .04em;
+}
+
+.arteziq-wordmark .ez {
+  color: #dba53e;
+  text-shadow: 0 0 10px rgba(219, 165, 62, .26);
+}
+
+.screen-heading,
+.puzzle-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.screen-heading h2,
+.puzzle-topline h2 {
+  margin: 0 0 6px;
+}
+
+.counter-chip {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: var(--gold-light);
+  background: rgba(52, 105, 77, .76);
+  border: 1px solid var(--line);
+  font-weight: 800;
+}
+
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.difficulty-card {
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(31, 91, 65, .9), rgba(17, 58, 42, .96));
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 9px 20px rgba(0, 0, 0, .15);
+}
+
+.difficulty-card:hover {
+  border-color: rgba(226, 198, 130, .55);
+  transform: translateY(-2px);
+}
+
+.difficulty-name {
+  color: var(--gold-light);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.difficulty-count {
+  margin-top: 7px;
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.difficulty-word,
+.difficulty-grid-size {
+  color: var(--muted);
+}
+
+.difficulty-grid-size {
+  margin-top: 9px;
+  font-weight: 800;
+}
+
+.difficulty-note {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  text-align: center;
+  font-size: .9rem;
+}
+
+.how-list {
+  line-height: 1.75;
+}
+
+.button-row,
+.puzzle-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 12px 18px;
+}
+
+.secondary-btn.active-filter {
+  background: var(--gold);
+  color: #172219;
+}
+
+.puzzle-panel {
+  padding: 22px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.workspace-panel {
+  min-width: 0;
+  border-radius: 20px;
+  background: var(--panel-dark);
+  border: 1px solid rgba(226, 198, 130, .14);
+  overflow: hidden;
+}
+
+.workspace-label {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 1.06rem;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(226, 198, 130, .1);
+}
+
+.tray-help {
+  min-height: 48px;
+  padding: 10px 16px 0;
+  font-size: .88rem;
+  line-height: 1.35;
+}
+
+.puzzle-board,
+.tray-pieces {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.puzzle-board {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .03), transparent 45%),
+    #123b2c;
+  border-top: 1px solid rgba(255, 255, 255, .02);
+}
+
+.tray-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 5px;
+  padding: 10px;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .018), transparent 44%),
+    #0d2a20;
+}
+
 .jigsaw-piece {
-  background: transparent !important;
-  border: none !important;
+  position: relative;
+  flex: 0 0 auto;
+  border: 0 !important;
   border-radius: 0 !important;
-  overflow: visible !important;
+  background: transparent !important;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .34));
 }
 
 .jigsaw-piece svg {
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: visible;
-}
-
-.piece-fill {
-  stroke: none;
+  pointer-events: none;
 }
 
 .piece-outline {
   fill: none;
-  stroke: rgba(250, 246, 226, .92);
-  stroke-width: 1.4;
+  stroke: rgba(250, 246, 226, .84);
+  stroke-width: 1.1;
   vector-effect: non-scaling-stroke;
   stroke-linejoin: round;
   stroke-linecap: round;
-  filter: drop-shadow(0 1.5px 1px rgba(0,0,0,.65));
 }
 
 .tray-piece {
-  width: 120px;
-  height: 120px;
-  padding: 0;
-  box-shadow: none !important;
-  filter: drop-shadow(0 8px 7px rgba(0,0,0,.34));
-}
-
-.board-piece {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Remove old square puzzle-slot visuals if cached CSS contains them. */
-.board-slot,
-.piece {
-  background: transparent;
-}
-
-/* Water cards now function as simple habitat selectors. */
-.water-card .water-hotspots {
-  margin-top: auto;
-}
-
-/* No fishing mini-game is used in v0.4. */
-.fishing-scene,
-.cast-panel,
-.hotspots,
-.reel-panel {
-  display: none !important;
-}
-
-@media (max-width: 740px) {
-  .tray-piece {
-    width: 102px;
-    height: 102px;
-  }
-}
-
-
-/* === Angler's Jigsaw v0.6 — real free-placement jigsaw behavior === */
-
-.puzzle-board.free-jigsaw-board {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  min-height: 520px;
-  aspect-ratio: 1 / 1.18;
-  background:
-    radial-gradient(circle at 50% 35%, rgba(255,255,255,.025), transparent 45%),
-    #173725;
-}
-
-.puzzle-board.free-jigsaw-board .puzzle-guide {
-  display: none !important;
+  cursor: grab;
 }
 
 .board-piece {
   position: absolute;
   z-index: 4;
-  pointer-events: auto !important;
   cursor: grab;
-  touch-action: none;
 }
 
+.tray-piece:active,
 .board-piece:active {
   cursor: grabbing;
 }
 
-.board-piece.drag-source {
-  opacity: .20;
+.drag-source {
+  opacity: .25;
 }
 
-.cluster-ghost {
+.drag-ghost {
   position: fixed !important;
-  z-index: 9999;
+  z-index: 9999 !important;
   pointer-events: none !important;
-  transform: none !important;
-  opacity: .96;
+  opacity: .95;
   filter:
-    drop-shadow(0 12px 15px rgba(0,0,0,.42))
-    drop-shadow(0 0 4px rgba(241,224,172,.45));
+    drop-shadow(0 10px 12px rgba(0, 0, 0, .45))
+    drop-shadow(0 0 4px rgba(226, 198, 130, .5));
 }
 
-.puzzle-board.dragging-active {
-  box-shadow:
-    inset 0 0 0 2px rgba(216,192,134,.22),
-    0 0 18px rgba(216,192,134,.07);
+.complete-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 410px) 1fr;
+  gap: 30px;
+  align-items: start;
 }
 
-@media (max-width: 740px) {
-  .puzzle-board.free-jigsaw-board {
-    min-height: 440px;
+.catch-art img {
+  display: block;
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+}
+
+.complete-kicker {
+  color: var(--gold-light);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  font-size: .85rem;
+}
+
+.scientific {
+  color: var(--muted);
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
+.cooler-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.cooler-card {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #123727;
+}
+
+.cooler-card img,
+.locked-art {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.cooler-card img {
+  display: block;
+  object-fit: cover;
+}
+
+.locked-art {
+  display: grid;
+  place-items: center;
+  font-size: 4rem;
+  color: var(--gold);
+  background: #193f2f;
+}
+
+.cooler-body {
+  padding: 16px;
+}
+
+.cooler-body h3 {
+  margin: 0 0 6px;
+}
+
+.cooler-card.locked {
+  opacity: .68;
+}
+
+.toast {
+  position: fixed;
+  z-index: 10000;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: min(680px, 90vw);
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: rgba(4, 17, 12, .95);
+  color: white;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 920px) {
+  .difficulty-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .home-main {
+    grid-template-columns: minmax(250px, 430px) minmax(200px, 260px);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    grid-template-columns: auto 1fr auto;
+    padding: 8px 10px;
+  }
+
+  .header-brand p {
+    display: none;
+  }
+
+  .header-brand h1 {
+    font-size: 1.05rem;
+  }
+
+  .header-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .header-btn {
+    padding: 9px 12px;
+    font-size: .9rem;
+  }
+
+  .app-shell {
+    width: min(100% - 18px, 1240px);
+    padding-top: 12px;
+  }
+
+  .home-simple {
+    min-height: auto;
+    padding: 14px 6px 28px;
+  }
+
+  .home-title {
+    font-size: clamp(2.25rem, 10vw, 3.6rem);
+  }
+
+  .home-main {
+    grid-template-columns: 1fr;
+    width: min(500px, 100%);
+  }
+
+  .home-logo {
+    width: min(410px, 88vw);
+    justify-self: center;
+  }
+
+  .home-actions {
+    width: min(340px, 88vw);
+    justify-self: center;
+    gap: 14px;
+  }
+
+  .home-action {
+    min-height: 54px;
+    min-width: 0;
+  }
+
+  .arteziq-wordmark {
+    gap: 11px;
+    font-size: clamp(1.8rem, 9vw, 3rem);
+  }
+
+  .workspace-grid,
+  .complete-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .difficulty-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .panel,
+  .puzzle-panel {
+    padding: 15px;
+  }
+
+  .puzzle-toolbar {
+    gap: 7px;
+  }
+
+  .puzzle-toolbar .secondary-btn {
+    padding: 10px 13px;
+    font-size: .88rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .difficulty-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .difficulty-card {
+    min-height: 170px;
+  }
+
+  .screen-heading,
+  .puzzle-topline {
+    flex-direction: column;
   }
 }
