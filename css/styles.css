@@ -1000,3 +1000,226 @@ body::before {
     display: none !important;
   }
 }
+
+
+/* === Angler's Jigsaw v1.1 — blue-water palette refresh === */
+
+/*
+  New palette:
+  - Abyss:      #00102e
+  - Deep:       #08214a
+  - Current:    #0b2c5c
+  - Crest Blue: #123a72
+  - Aqua:       #2ec6e6
+  - Mist:       #a9c0e0
+  - Foam:       #eef4fb
+  - Sand Gold:  #e5c97a
+*/
+
+:root {
+  --bg: #00102e;
+  --panel: #0c2650;
+  --panel-dark: #081d40;
+  --panel-soft: #123664;
+  --green: #1f5f82;
+  --green-hover: #2b759d;
+  --gold: #e5c97a;
+  --gold-light: #f0db9c;
+  --text: #eef4fb;
+  --muted: #a9c0e0;
+  --line: rgba(169, 192, 224, .22);
+  --shadow: 0 20px 45px rgba(0, 0, 0, .34);
+}
+
+/* Water background similar in spirit to Angler's Arrows */
+html,
+body {
+  background:
+    radial-gradient(120% 80% at 50% -10%, #123a72 0%, rgba(18,58,114,0) 55%),
+    linear-gradient(180deg, #0b2c5c 0%, #08214a 42%, #041a3e 72%, #00102e 100%) !important;
+  background-attachment: fixed;
+  color: var(--text);
+}
+
+/* Slightly brighter blue haze near the top to sell the water feel */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(70% 30% at 50% 0%, rgba(127, 227, 245, .08), transparent 70%);
+}
+
+/* Make bubbles sit naturally in the underwater page */
+.water-bubbles {
+  z-index: 1;
+}
+
+.water-bubbles .bubble {
+  box-shadow:
+    inset 0 0 10px rgba(255,255,255,.12),
+    0 0 12px rgba(127,227,245,.08);
+}
+
+/* Keep app content above bubbles/light haze */
+.app-header,
+.app-shell,
+.toast {
+  position: relative;
+  z-index: 3;
+}
+
+/* Header */
+.app-header {
+  background: rgba(5, 22, 49, .62) !important;
+  border-bottom: 1px solid rgba(169, 192, 224, .16) !important;
+  backdrop-filter: blur(12px);
+}
+
+.header-btn {
+  background: rgba(255,255,255,.03) !important;
+  border-color: rgba(169, 192, 224, .20) !important;
+}
+
+.header-btn:hover {
+  background: rgba(255,255,255,.06) !important;
+}
+
+.header-brand p {
+  color: var(--muted);
+}
+
+/* Home screen stays simple, just floating over the water */
+#screen-home .home-simple {
+  background: transparent !important;
+}
+
+.home-logo {
+  border: 1px solid rgba(169, 192, 224, .15);
+  background: rgba(4, 17, 39, .36);
+  box-shadow: 0 20px 50px rgba(0,0,0,.34) !important;
+}
+
+.home-title {
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0,0,0,.24);
+}
+
+.arteziq-wordmark {
+  color: #f7fbff;
+}
+
+/* Buttons: sand-gold primary, sea-blue secondary */
+.home-action.gold,
+.primary-btn,
+.secondary-btn.active-filter {
+  background: linear-gradient(180deg, #eedb9b, #e5c97a) !important;
+  color: #172847 !important;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 8px 18px rgba(229, 201, 122, .16);
+}
+
+.home-action.green,
+.secondary-btn {
+  background: linear-gradient(180deg, #2d7599, #1f5f82) !important;
+  color: #eef4fb !important;
+  border: 1px solid rgba(169, 192, 224, .16) !important;
+  box-shadow: 0 8px 18px rgba(31, 95, 130, .18);
+}
+
+.home-action.green:hover,
+.secondary-btn:hover {
+  background: linear-gradient(180deg, #3687b1, #2b759d) !important;
+}
+
+.home-action.gold:hover,
+.primary-btn:hover,
+.secondary-btn.active-filter:hover {
+  background: linear-gradient(180deg, #f3e3ab, #edd289) !important;
+}
+
+/* Panels and cards */
+.panel,
+.workspace-panel,
+.cooler-card {
+  background:
+    linear-gradient(180deg, rgba(12,38,80,.88), rgba(7,25,56,.92)) !important;
+  border-color: rgba(169, 192, 224, .16) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.workspace-label,
+.tray-help {
+  background: rgba(4, 17, 39, .34);
+}
+
+.counter-chip {
+  color: #eef4fb !important;
+  background: linear-gradient(180deg, rgba(46,198,230,.28), rgba(18,58,114,.34)) !important;
+  border-color: rgba(127, 227, 245, .22) !important;
+}
+
+.difficulty-card {
+  background:
+    linear-gradient(180deg, rgba(16, 50, 101, .92), rgba(8, 29, 64, .98)) !important;
+  border-color: rgba(169, 192, 224, .17) !important;
+}
+
+.difficulty-card:hover {
+  border-color: rgba(229, 201, 122, .38) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.24) !important;
+}
+
+.difficulty-name,
+.complete-kicker {
+  color: #7fe3f5 !important;
+}
+
+.difficulty-word,
+.difficulty-grid-size,
+.difficulty-note,
+.muted,
+.screen-heading p,
+.tray-help,
+.scientific,
+.header-brand p {
+  color: var(--muted) !important;
+}
+
+/* Puzzle areas */
+.puzzle-board {
+  background:
+    radial-gradient(100% 80% at 50% 8%, rgba(127, 227, 245, .07), transparent 48%),
+    linear-gradient(180deg, rgba(11,44,92,.88), rgba(0,16,46,.96)) !important;
+  border: 1px solid rgba(169, 192, 224, .18);
+}
+
+.tray-pieces {
+  background:
+    radial-gradient(100% 80% at 50% 8%, rgba(127, 227, 245, .05), transparent 48%),
+    linear-gradient(180deg, rgba(8,33,74,.92), rgba(0,16,46,.98)) !important;
+}
+
+/* Piece outlines remain light and crisp over blue */
+.piece-outline {
+  stroke: rgba(238, 244, 251, .88);
+}
+
+/* Cooler / overlays */
+.locked-art {
+  background: linear-gradient(180deg, rgba(16, 50, 101, .92), rgba(8, 29, 64, .98)) !important;
+}
+
+.toast {
+  background: rgba(5, 22, 49, .94) !important;
+  border-color: rgba(127, 227, 245, .18) !important;
+}
+
+/* Keep a clean mobile look */
+@media (max-width: 760px) {
+  .app-header {
+    background: rgba(5, 22, 49, .72) !important;
+  }
+}
