@@ -243,7 +243,15 @@ function updatePuzzleGeometry() {
   puzzleState.piecePx = piecePx;
   puzzleState.stepPx = stepPx;
   puzzleState.puzzlePx = puzzlePx;
-  puzzleState.snapDistance = Math.max(32, piecePx * 0.42);
+
+  // The completed puzzle is centered inside the larger play board.
+  // All placed pieces and snap targets must use this same origin.
+  puzzleState.originX = Math.max(0, (boardRect.width - puzzlePx) / 2);
+  puzzleState.originY = Math.max(0, (boardRect.height - puzzlePx) / 2);
+
+  // Generous snap radius for touch devices. The actual piece still lands
+  // only in its correct location.
+  puzzleState.snapDistance = Math.max(48, piecePx * 0.58);
 }
 
 /*
@@ -429,8 +437,8 @@ function renderPuzzle() {
       const el = createPieceElement(piece, 'board');
       el.style.width = `${puzzleState.piecePx}px`;
       el.style.height = `${puzzleState.piecePx}px`;
-      el.style.left = `${piece.col * puzzleState.stepPx}px`;
-      el.style.top = `${piece.row * puzzleState.stepPx}px`;
+      el.style.left = `${puzzleState.originX + piece.col * puzzleState.stepPx}px`;
+      el.style.top = `${puzzleState.originY + piece.row * puzzleState.stepPx}px`;
       puzzleBoard.appendChild(el);
     });
 
@@ -527,8 +535,10 @@ function getTargetCenter(piece) {
   const rect = puzzleBoard.getBoundingClientRect();
 
   return {
-    x: rect.left + piece.col * puzzleState.stepPx + puzzleState.piecePx / 2,
-    y: rect.top + piece.row * puzzleState.stepPx + puzzleState.piecePx / 2
+    x: rect.left + puzzleState.originX +
+       piece.col * puzzleState.stepPx + puzzleState.piecePx / 2,
+    y: rect.top + puzzleState.originY +
+       piece.row * puzzleState.stepPx + puzzleState.piecePx / 2
   };
 }
 
@@ -550,8 +560,15 @@ function updateSnapPreview(pointerX, pointerY) {
 
   const target = getTargetCenter(piece);
   const distance = Math.hypot(pointerX - target.x, pointerY - target.y);
+  const half = puzzleState.piecePx * 0.62;
 
-  if (distance <= puzzleState.snapDistance) {
+  const insideTargetBox =
+    pointerX >= target.x - half &&
+    pointerX <= target.x + half &&
+    pointerY >= target.y - half &&
+    pointerY <= target.y + half;
+
+  if (distance <= puzzleState.snapDistance || insideTargetBox) {
     puzzleBoard.classList.add('snap-ready');
   }
 }
@@ -619,7 +636,18 @@ function endPieceDrag(event) {
       event.clientX - target.x,
       event.clientY - target.y
     );
-    canSnap = distance <= puzzleState.snapDistance;
+
+    // On touch screens the finger hides part of the piece, so allow either
+    // a generous center-distance snap OR a drop anywhere over the expanded
+    // correct-piece footprint.
+    const half = puzzleState.piecePx * 0.62;
+    const insideTargetBox =
+      event.clientX >= target.x - half &&
+      event.clientX <= target.x + half &&
+      event.clientY >= target.y - half &&
+      event.clientY <= target.y + half;
+
+    canSnap = distance <= puzzleState.snapDistance || insideTargetBox;
   }
 
   cleanupDrag();
