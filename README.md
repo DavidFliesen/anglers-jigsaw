@@ -1,4 +1,4 @@
-# Angler's Jigsaw v0.1
+# Angler's Jigsaw v0.2
 
 A starter Progressive Web App for GitHub Pages.
 
@@ -8,6 +8,8 @@ A starter Progressive Web App for GitHub Pages.
 - Simple fishing interaction with hotspots and reel-in phase
 - Puzzle transformation flow after a catch
 - 3x3 fish puzzle board
+- Cross-platform drag-and-drop using Pointer Events (mouse, touch, pen)
+- Tap-to-select fallback retained for accessibility and precision
 - **Edges Only** tray filter
 - Fish Cooler collection stored in localStorage
 - Species descriptions and history cards
@@ -36,3 +38,9 @@ A starter Progressive Web App for GitHub Pages.
 
 ## GitHub Pages notes
 This folder can be pushed directly to a GitHub Pages repo root or to a project subfolder.
+
+
+## v0.2 drag support
+Puzzle pieces can now be dragged directly from the Tackle Tray to the board.
+
+The implementation uses the browser Pointer Events API rather than old desktop-only HTML5 drag-and-drop. This gives one interaction model for iOS/iPadOS, Android, Windows, macOS, and Linux, including mouse, touch, stylus, and trackpad input.
