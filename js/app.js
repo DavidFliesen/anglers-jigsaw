@@ -979,23 +979,25 @@ window.addEventListener('resize', () => {
 
 function initWaterBubbles() {
   const box = document.getElementById('water-bubbles');
-  if (!box || box.childElementCount) return;
+  if (!box) return;
 
-  const count = 18;
+  // Rebuild the layer cleanly on every page load.
+  box.replaceChildren();
+
+  const count = 12;
 
   for (let i = 0; i < count; i += 1) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
 
-    const size = 7 + Math.random() * 21;
+    const size = 4 + Math.random() * 13;
 
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
-    bubble.style.left = `${Math.random() * 100}vw`;
-    bubble.style.setProperty('--drift', `${Math.random() * 80 - 40}px`);
-    bubble.style.setProperty('--start-y', `${Math.random() * 105}vh`);
-    bubble.style.animationDuration = `${11 + Math.random() * 13}s`;
-    bubble.style.animationDelay = `${-Math.random() * 22}s`;
+    bubble.style.left = `${Math.random() * 100}%`;
+    bubble.style.setProperty('--drift', `${Math.random() * 40 - 20}px`);
+    bubble.style.animationDuration = `${10 + Math.random() * 12}s`;
+    bubble.style.animationDelay = `${-Math.random() * 18}s`;
 
     box.appendChild(bubble);
   }
