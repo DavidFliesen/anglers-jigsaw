@@ -673,250 +673,6 @@ button {
   }
 }
 
-/* === Angler's Jigsaw v0.9 — simple black water theme === */
-
-/*
-  Design direction:
-  - Black first.
-  - Gold/forest-green only as accents.
-  - Water is represented by a sparse layer of rising bubbles.
-  - No blue water gradient, caustic texture, or busy background pattern.
-*/
-
-html,
-body {
-  background: #000 !important;
-}
-
-body {
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* Global rising-water layer */
-.water-bubbles {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.water-bubbles .bubble {
-  position: absolute;
-  bottom: -40px;
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 32% 30%,
-      rgba(255,255,255,.42),
-      rgba(127,227,245,.07) 60%,
-      transparent 70%
-    );
-  border: 1px solid rgba(180, 238, 247, .07);
-  box-shadow:
-    inset 0 0 7px rgba(255,255,255,.05),
-    0 0 7px rgba(100,210,230,.03);
-  animation: bubble-rise linear infinite;
-  opacity: 0;
-}
-
-@keyframes bubble-rise {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  12% {
-    opacity: .30;
-  }
-  80% {
-    opacity: .20;
-  }
-  100% {
-    transform: translateY(-108vh) translateX(var(--drift, 0));
-    opacity: 0;
-  }
-}
-
-/* Everything interactive sits cleanly above the bubble layer */
-.app-header,
-.app-shell,
-.toast {
-  position: relative;
-  z-index: 2;
-}
-
-/* Header: black, quiet, minimal */
-.app-header {
-  background: rgba(0, 0, 0, .94) !important;
-  border-bottom: 1px solid rgba(226,198,130,.15) !important;
-  backdrop-filter: blur(8px);
-}
-
-.header-brand p {
-  color: rgba(255,255,255,.72);
-}
-
-.header-btn {
-  background: #050505 !important;
-  border-color: rgba(226,198,130,.28) !important;
-}
-
-/* Remove the big green page treatment */
-.app-shell {
-  background: transparent !important;
-}
-
-.panel,
-.workspace-panel,
-.cooler-card {
-  background: rgba(4, 4, 4, .90) !important;
-  border-color: rgba(226,198,130,.16) !important;
-}
-
-/* Home screen now follows the user's black mockup */
-#screen-home .home-simple {
-  position: relative;
-  isolation: isolate;
-  overflow: visible;
-  min-height: calc(100vh - 145px);
-  border: none !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  animation: none !important;
-  filter: none !important;
-}
-
-#screen-home .home-simple::before,
-#screen-home .home-simple::after {
-  display: none !important;
-}
-
-.home-title {
-  color: #fff;
-  text-shadow: none;
-}
-
-.home-logo {
-  background: #000;
-  box-shadow: none !important;
-  border: 1px solid rgba(226,198,130,.12);
-}
-
-.home-actions {
-  gap: 28px;
-}
-
-.home-action {
-  box-shadow: none;
-}
-
-.home-action.gold,
-.primary-btn {
-  background: #e2c682 !important;
-  color: #171d18 !important;
-}
-
-.home-action.green,
-.secondary-btn {
-  background: #2c6047 !important;
-  color: #fff !important;
-  border-color: rgba(255,255,255,.06) !important;
-}
-
-.secondary-btn.active-filter {
-  background: #e2c682 !important;
-  color: #171d18 !important;
-}
-
-/* Keep the ARTEZIQ wordmark simple and crisp */
-.arteziq-wordmark {
-  color: #fff;
-  text-shadow: none;
-}
-
-.arteziq-wordmark .ez {
-  color: #dba53e;
-  text-shadow: 0 0 8px rgba(219,165,62,.18);
-}
-
-/* Difficulty selection: black cards, minimal accents */
-.difficulty-card {
-  background: #070707 !important;
-  border-color: rgba(226,198,130,.19) !important;
-  box-shadow: none !important;
-}
-
-.difficulty-card:hover {
-  background: #0d0d0d !important;
-}
-
-/* Puzzle area: black table and black tray.
-   The global bubbles drift quietly behind the whole workspace. */
-.puzzle-board {
-  background: rgba(0,0,0,.96) !important;
-  border: 1px solid rgba(226,198,130,.18);
-}
-
-.puzzle-board::before,
-.puzzle-board::after {
-  display: none !important;
-}
-
-.tray-pieces {
-  background: rgba(0,0,0,.96) !important;
-}
-
-.workspace-label {
-  background: #050505;
-}
-
-.tray-help {
-  background: #050505;
-}
-
-/* Cooler art remains readable without green chrome */
-.locked-art {
-  background: #090909 !important;
-}
-
-.cooler-card {
-  box-shadow: none !important;
-}
-
-/* Tone down page-wide shadows */
-.panel,
-.workspace-panel,
-.home-logo,
-.cooler-card {
-  box-shadow: none !important;
-}
-
-/* Maintain clarity on touch devices */
-@media (max-width: 760px) {
-  #screen-home .home-simple {
-    padding-top: 22px;
-  }
-}
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .water-bubbles .bubble {
-    display: none;
-  }
-}
-
-
-/* === Angler's Jigsaw v1.0 — visible water bubbles on black === */
-
-/*
-  The earlier bubble layer was technically running, but it was too small and
-  too transparent to read against pure black. This version intentionally
-  matches the visibility of Angler's Arrows while keeping the Jigsaw
-  background black.
-*/
-
 .water-bubbles {
   z-index: 1;
 }
@@ -965,42 +721,6 @@ body {
     opacity: 0;
   }
 }
-
-/*
-  A very subtle "surface light" at the top makes the bubbles read as water
-  without turning the whole app blue or green.
-*/
-body::before {
-  content: "";
-  position: fixed;
-  z-index: 0;
-  pointer-events: none;
-  inset: 0 0 auto 0;
-  height: 18vh;
-  background:
-    radial-gradient(
-      90% 100% at 50% -35%,
-      rgba(57,164,194,.13) 0%,
-      rgba(31,111,138,.055) 42%,
-      transparent 72%
-    );
-}
-
-/* Keep the puzzle board itself clean black; bubbles drift behind it/page UI. */
-.puzzle-board,
-.tray-pieces,
-.workspace-panel,
-.panel {
-  position: relative;
-}
-
-/* Ensure accessibility preference still wins over the override above. */
-@media (prefers-reduced-motion: reduce) {
-  .water-bubbles .bubble {
-    display: none !important;
-  }
-}
-
 
 /* === Angler's Jigsaw v1.1 — blue-water palette refresh === */
 
@@ -1222,4 +942,49 @@ body::after {
   .app-header {
     background: rgba(5, 22, 49, .72) !important;
   }
+}
+
+
+/* === Angler's Jigsaw v1.2 — hard blue-water background override === */
+html,
+body {
+  background-color: #00102e !important;
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, #123a72 0%, rgba(18,58,114,0) 55%),
+    linear-gradient(180deg, #0b2c5c 0%, #08214a 42%, #041a3e 72%, #00102e 100%) !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+body::before {
+  display: none !important;
+}
+
+/* Keep the main screens transparent enough that the water remains visible. */
+.app-shell,
+#screen-home .home-simple {
+  background: transparent !important;
+}
+
+.panel {
+  background:
+    linear-gradient(180deg, rgba(12,38,80,.78), rgba(5,22,49,.86)) !important;
+}
+
+.workspace-panel {
+  background:
+    linear-gradient(180deg, rgba(8,29,64,.90), rgba(4,17,39,.94)) !important;
+}
+
+.puzzle-board {
+  background:
+    radial-gradient(100% 80% at 50% 8%, rgba(127,227,245,.08), transparent 48%),
+    linear-gradient(180deg, rgba(11,44,92,.90), rgba(0,16,46,.97)) !important;
+}
+
+.tray-pieces {
+  background:
+    radial-gradient(100% 80% at 50% 8%, rgba(127,227,245,.055), transparent 48%),
+    linear-gradient(180deg, rgba(8,33,74,.93), rgba(0,16,46,.985)) !important;
 }
