@@ -165,54 +165,67 @@ function shuffled(array) {
   return copy;
 }
 
+
 function isEdgePiece(row, col, rows, cols) {
   return row === 0 || col === 0 || row === rows - 1 || col === cols - 1;
 }
 
-/*
-  Edge values:
-   0 = flat outside border
-   1 = outward tab
-  -1 = inward blank
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
 
-  Shared edges are created once, then mirrored onto the neighboring piece.
+/*
+  Classic ribbon-cut seams:
+  - fixed grid rows/columns (easy to read like a familiar jigsaw)
+  - varied knob width, neck width, depth, and center offset
+  - mirrored across neighbors so the fit feels like a real puzzle
 */
+function createRibbonSeam() {
+  const head = randomBetween(24, 31);
+  const neck = Math.min(head - 6, randomBetween(11, 17));
+
+  return {
+    sign: Math.random() < 0.5 ? 1 : -1,
+    offset: randomBetween(-7.5, 7.5),
+    depth: randomBetween(12, 17),
+    head,
+    neck,
+    skew: randomBetween(-3, 3)
+  };
+}
+
+function invertRibbonSeam(seam) {
+  return {
+    ...seam,
+    sign: seam.sign * -1
+  };
+}
+
 function generatePieceEdges(rows, cols) {
   const horizontal = Array.from({ length: Math.max(0, rows - 1) }, () =>
-    Array(cols).fill(0)
+    Array.from({ length: cols }, () => createRibbonSeam())
   );
 
   const vertical = Array.from({ length: rows }, () =>
-    Array(Math.max(0, cols - 1)).fill(0)
+    Array.from({ length: Math.max(0, cols - 1) }, () => createRibbonSeam())
   );
-
-  for (let row = 0; row < rows - 1; row += 1) {
-    for (let col = 0; col < cols; col += 1) {
-      horizontal[row][col] = Math.random() < 0.5 ? 1 : -1;
-    }
-  }
-
-  for (let row = 0; row < rows; row += 1) {
-    for (let col = 0; col < cols - 1; col += 1) {
-      vertical[row][col] = Math.random() < 0.5 ? 1 : -1;
-    }
-  }
 
   const result = [];
 
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
       result.push({
-        top: row === 0 ? 0 : -horizontal[row - 1][col],
-        right: col === cols - 1 ? 0 : vertical[row][col],
-        bottom: row === rows - 1 ? 0 : horizontal[row][col],
-        left: col === 0 ? 0 : -vertical[row][col - 1]
+        top: row === 0 ? 0 : invertRibbonSeam(horizontal[row - 1][col]),
+        right: col === cols - 1 ? 0 : { ...vertical[row][col] },
+        bottom: row === rows - 1 ? 0 : { ...horizontal[row][col] },
+        left: col === 0 ? 0 : invertRibbonSeam(vertical[row][col - 1])
       });
     }
   }
 
   return result;
 }
+
 
 function startPuzzle(species, difficulty) {
   selectedPieceId = null;
@@ -296,59 +309,89 @@ function updatePuzzleGeometry() {
   }
 }
 
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function rotatePoint(x, y, side) {
+  if (side === 'top') return { x, y };
+  if (side === 'right') return { x: 120 - y, y: x };
+  if (side === 'bottom') return { x: 120 - x, y: 120 - y };
+  return { x: y, y: 120 - x };
+}
+
+function formatPoint(value) {
+  return Number(value.toFixed(2));
+}
+
+function transformCommand(type, coords, side) {
+  const transformed = [];
+
+  for (let index = 0; index < coords.length; index += 2) {
+    const point = rotatePoint(coords[index], coords[index + 1], side);
+    transformed.push(formatPoint(point.x), formatPoint(point.y));
+  }
+
+  return `${type} ${transformed.join(' ')}`;
+}
+
+function ribbonSideCommands(side, seam) {
+  if (!seam) {
+    return [transformCommand('L', [105, 15], side)];
+  }
+
+  const center = clamp(60 + (seam.offset || 0), 47, 73);
+  const head = clamp(seam.head || 27, 22, 32);
+  const neck = clamp(Math.min(seam.neck || 14, head - 5), 10, 21);
+  const depth = clamp(seam.depth || 15, 10, 19);
+  const sign = seam.sign >= 0 ? 1 : -1;
+  const skew = clamp(seam.skew || 0, -4, 4);
+
+  const shoulderLeft = center - head / 2;
+  const shoulderRight = center + head / 2;
+  const neckLeft = center - neck / 2;
+  const neckRight = center + neck / 2;
+  const peakX = clamp(center + skew, neckLeft + 2, neckRight - 2);
+  const peakY = 15 - sign * depth;
+
+  return [
+    transformCommand('L', [shoulderLeft, 15], side),
+    transformCommand('C', [
+      shoulderLeft + (head - neck) * 0.35, 15,
+      neckLeft - 2, 15 - sign * depth * 0.12,
+      neckLeft, 15 - sign * depth * 0.34
+    ], side),
+    transformCommand('C', [
+      neckLeft + 1.5, 15 - sign * depth * 0.72,
+      peakX - head * 0.18, peakY,
+      peakX, peakY
+    ], side),
+    transformCommand('C', [
+      peakX + head * 0.18, peakY,
+      neckRight - 1.5, 15 - sign * depth * 0.72,
+      neckRight, 15 - sign * depth * 0.34
+    ], side),
+    transformCommand('C', [
+      neckRight + 2, 15 - sign * depth * 0.12,
+      shoulderRight - (head - neck) * 0.35, 15,
+      shoulderRight, 15
+    ], side),
+    transformCommand('L', [105, 15], side)
+  ];
+}
+
 function piecePath(edges) {
-  const { top, right, bottom, left } = edges;
+  const pathParts = [
+    'M 15 15',
+    ...ribbonSideCommands('top', edges.top),
+    ...ribbonSideCommands('right', edges.right),
+    ...ribbonSideCommands('bottom', edges.bottom),
+    ...ribbonSideCommands('left', edges.left),
+    'Z'
+  ];
 
-  const a = 15;
-  const b = 105;
-
-  let d = `M ${a} ${a}`;
-
-  if (top === 0) {
-    d += ` L ${b} ${a}`;
-  } else {
-    const y = top === 1 ? 0 : 30;
-    d += `
-      L 46 ${a}
-      C 50 ${a}, 49 ${y}, 60 ${y}
-      C 71 ${y}, 70 ${a}, 74 ${a}
-      L ${b} ${a}`;
-  }
-
-  if (right === 0) {
-    d += ` L ${b} ${b}`;
-  } else {
-    const x = right === 1 ? 120 : 90;
-    d += `
-      L ${b} 46
-      C ${b} 50, ${x} 49, ${x} 60
-      C ${x} 71, ${b} 70, ${b} 74
-      L ${b} ${b}`;
-  }
-
-  if (bottom === 0) {
-    d += ` L ${a} ${b}`;
-  } else {
-    const y = bottom === 1 ? 120 : 90;
-    d += `
-      L 74 ${b}
-      C 70 ${b}, 71 ${y}, 60 ${y}
-      C 49 ${y}, 50 ${b}, 46 ${b}
-      L ${a} ${b}`;
-  }
-
-  if (left === 0) {
-    d += ` L ${a} ${a}`;
-  } else {
-    const x = left === 1 ? 0 : 30;
-    d += `
-      L ${a} 74
-      C ${a} 70, ${x} 71, ${x} 60
-      C ${x} 49, ${a} 50, ${a} 46
-      L ${a} ${a}`;
-  }
-
-  return d + ' Z';
+  return pathParts.join(' ');
 }
 
 /*
@@ -356,6 +399,7 @@ function piecePath(edges) {
   The square fish artwork is center-cropped into the standard 4:3 puzzle board.
 */
 function pieceSvgMarkup(piece, uniqueId) {
+
   const imageStep = 90;
   const fullWidth = imageStep * puzzleState.cols;
   const fullHeight = imageStep * puzzleState.rows;
