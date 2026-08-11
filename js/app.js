@@ -166,48 +166,18 @@ function shuffled(array) {
 }
 
 
+
 function isEdgePiece(row, col, rows, cols) {
   return row === 0 || col === 0 || row === rows - 1 || col === cols - 1;
 }
 
-function randomBetween(min, max) {
-  return min + Math.random() * (max - min);
-}
-
-/*
-  Classic ribbon-cut seams:
-  - fixed grid rows/columns (easy to read like a familiar jigsaw)
-  - varied knob width, neck width, depth, and center offset
-  - mirrored across neighbors so the fit feels like a real puzzle
-*/
-function createRibbonSeam() {
-  const head = randomBetween(24, 31);
-  const neck = Math.min(head - 6, randomBetween(11, 17));
-
-  return {
-    sign: Math.random() < 0.5 ? 1 : -1,
-    offset: randomBetween(-7.5, 7.5),
-    depth: randomBetween(12, 17),
-    head,
-    neck,
-    skew: randomBetween(-3, 3)
-  };
-}
-
-function invertRibbonSeam(seam) {
-  return {
-    ...seam,
-    sign: seam.sign * -1
-  };
-}
-
 function generatePieceEdges(rows, cols) {
   const horizontal = Array.from({ length: Math.max(0, rows - 1) }, () =>
-    Array.from({ length: cols }, () => createRibbonSeam())
+    Array.from({ length: cols }, () => (Math.random() < 0.5 ? 1 : -1))
   );
 
   const vertical = Array.from({ length: rows }, () =>
-    Array.from({ length: Math.max(0, cols - 1) }, () => createRibbonSeam())
+    Array.from({ length: Math.max(0, cols - 1) }, () => (Math.random() < 0.5 ? 1 : -1))
   );
 
   const result = [];
@@ -215,10 +185,10 @@ function generatePieceEdges(rows, cols) {
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
       result.push({
-        top: row === 0 ? 0 : invertRibbonSeam(horizontal[row - 1][col]),
-        right: col === cols - 1 ? 0 : { ...vertical[row][col] },
-        bottom: row === rows - 1 ? 0 : { ...horizontal[row][col] },
-        left: col === 0 ? 0 : invertRibbonSeam(vertical[row][col - 1])
+        top: row === 0 ? 0 : -horizontal[row - 1][col],
+        right: col === cols - 1 ? 0 : vertical[row][col],
+        bottom: row === rows - 1 ? 0 : horizontal[row][col],
+        left: col === 0 ? 0 : -vertical[row][col - 1]
       });
     }
   }
@@ -246,6 +216,7 @@ function startPuzzle(species, difficulty) {
         isEdge: isEdgePiece(row, col, rows, cols),
         edges: edgeSet[index],
         onBoard: false,
+        locked: false,
         boardX: 0,
         boardY: 0,
         clusterId: null
@@ -310,95 +281,77 @@ function updatePuzzleGeometry() {
 }
 
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function rotatePoint(x, y, side) {
-  if (side === 'top') return { x, y };
-  if (side === 'right') return { x: 120 - y, y: x };
-  if (side === 'bottom') return { x: 120 - x, y: 120 - y };
-  return { x: y, y: 120 - x };
-}
-
-function formatPoint(value) {
-  return Number(value.toFixed(2));
-}
-
-function transformCommand(type, coords, side) {
-  const transformed = [];
-
-  for (let index = 0; index < coords.length; index += 2) {
-    const point = rotatePoint(coords[index], coords[index + 1], side);
-    transformed.push(formatPoint(point.x), formatPoint(point.y));
-  }
-
-  return `${type} ${transformed.join(' ')}`;
-}
-
-function ribbonSideCommands(side, seam) {
-  if (!seam) {
-    return [transformCommand('L', [105, 15], side)];
-  }
-
-  const center = clamp(60 + (seam.offset || 0), 47, 73);
-  const head = clamp(seam.head || 27, 22, 32);
-  const neck = clamp(Math.min(seam.neck || 14, head - 5), 10, 21);
-  const depth = clamp(seam.depth || 15, 10, 19);
-  const sign = seam.sign >= 0 ? 1 : -1;
-  const skew = clamp(seam.skew || 0, -4, 4);
-
-  const shoulderLeft = center - head / 2;
-  const shoulderRight = center + head / 2;
-  const neckLeft = center - neck / 2;
-  const neckRight = center + neck / 2;
-  const peakX = clamp(center + skew, neckLeft + 2, neckRight - 2);
-  const peakY = 15 - sign * depth;
-
-  return [
-    transformCommand('L', [shoulderLeft, 15], side),
-    transformCommand('C', [
-      shoulderLeft + (head - neck) * 0.35, 15,
-      neckLeft - 2, 15 - sign * depth * 0.12,
-      neckLeft, 15 - sign * depth * 0.34
-    ], side),
-    transformCommand('C', [
-      neckLeft + 1.5, 15 - sign * depth * 0.72,
-      peakX - head * 0.18, peakY,
-      peakX, peakY
-    ], side),
-    transformCommand('C', [
-      peakX + head * 0.18, peakY,
-      neckRight - 1.5, 15 - sign * depth * 0.72,
-      neckRight, 15 - sign * depth * 0.34
-    ], side),
-    transformCommand('C', [
-      neckRight + 2, 15 - sign * depth * 0.12,
-      shoulderRight - (head - neck) * 0.35, 15,
-      shoulderRight, 15
-    ], side),
-    transformCommand('L', [105, 15], side)
-  ];
-}
 
 function piecePath(edges) {
-  const pathParts = [
-    'M 15 15',
-    ...ribbonSideCommands('top', edges.top),
-    ...ribbonSideCommands('right', edges.right),
-    ...ribbonSideCommands('bottom', edges.bottom),
-    ...ribbonSideCommands('left', edges.left),
-    'Z'
-  ];
+  const { top, right, bottom, left } = edges;
+  const k = 8.284271247;
 
-  return pathParts.join(' ');
+  let d = 'M 15 15';
+
+  if (top === 0) {
+    d += ' L 105 15';
+  } else if (top === 1) {
+    d += ` L 45 15
+           C 45 ${15 - k}, ${60 - k} 0, 60 0
+           C ${60 + k} 0, 75 ${15 - k}, 75 15
+           L 105 15`;
+  } else {
+    d += ` L 45 15
+           C 45 ${15 + k}, ${60 - k} 30, 60 30
+           C ${60 + k} 30, 75 ${15 + k}, 75 15
+           L 105 15`;
+  }
+
+  if (right === 0) {
+    d += ' L 105 105';
+  } else if (right === 1) {
+    d += ` L 105 45
+           C ${105 + k} 45, 120 ${60 - k}, 120 60
+           C 120 ${60 + k}, ${105 + k} 75, 105 75
+           L 105 105`;
+  } else {
+    d += ` L 105 45
+           C ${105 - k} 45, 90 ${60 - k}, 90 60
+           C 90 ${60 + k}, ${105 - k} 75, 105 75
+           L 105 105`;
+  }
+
+  if (bottom === 0) {
+    d += ' L 15 105';
+  } else if (bottom === 1) {
+    d += ` L 75 105
+           C 75 ${105 + k}, ${60 + k} 120, 60 120
+           C ${60 - k} 120, 45 ${105 + k}, 45 105
+           L 15 105`;
+  } else {
+    d += ` L 75 105
+           C 75 ${105 - k}, ${60 + k} 90, 60 90
+           C ${60 - k} 90, 45 ${105 - k}, 45 105
+           L 15 105`;
+  }
+
+  if (left === 0) {
+    d += ' L 15 15';
+  } else if (left === 1) {
+    d += ` L 15 75
+           C ${15 - k} 75, 0 ${60 + k}, 0 60
+           C 0 ${60 - k}, ${15 - k} 45, 15 45
+           L 15 15`;
+  } else {
+    d += ` L 15 75
+           C ${15 + k} 75, 30 ${60 + k}, 30 60
+           C 30 ${60 - k}, ${15 + k} 45, 15 45
+           L 15 15`;
+  }
+
+  return d + ' Z';
 }
 
 /*
   Each piece shows its exact part of one common 4:3 source image.
-  The square fish artwork is center-cropped into the standard 4:3 puzzle board.
 */
 function pieceSvgMarkup(piece, uniqueId) {
+
 
   const imageStep = 90;
   const fullWidth = imageStep * puzzleState.cols;
@@ -439,8 +392,9 @@ function createPieceElement(piece, context = 'tray') {
 
   element.dataset.id = piece.id;
 
-  if (piece.clusterId != null) {
-    element.dataset.cluster = String(piece.clusterId);
+  if (piece.locked) {
+    element.classList.add('locked-piece');
+    element.dataset.locked = 'true';
   }
 
   const uid =
@@ -448,14 +402,10 @@ function createPieceElement(piece, context = 'tray') {
 
   element.innerHTML = pieceSvgMarkup(piece, uid);
 
-  if (context === 'tray' || context === 'board') {
+  if ((context === 'tray' || context === 'board') && !piece.locked) {
     element.setAttribute('role', 'button');
     element.setAttribute('tabindex', '0');
-    element.setAttribute(
-      'aria-label',
-      `Puzzle piece ${piece.correctIndex + 1}`
-    );
-
+    element.setAttribute('aria-label', `Puzzle piece ${piece.correctIndex + 1}`);
     element.addEventListener('pointerdown', beginPieceDrag);
   }
 
@@ -474,13 +424,8 @@ function getVisibleTrayPieces() {
 
 function updatePieceCounter() {
   const total = puzzleState.pieces.length;
-  const onBoard = puzzleState.pieces.filter(piece => piece.onBoard).length;
-
-  if (isPuzzleComplete()) {
-    pieceCounterChip.textContent = `${total} / ${total} connected`;
-  } else {
-    pieceCounterChip.textContent = `${onBoard} / ${total} on table`;
-  }
+  const locked = puzzleState.pieces.filter(piece => piece.locked).length;
+  pieceCounterChip.textContent = `${locked} / ${total} locked`;
 }
 
 function trayPieceSize() {
@@ -506,6 +451,12 @@ function renderPuzzle() {
     .forEach(piece => {
       const element = createPieceElement(piece, 'board');
 
+      if (piece.locked) {
+        const correct = getCorrectBoardPosition(piece);
+        piece.boardX = correct.x;
+        piece.boardY = correct.y;
+      }
+
       element.style.width = `${puzzleState.piecePx}px`;
       element.style.height = `${puzzleState.piecePx}px`;
       element.style.left = `${piece.boardX}px`;
@@ -529,10 +480,12 @@ function renderPuzzle() {
   allPiecesBtn.classList.toggle('active-filter', puzzleState.filterMode === 'all');
 }
 
-function getClusterPieces(clusterId) {
-  return puzzleState.pieces.filter(
-    piece => piece.onBoard && piece.clusterId === clusterId
-  );
+
+function getCorrectBoardPosition(piece) {
+  return {
+    x: piece.col * puzzleState.stepPx,
+    y: piece.row * puzzleState.stepPx
+  };
 }
 
 function beginPieceDrag(event) {
@@ -546,7 +499,7 @@ function beginPieceDrag(event) {
     candidate => candidate.id === sourceElement.dataset.id
   );
 
-  if (!piece) return;
+  if (!piece || piece.locked) return;
 
   const rect = sourceElement.getBoundingClientRect();
 
@@ -558,39 +511,10 @@ function beginPieceDrag(event) {
   dragState.startY = event.clientY;
   dragState.moved = false;
 
-  dragState.grabFracX = Math.max(
-    0,
-    Math.min(1, (event.clientX - rect.left) / rect.width)
-  );
+  dragState.grabFracX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  dragState.grabFracY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
 
-  dragState.grabFracY = Math.max(
-    0,
-    Math.min(1, (event.clientY - rect.top) / rect.height)
-  );
-
-  if (piece.onBoard) {
-    dragState.fromTray = false;
-    dragState.clusterId = piece.clusterId;
-    dragState.anchorBoardX = piece.boardX;
-    dragState.anchorBoardY = piece.boardY;
-
-    dragState.members = getClusterPieces(piece.clusterId).map(member => ({
-      id: member.id,
-      relX: member.boardX - piece.boardX,
-      relY: member.boardY - piece.boardY
-    }));
-
-    document.querySelectorAll(
-      `.board-piece[data-cluster="${piece.clusterId}"]`
-    ).forEach(node => node.classList.add('drag-source'));
-  } else {
-    dragState.fromTray = true;
-    dragState.clusterId = null;
-    dragState.anchorBoardX = 0;
-    dragState.anchorBoardY = 0;
-    dragState.members = [{ id: piece.id, relX: 0, relY: 0 }];
-    sourceElement.classList.add('drag-source');
-  }
+  sourceElement.classList.add('drag-source');
 
   try {
     sourceElement.setPointerCapture(event.pointerId);
@@ -613,50 +537,35 @@ function movePieceDrag(event) {
 
   if (!dragState.moved) {
     dragState.moved = true;
-    createDragGhosts();
+    createDragGhost();
   }
 
   event.preventDefault();
-  positionDragGhosts(event.clientX, event.clientY);
+  positionDragGhost(event.clientX, event.clientY);
 }
 
-function createDragGhosts() {
-  dragState.ghostEls = [];
+function createDragGhost() {
+  const piece = puzzleState.pieces.find(
+    candidate => candidate.id === dragState.pieceId
+  );
 
-  dragState.members.forEach(memberInfo => {
-    const piece = puzzleState.pieces.find(
-      candidate => candidate.id === memberInfo.id
-    );
+  if (!piece) return;
 
-    if (!piece) return;
+  const ghost = createPieceElement(piece, 'ghost');
+  ghost.classList.add('drag-ghost');
+  ghost.style.width = `${puzzleState.piecePx}px`;
+  ghost.style.height = `${puzzleState.piecePx}px`;
 
-    const ghost = createPieceElement(piece, 'ghost');
-    ghost.classList.add('drag-ghost');
-
-    ghost.style.width = `${puzzleState.piecePx}px`;
-    ghost.style.height = `${puzzleState.piecePx}px`;
-
-    document.body.appendChild(ghost);
-
-    dragState.ghostEls.push({
-      el: ghost,
-      relX: memberInfo.relX,
-      relY: memberInfo.relY
-    });
-  });
+  document.body.appendChild(ghost);
+  dragState.ghostEls = [{ el: ghost }];
 }
 
-function positionDragGhosts(pointerX, pointerY) {
-  const anchorLeft =
-    pointerX - dragState.grabFracX * puzzleState.piecePx;
+function positionDragGhost(pointerX, pointerY) {
+  const ghost = dragState.ghostEls?.[0]?.el;
+  if (!ghost) return;
 
-  const anchorTop =
-    pointerY - dragState.grabFracY * puzzleState.piecePx;
-
-  dragState.ghostEls.forEach(ghostInfo => {
-    ghostInfo.el.style.left = `${anchorLeft + ghostInfo.relX}px`;
-    ghostInfo.el.style.top = `${anchorTop + ghostInfo.relY}px`;
-  });
+  ghost.style.left = `${pointerX - dragState.grabFracX * puzzleState.piecePx}px`;
+  ghost.style.top = `${pointerY - dragState.grabFracY * puzzleState.piecePx}px`;
 }
 
 function cleanupDrag() {
@@ -670,7 +579,7 @@ function cleanupDrag() {
     node.classList.remove('drag-source');
   });
 
-  dragState.ghostEls.forEach(info => info.el.remove());
+  (dragState.ghostEls || []).forEach(info => info.el.remove());
 
   dragState = {
     active: false,
@@ -688,34 +597,38 @@ function cancelPieceDrag() {
   cleanupDrag();
 }
 
-function clampClusterToBoard(clusterPieces) {
+function clampPieceToBoard(piece) {
   const boardRect = puzzleBoard.getBoundingClientRect();
-  const piecePx = puzzleState.piecePx;
+  const maxX = Math.max(0, boardRect.width - puzzleState.piecePx);
+  const maxY = Math.max(0, boardRect.height - puzzleState.piecePx);
 
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+  piece.boardX = Math.max(0, Math.min(maxX, piece.boardX));
+  piece.boardY = Math.max(0, Math.min(maxY, piece.boardY));
+}
 
-  clusterPieces.forEach(piece => {
-    minX = Math.min(minX, piece.boardX);
-    minY = Math.min(minY, piece.boardY);
-    maxX = Math.max(maxX, piece.boardX + piecePx);
-    maxY = Math.max(maxY, piece.boardY + piecePx);
-  });
+function trySnapLockPiece(piece) {
+  if (!piece || piece.locked) return false;
 
-  let shiftX = 0;
-  let shiftY = 0;
+  const target = getCorrectBoardPosition(piece);
+  const distance = Math.hypot(
+    piece.boardX - target.x,
+    piece.boardY - target.y
+  );
 
-  if (minX < 0) shiftX = -minX;
-  if (minY < 0) shiftY = -minY;
-  if (maxX > boardRect.width) shiftX = boardRect.width - maxX;
-  if (maxY > boardRect.height) shiftY = boardRect.height - maxY;
+  const snapRadius = Math.max(
+    puzzleState.snapDistance,
+    puzzleState.piecePx * 0.42
+  );
 
-  clusterPieces.forEach(piece => {
-    piece.boardX += shiftX;
-    piece.boardY += shiftY;
-  });
+  if (distance > snapRadius) return false;
+
+  piece.boardX = target.x;
+  piece.boardY = target.y;
+  piece.locked = true;
+  piece.clusterId = 0;
+
+  showToast('Snap! Piece locked in place.');
+  return true;
 }
 
 function endPieceDrag(event) {
@@ -746,40 +659,23 @@ function endPieceDrag(event) {
   if (!overBoard) {
     cleanupDrag();
     renderPuzzle();
-    showToast('Keep puzzle pieces on the puzzle table.');
+    showToast('Drop the piece onto the puzzle table.');
     return;
   }
 
-  const anchorX =
+  piece.onBoard = true;
+  piece.boardX =
     event.clientX - boardRect.left -
     dragState.grabFracX * puzzleState.piecePx;
 
-  const anchorY =
+  piece.boardY =
     event.clientY - boardRect.top -
     dragState.grabFracY * puzzleState.piecePx;
 
-  if (dragState.fromTray) {
-    piece.onBoard = true;
-    piece.clusterId = puzzleState.nextClusterId++;
-    piece.boardX = anchorX;
-    piece.boardY = anchorY;
-  } else {
-    const movingPieces = getClusterPieces(dragState.clusterId);
-    const deltaX = anchorX - dragState.anchorBoardX;
-    const deltaY = anchorY - dragState.anchorBoardY;
-
-    movingPieces.forEach(member => {
-      member.boardX += deltaX;
-      member.boardY += deltaY;
-    });
-  }
-
-  const activeCluster = piece.clusterId;
-
-  clampClusterToBoard(getClusterPieces(activeCluster));
+  clampPieceToBoard(piece);
   cleanupDrag();
 
-  snapClusterToNeighbors(activeCluster);
+  trySnapLockPiece(piece);
   checkBorderComplete();
   renderPuzzle();
 
@@ -788,133 +684,24 @@ function endPieceDrag(event) {
   }
 }
 
-function logicalNeighborIndex(piece, side) {
-  const { row, col } = piece;
-  const { rows, cols } = puzzleState;
-
-  if (side === 'left' && col > 0) return row * cols + (col - 1);
-  if (side === 'right' && col < cols - 1) return row * cols + (col + 1);
-  if (side === 'top' && row > 0) return (row - 1) * cols + col;
-  if (side === 'bottom' && row < rows - 1) return (row + 1) * cols + col;
-
-  return null;
-}
-
-function desiredDeltaBetween(pieceA, pieceB) {
-  return {
-    x: (pieceA.col - pieceB.col) * puzzleState.stepPx,
-    y: (pieceA.row - pieceB.row) * puzzleState.stepPx
-  };
-}
-
-function findBestClusterSnap(clusterId) {
-  const movingPieces = getClusterPieces(clusterId);
-  let best = null;
-
-  movingPieces.forEach(pieceA => {
-    ['left', 'right', 'top', 'bottom'].forEach(side => {
-      const neighborIndex = logicalNeighborIndex(pieceA, side);
-      if (neighborIndex == null) return;
-
-      const pieceB = puzzleState.pieces.find(candidate =>
-        candidate.correctIndex === neighborIndex &&
-        candidate.onBoard &&
-        candidate.clusterId !== clusterId
-      );
-
-      if (!pieceB) return;
-
-      const desired = desiredDeltaBetween(pieceA, pieceB);
-
-      const errorX =
-        (pieceA.boardX - pieceB.boardX) - desired.x;
-
-      const errorY =
-        (pieceA.boardY - pieceB.boardY) - desired.y;
-
-      const distance = Math.hypot(errorX, errorY);
-
-      if (
-        distance <= puzzleState.snapDistance &&
-        (!best || distance < best.distance)
-      ) {
-        best = {
-          pieceA,
-          pieceB,
-          shiftX: -errorX,
-          shiftY: -errorY,
-          distance
-        };
-      }
-    });
-  });
-
-  return best;
-}
-
-function mergeClusters(sourceClusterId, targetClusterId, shiftX, shiftY) {
-  const sourcePieces = getClusterPieces(sourceClusterId);
-
-  sourcePieces.forEach(piece => {
-    piece.boardX += shiftX;
-    piece.boardY += shiftY;
-    piece.clusterId = targetClusterId;
-  });
-
-  clampClusterToBoard(getClusterPieces(targetClusterId));
-}
-
-function snapClusterToNeighbors(clusterId) {
-  let activeClusterId = clusterId;
-  let snapped = false;
-
-  for (let pass = 0; pass < puzzleState.pieces.length; pass += 1) {
-    const best = findBestClusterSnap(activeClusterId);
-    if (!best) break;
-
-    const targetClusterId = best.pieceB.clusterId;
-
-    mergeClusters(
-      activeClusterId,
-      targetClusterId,
-      best.shiftX,
-      best.shiftY
-    );
-
-    activeClusterId = targetClusterId;
-    snapped = true;
-  }
-
-  if (snapped) {
-    showToast('Click! Those pieces fit.');
-  }
-}
-
 function checkBorderComplete() {
   if (puzzleState.borderPromptShown) return;
 
   const edgePieces = puzzleState.pieces.filter(piece => piece.isEdge);
-  const allEdgesOnBoard = edgePieces.every(piece => piece.onBoard);
+  const borderLocked = edgePieces.every(piece => piece.locked);
 
-  if (allEdgesOnBoard) {
+  if (borderLocked) {
     puzzleState.borderPromptShown = true;
     puzzleState.filterMode = 'all';
-    showToast('All edge pieces are out. Center pieces are now available.');
+    showToast('Border complete! Center pieces are now available.');
   }
 }
 
 function isPuzzleComplete() {
-  if (!puzzleState) return false;
-
-  if (!puzzleState.pieces.every(piece => piece.onBoard)) {
-    return false;
-  }
-
-  const clusters = new Set(
-    puzzleState.pieces.map(piece => piece.clusterId)
+  return Boolean(
+    puzzleState &&
+    puzzleState.pieces.every(piece => piece.locked)
   );
-
-  return clusters.size === 1;
 }
 
 function finishPuzzle() {
