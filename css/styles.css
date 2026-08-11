@@ -1208,3 +1208,29 @@ body::before {
   outline: 1px solid rgba(238,244,251,.10);
   outline-offset: -1px;
 }
+
+
+/* === Angler's Jigsaw v1.8 — full-board images + safer loose pieces === */
+
+.board-piece:not(.locked-piece) {
+  cursor: grab;
+}
+
+.board-piece:not(.locked-piece):active {
+  cursor: grabbing;
+}
+
+.board-piece.locked-piece {
+  z-index: 5 !important;
+}
+
+/* Make the familiar knob-and-socket silhouette more prominent. */
+.piece-outline {
+  stroke-width: 1.2 !important;
+  stroke: rgba(248, 248, 244, .94) !important;
+}
+
+/* Prevent cropped connector heads at the edge of the visual board. */
+.puzzle-board {
+  overflow: hidden !important;
+}
