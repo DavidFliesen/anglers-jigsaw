@@ -1,4 +1,4 @@
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.0.2';
 
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -236,83 +236,103 @@ function outwardTabInfo(edges) {
 */
 function piecePath(edges) {
   const { top, right, bottom, left } = edges;
-  let d = 'M 18 18';
 
-  // TOP
-  if (top === 0) {
-    d += ' L 102 18';
-  } else if (top === 1) {
-    d += ` L 46 18
-           C 49 18, 50 16, 50 13
-           C 50 6, 54 2, 60 2
-           C 66 2, 70 6, 70 13
-           C 70 16, 71 18, 74 18
-           L 102 18`;
-  } else {
-    d += ` L 46 18
-           C 49 18, 50 20, 50 23
-           C 50 30, 54 34, 60 34
-           C 66 34, 70 30, 70 23
-           C 70 20, 71 18, 74 18
-           L 102 18`;
+  /*
+    Classic jigsaw silhouette inspired by the user's reference images:
+    - straight ribbon-cut rows and columns
+    - centered circular tabs and sockets
+    - familiar physical-puzzle proportions
+    - mirrored neighboring edges so they line up exactly
+  */
+  const MIN = 18;
+  const MAX = 102;
+  const START = 46;
+  const END = 74;
+  const NECK_IN_1 = 50;
+  const NECK_IN_2 = 70;
+  const NECK_OUT_1 = 52;
+  const NECK_OUT_2 = 68;
+  const PEAK = 6;
+  const WELL = 30;
+
+  let d = `M ${MIN} ${MIN}`;
+
+  function topEdge(type) {
+    if (type === 0) return ` L ${MAX} ${MIN}`;
+    if (type === 1) {
+      return ` L ${START} ${MIN}
+               C ${NECK_IN_1} ${MIN}, ${NECK_OUT_1} 14, ${NECK_OUT_1} 14
+               C ${NECK_OUT_1} 10, 55 ${PEAK}, 60 ${PEAK}
+               C 65 ${PEAK}, ${NECK_OUT_2} 10, ${NECK_OUT_2} 14
+               C ${NECK_OUT_2} 14, ${NECK_IN_2} ${MIN}, ${END} ${MIN}
+               L ${MAX} ${MIN}`;
+    }
+    return ` L ${START} ${MIN}
+             C ${NECK_IN_1} ${MIN}, ${NECK_OUT_1} 22, ${NECK_OUT_1} 22
+             C ${NECK_OUT_1} 26, 55 ${WELL}, 60 ${WELL}
+             C 65 ${WELL}, ${NECK_OUT_2} 26, ${NECK_OUT_2} 22
+             C ${NECK_OUT_2} 22, ${NECK_IN_2} ${MIN}, ${END} ${MIN}
+             L ${MAX} ${MIN}`;
   }
 
-  // RIGHT
-  if (right === 0) {
-    d += ' L 102 102';
-  } else if (right === 1) {
-    d += ` L 102 46
-           C 102 49, 104 50, 107 50
-           C 114 50, 118 54, 118 60
-           C 118 66, 114 70, 107 70
-           C 104 70, 102 71, 102 74
-           L 102 102`;
-  } else {
-    d += ` L 102 46
-           C 102 49, 100 50, 97 50
-           C 90 50, 86 54, 86 60
-           C 86 66, 90 70, 97 70
-           C 100 70, 102 71, 102 74
-           L 102 102`;
+  function rightEdge(type) {
+    if (type === 0) return ` L ${MAX} ${MAX}`;
+    if (type === 1) {
+      return ` L ${MAX} ${START}
+               C ${MAX} ${NECK_IN_1}, 106 ${NECK_OUT_1}, 106 ${NECK_OUT_1}
+               C 110 ${NECK_OUT_1}, 114 55, 114 60
+               C 114 65, 110 ${NECK_OUT_2}, 106 ${NECK_OUT_2}
+               C 106 ${NECK_OUT_2}, ${MAX} ${NECK_IN_2}, ${MAX} ${END}
+               L ${MAX} ${MAX}`;
+    }
+    return ` L ${MAX} ${START}
+             C ${MAX} ${NECK_IN_1}, 98 ${NECK_OUT_1}, 98 ${NECK_OUT_1}
+             C 94 ${NECK_OUT_1}, 90 55, 90 60
+             C 90 65, 94 ${NECK_OUT_2}, 98 ${NECK_OUT_2}
+             C 98 ${NECK_OUT_2}, ${MAX} ${NECK_IN_2}, ${MAX} ${END}
+             L ${MAX} ${MAX}`;
   }
 
-  // BOTTOM
-  if (bottom === 0) {
-    d += ' L 18 102';
-  } else if (bottom === 1) {
-    d += ` L 74 102
-           C 71 102, 70 104, 70 107
-           C 70 114, 66 118, 60 118
-           C 54 118, 50 114, 50 107
-           C 50 104, 49 102, 46 102
-           L 18 102`;
-  } else {
-    d += ` L 74 102
-           C 71 102, 70 100, 70 97
-           C 70 90, 66 86, 60 86
-           C 54 86, 50 90, 50 97
-           C 50 100, 49 102, 46 102
-           L 18 102`;
+  function bottomEdge(type) {
+    if (type === 0) return ` L ${MIN} ${MAX}`;
+    if (type === 1) {
+      return ` L ${END} ${MAX}
+               C ${NECK_IN_2} ${MAX}, ${NECK_OUT_2} 106, ${NECK_OUT_2} 106
+               C ${NECK_OUT_2} 110, 65 114, 60 114
+               C 55 114, ${NECK_OUT_1} 110, ${NECK_OUT_1} 106
+               C ${NECK_OUT_1} 106, ${NECK_IN_1} ${MAX}, ${START} ${MAX}
+               L ${MIN} ${MAX}`;
+    }
+    return ` L ${END} ${MAX}
+             C ${NECK_IN_2} ${MAX}, ${NECK_OUT_2} 98, ${NECK_OUT_2} 98
+             C ${NECK_OUT_2} 94, 65 90, 60 90
+             C 55 90, ${NECK_OUT_1} 94, ${NECK_OUT_1} 98
+             C ${NECK_OUT_1} 98, ${NECK_IN_1} ${MAX}, ${START} ${MAX}
+             L ${MIN} ${MAX}`;
   }
 
-  // LEFT
-  if (left === 0) {
-    d += ' L 18 18';
-  } else if (left === 1) {
-    d += ` L 18 74
-           C 18 71, 16 70, 13 70
-           C 6 70, 2 66, 2 60
-           C 2 54, 6 50, 13 50
-           C 16 50, 18 49, 18 46
-           L 18 18`;
-  } else {
-    d += ` L 18 74
-           C 18 71, 20 70, 23 70
-           C 30 70, 34 66, 34 60
-           C 34 54, 30 50, 23 50
-           C 20 50, 18 49, 18 46
-           L 18 18`;
+  function leftEdge(type) {
+    if (type === 0) return ` L ${MIN} ${MIN}`;
+    if (type === 1) {
+      return ` L ${MIN} ${END}
+               C ${MIN} ${NECK_IN_2}, 14 ${NECK_OUT_2}, 14 ${NECK_OUT_2}
+               C 10 ${NECK_OUT_2}, ${PEAK} 65, ${PEAK} 60
+               C ${PEAK} 55, 10 ${NECK_OUT_1}, 14 ${NECK_OUT_1}
+               C 14 ${NECK_OUT_1}, ${MIN} ${NECK_IN_1}, ${MIN} ${START}
+               L ${MIN} ${MIN}`;
+    }
+    return ` L ${MIN} ${END}
+             C ${MIN} ${NECK_IN_2}, 22 ${NECK_OUT_2}, 22 ${NECK_OUT_2}
+             C 26 ${NECK_OUT_2}, ${WELL} 65, ${WELL} 60
+             C ${WELL} 55, 26 ${NECK_OUT_1}, 22 ${NECK_OUT_1}
+             C 22 ${NECK_OUT_1}, ${MIN} ${NECK_IN_1}, ${MIN} ${START}
+             L ${MIN} ${MIN}`;
   }
+
+  d += topEdge(top);
+  d += rightEdge(right);
+  d += bottomEdge(bottom);
+  d += leftEdge(left);
 
   return d + ' Z';
 }
@@ -352,6 +372,14 @@ function pieceSvgMarkup(piece) {
 }
 
 function startPuzzle(species, difficulty) {
+  if (dragState.active) {
+    cleanupDrag();
+  }
+
+  // Remove every piece from the previous puzzle before building a new one.
+  els.playTable.querySelectorAll('.jigsaw-piece').forEach(element => element.remove());
+  document.querySelectorAll('.drag-proxy').forEach(element => element.remove());
+  els.trayPieces.replaceChildren();
   pieceElements.clear();
 
   const edges = generatePieceEdges(difficulty.rows, difficulty.cols);
@@ -765,12 +793,19 @@ function endPieceDrag(event) {
   }
 
   const tableRect = els.playTable.getBoundingClientRect();
+  const trayRect = els.trayBar.getBoundingClientRect();
 
   const overTable =
     event.clientX >= tableRect.left &&
     event.clientX <= tableRect.right &&
     event.clientY >= tableRect.top &&
     event.clientY <= tableRect.bottom;
+
+  const overTray =
+    event.clientX >= trayRect.left &&
+    event.clientX <= trayRect.right &&
+    event.clientY >= trayRect.top &&
+    event.clientY <= trayRect.bottom;
 
   if (dragState.fromTray) {
     if (dragState.moved && overTable) {
@@ -795,6 +830,35 @@ function endPieceDrag(event) {
     }
   } else {
     const clusterId = piece.clusterId;
+    const members = clusterPieces(clusterId);
+
+    // A loose single piece may always be returned to the bottom tray.
+    if (overTray && members.length === 1 && !piece.locked) {
+      piece.state = 'tray';
+      piece.x = 0;
+      piece.y = 0;
+      piece.clusterId = puzzleState.nextClusterId++;
+
+      cleanupDrag();
+      syncAllPieces();
+      showToast('Piece returned to the Tackle Tray.');
+      return;
+    }
+
+    // Do not accidentally destroy a connected group by dropping it on the tray.
+    if (overTray && members.length > 1) {
+      dragState.startPositions.forEach(start => {
+        const member = pieceById(start.id);
+        if (!member) return;
+        member.x = start.x;
+        member.y = start.y;
+      });
+
+      cleanupDrag();
+      syncAllPieces();
+      showToast('Connected groups stay together on the table.');
+      return;
+    }
 
     clampClusterToTable(clusterId);
 
@@ -1265,13 +1329,41 @@ function togglePreview() {
   els.previewBtn.textContent = puzzleState.preview ? 'Hide Preview' : 'Preview';
 }
 
+function isIOSLike() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+function pseudoFullscreenActive() {
+  return els.playShell.classList.contains('app-fullscreen');
+}
+
 async function toggleFullscreen() {
+  // Native element fullscreen on iPad can exit during drag gestures.
+  // Use a stable app-level fullscreen layout there instead.
+  if (isIOSLike()) {
+    const next = !pseudoFullscreenActive();
+
+    els.playShell.classList.toggle('app-fullscreen', next);
+    els.body.classList.toggle('app-fullscreen-active', next);
+
+    updateFullscreenButton();
+
+    setTimeout(() => {
+      if (!puzzleState) return;
+      layoutPuzzle(true);
+      syncAllPieces();
+    }, 80);
+
+    return;
+  }
+
   try {
     if (!document.fullscreenElement) {
       if (els.playShell.requestFullscreen) {
         await els.playShell.requestFullscreen();
-      } else if (els.playShell.webkitRequestFullscreen) {
-        els.playShell.webkitRequestFullscreen();
       }
     } else if (document.exitFullscreen) {
       await document.exitFullscreen();
@@ -1281,11 +1373,22 @@ async function toggleFullscreen() {
   }
 }
 
+function exitPlayFullscreen() {
+  els.playShell.classList.remove('app-fullscreen');
+  els.body.classList.remove('app-fullscreen-active');
+
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+
+  updateFullscreenButton();
+}
+
 function updateFullscreenButton() {
-  const active = Boolean(document.fullscreenElement);
+  const active = Boolean(document.fullscreenElement) || pseudoFullscreenActive();
   els.fullscreenBtn.textContent = active ? 'Exit Full Screen' : 'Full Screen';
 
-  if (puzzleState) {
+  if (puzzleState && screens.puzzle.classList.contains('active')) {
     requestAnimationFrame(() => {
       layoutPuzzle(true);
       syncAllPieces();
@@ -1330,8 +1433,13 @@ function initWaterBubbles() {
 }
 
 function wireButtons() {
-  const goHome = () => showScreen('home');
+  const goHome = () => {
+    exitPlayFullscreen();
+    showScreen('home');
+  };
+
   const goSelect = () => {
+    exitPlayFullscreen();
     renderPuzzleChoices();
     showScreen('select');
   };
@@ -1371,6 +1479,34 @@ function wireButtons() {
   });
 
   document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+  const preventPuzzleGesture = event => {
+    if (els.body.classList.contains('puzzle-mode')) {
+      event.preventDefault();
+    }
+  };
+
+  // Safari-specific pinch gesture events.
+  document.addEventListener('gesturestart', preventPuzzleGesture, { passive: false });
+  document.addEventListener('gesturechange', preventPuzzleGesture, { passive: false });
+  document.addEventListener('gestureend', preventPuzzleGesture, { passive: false });
+
+  // Block multi-touch page zoom while playing without disabling tray scrolling.
+  document.addEventListener('touchmove', event => {
+    if (
+      els.body.classList.contains('puzzle-mode') &&
+      event.touches &&
+      event.touches.length > 1
+    ) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  els.playShell.addEventListener('dblclick', event => {
+    if (els.body.classList.contains('puzzle-mode')) {
+      event.preventDefault();
+    }
+  });
 
   window.addEventListener('orientationchange', () => {
     if (!puzzleState || !screens.puzzle.classList.contains('active')) return;
