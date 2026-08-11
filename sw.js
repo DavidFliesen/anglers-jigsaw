@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'anglers-jigsaw-v1-7';
+const CACHE_NAME = 'anglers-jigsaw-v1-8';
 
 const ASSETS = [
   './',
