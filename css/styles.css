@@ -1173,3 +1173,38 @@ body::before {
   stroke: rgba(247, 244, 230, .94) !important;
   stroke-width: 1.3 !important;
 }
+
+
+/* === Angler's Jigsaw v1.7 — classic circular jigsaw tabs + snap-lock === */
+
+.piece-outline {
+  stroke: rgba(248, 248, 244, .92) !important;
+  stroke-width: 1.15 !important;
+  stroke-linejoin: round !important;
+  stroke-linecap: round !important;
+}
+
+.jigsaw-piece svg {
+  overflow: visible !important;
+}
+
+.board-piece,
+.tray-piece {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.24));
+}
+
+.board-piece.locked-piece {
+  cursor: default !important;
+  filter:
+    drop-shadow(0 1px 2px rgba(0,0,0,.18))
+    drop-shadow(0 0 2px rgba(238,244,251,.08));
+}
+
+.board-piece.locked-piece .piece-outline {
+  stroke: rgba(238, 244, 251, .62) !important;
+}
+
+.puzzle-board {
+  outline: 1px solid rgba(238,244,251,.10);
+  outline-offset: -1px;
+}
