@@ -1,18 +1,19 @@
-
 :root {
-  --bg: #071b14;
-  --panel: #123b2c;
-  --panel-dark: #0b281e;
-  --panel-soft: #194b38;
-  --green: #2d674c;
-  --green-hover: #38795a;
-  --gold: #e2c682;
-  --gold-light: #f1dea8;
-  --text: #f5f4ec;
-  --muted: #c7d5cc;
-  --line: rgba(226, 198, 130, .22);
-  --shadow: 0 18px 38px rgba(0, 0, 0, .26);
-  --radius: 22px;
+  --abyss: #00102e;
+  --deep: #08214a;
+  --current: #0b2c5c;
+  --crest: #123a72;
+  --aqua: #2ec6e6;
+  --mist: #a9c0e0;
+  --foam: #eef4fb;
+  --gold: #e5c97a;
+  --gold-light: #f2dfa6;
+  --seafoam: #42bd98;
+  --panel: rgba(7, 28, 64, .90);
+  --panel-strong: rgba(4, 20, 49, .95);
+  --line: rgba(169, 192, 224, .22);
+  --shadow: 0 18px 42px rgba(0, 0, 0, .28);
+  --radius: 20px;
 }
 
 * {
@@ -23,1082 +24,65 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(33, 87, 62, .22), transparent 42%),
-    var(--bg);
-  color: var(--text);
+  color: var(--foam);
   font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #123a72 0%, rgba(18,58,114,0) 55%),
+    linear-gradient(180deg, #0b2c5c 0%, #08214a 42%, #041a3e 72%, #00102e 100%);
+  background-attachment: fixed;
   -webkit-text-size-adjust: 100%;
 }
 
-button,
-.jigsaw-piece,
-.puzzle-board,
-.tray-pieces {
-  touch-action: manipulation;
+body {
+  overflow-x: hidden;
 }
 
-.jigsaw-piece,
-.puzzle-board,
-.tray-pieces {
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+button,
+select {
+  font: inherit;
 }
 
 button {
-  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 2px;
 }
 
 .hidden {
   display: none !important;
 }
 
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  min-height: 78px;
-  display: grid;
-  grid-template-columns: 130px 1fr 130px;
-  align-items: center;
-  gap: 16px;
-  padding: 9px 18px;
-  background: rgba(6, 29, 21, .96);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(10px);
-}
-
-.header-brand {
-  justify-self: center;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-logo {
-  width: 52px;
-  height: 52px;
-  object-fit: cover;
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
-}
-
-.header-brand h1 {
-  margin: 0;
-  font-size: 1.42rem;
-}
-
-.header-brand p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: .92rem;
-}
-
-.header-btn {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--text);
-  border-radius: 999px;
-  padding: 11px 17px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.header-btn:last-child {
-  justify-self: end;
-}
-
-.app-shell {
-  width: min(1240px, calc(100% - 30px));
-  margin: 0 auto;
-  padding: 22px 0 38px;
-}
-
-.screen {
-  display: none;
-}
-
-.screen.active {
-  display: block;
-}
-
-.panel {
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background:
-    linear-gradient(180deg, rgba(27, 81, 58, .82), rgba(14, 53, 38, .92));
-  box-shadow: var(--shadow);
-}
-
-.panel.narrow {
-  width: min(760px, 100%);
-  margin: 0 auto;
-}
-
-.muted,
-.screen-heading p,
-.tray-help {
-  color: var(--muted);
-}
-
-.home-simple {
-  min-height: calc(100vh - 145px);
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 28px;
-  padding: 24px;
-}
-
-.home-title {
-  margin: 0;
-  font-size: clamp(2.6rem, 6vw, 5rem);
-  line-height: .95;
-  text-align: center;
-  letter-spacing: .01em;
-}
-
-.home-main {
-  display: grid;
-  grid-template-columns: minmax(280px, 500px) minmax(220px, 300px);
-  align-items: center;
-  gap: 42px;
-}
-
-.home-logo {
-  width: min(100%, 500px);
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 34px;
-  box-shadow: var(--shadow);
-}
-
-.home-actions {
-  display: grid;
-  gap: 28px;
-}
-
-.home-action,
-.primary-btn,
-.secondary-btn {
-  border: 0;
-  border-radius: 999px;
-  padding: 14px 22px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform .15s ease, background .15s ease;
-}
-
-.home-action {
-  min-width: 230px;
-  min-height: 68px;
-  font-size: 1.25rem;
-}
-
-.home-action:hover,
-.primary-btn:hover,
-.secondary-btn:hover {
-  transform: translateY(-1px);
-}
-
-.home-action.gold,
-.primary-btn {
-  background: var(--gold);
-  color: #172219;
-}
-
-.home-action.gold:hover,
-.primary-btn:hover {
-  background: var(--gold-light);
-}
-
-.home-action.green,
-.secondary-btn {
-  background: var(--green);
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, .08);
-}
-
-.home-action.green:hover,
-.secondary-btn:hover {
-  background: var(--green-hover);
-}
-
-.arteziq-wordmark {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 2vw, 28px);
-  margin-top: 8px;
-  color: white;
-  font-size: clamp(2rem, 5vw, 4.2rem);
-  font-weight: 300;
-  letter-spacing: .04em;
-}
-
-.arteziq-wordmark .ez {
-  color: #dba53e;
-  text-shadow: 0 0 10px rgba(219, 165, 62, .26);
-}
-
-.screen-heading,
-.puzzle-topline {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
-}
-
-.screen-heading h2,
-.puzzle-topline h2 {
-  margin: 0 0 6px;
-}
-
-.counter-chip {
-  flex: 0 0 auto;
-  padding: 10px 14px;
-  border-radius: 999px;
-  color: var(--gold-light);
-  background: rgba(52, 105, 77, .76);
-  border: 1px solid var(--line);
-  font-weight: 800;
-}
-
-.difficulty-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.difficulty-card {
-  min-height: 230px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(31, 91, 65, .9), rgba(17, 58, 42, .96));
-  color: var(--text);
-  cursor: pointer;
-  box-shadow: 0 9px 20px rgba(0, 0, 0, .15);
-}
-
-.difficulty-card:hover {
-  border-color: rgba(226, 198, 130, .55);
-  transform: translateY(-2px);
-}
-
-.difficulty-name {
-  color: var(--gold-light);
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-.difficulty-count {
-  margin-top: 7px;
-  font-size: 3rem;
-  line-height: 1;
-  font-weight: 900;
-}
-
-.difficulty-word,
-.difficulty-grid-size {
-  color: var(--muted);
-}
-
-.difficulty-grid-size {
-  margin-top: 9px;
-  font-weight: 800;
-}
-
-.difficulty-note {
-  margin-top: 12px;
-  color: var(--muted);
-  line-height: 1.35;
-  text-align: center;
-  font-size: .9rem;
-}
-
-.how-list {
-  line-height: 1.75;
-}
-
-.button-row,
-.puzzle-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 11px;
-  margin-top: 20px;
-}
-
-.primary-btn,
-.secondary-btn {
-  padding: 12px 18px;
-}
-
-.secondary-btn.active-filter {
-  background: var(--gold);
-  color: #172219;
-}
-
-.puzzle-panel {
-  padding: 22px;
-}
-
-.workspace-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-top: 18px;
-}
-
-.workspace-panel {
-  min-width: 0;
-  border-radius: 20px;
-  background: var(--panel-dark);
-  border: 1px solid rgba(226, 198, 130, .14);
-  overflow: hidden;
-}
-
-.workspace-label {
-  height: 46px;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  font-size: 1.06rem;
-  font-weight: 800;
-  border-bottom: 1px solid rgba(226, 198, 130, .1);
-}
-
-.tray-help {
-  min-height: 48px;
-  padding: 10px 16px 0;
-  font-size: .88rem;
-  line-height: 1.35;
-}
-
-.puzzle-board,
-.tray-pieces {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-}
-
-.puzzle-board {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .03), transparent 45%),
-    #123b2c;
-  border-top: 1px solid rgba(255, 255, 255, .02);
-}
-
-.tray-pieces {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 5px;
-  padding: 10px;
-  overflow: auto;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .018), transparent 44%),
-    #0d2a20;
-}
-
-.jigsaw-piece {
-  position: relative;
-  flex: 0 0 auto;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .34));
-}
-
-.jigsaw-piece svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.piece-outline {
-  fill: none;
-  stroke: rgba(250, 246, 226, .84);
-  stroke-width: 1.1;
-  vector-effect: non-scaling-stroke;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.tray-piece {
-  cursor: grab;
-}
-
-.board-piece {
-  position: absolute;
-  z-index: 4;
-  cursor: grab;
-}
-
-.tray-piece:active,
-.board-piece:active {
-  cursor: grabbing;
-}
-
-.drag-source {
-  opacity: .25;
-}
-
-.drag-ghost {
-  position: fixed !important;
-  z-index: 9999 !important;
-  pointer-events: none !important;
-  opacity: .95;
-  filter:
-    drop-shadow(0 10px 12px rgba(0, 0, 0, .45))
-    drop-shadow(0 0 4px rgba(226, 198, 130, .5));
-}
-
-.complete-grid {
-  display: grid;
-  grid-template-columns: minmax(280px, 410px) 1fr;
-  gap: 30px;
-  align-items: start;
-}
-
-.catch-art img {
-  display: block;
-  width: 100%;
-  border-radius: 20px;
-  border: 1px solid var(--line);
-}
-
-.complete-kicker {
-  color: var(--gold-light);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .11em;
-  font-size: .85rem;
-}
-
-.scientific {
-  color: var(--muted);
-  font-family: Georgia, serif;
-  font-style: italic;
-}
-
-.cooler-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.cooler-card {
-  overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: #123727;
-}
-
-.cooler-card img,
-.locked-art {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-}
-
-.cooler-card img {
-  display: block;
-  object-fit: cover;
-}
-
-.locked-art {
-  display: grid;
-  place-items: center;
-  font-size: 4rem;
-  color: var(--gold);
-  background: #193f2f;
-}
-
-.cooler-body {
-  padding: 16px;
-}
-
-.cooler-body h3 {
-  margin: 0 0 6px;
-}
-
-.cooler-card.locked {
-  opacity: .68;
-}
-
-.toast {
-  position: fixed;
-  z-index: 10000;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  max-width: min(680px, 90vw);
-  padding: 13px 18px;
-  border-radius: 14px;
-  background: rgba(4, 17, 12, .95);
-  color: white;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-}
-
-@media (max-width: 920px) {
-  .difficulty-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .home-main {
-    grid-template-columns: minmax(250px, 430px) minmax(200px, 260px);
-    gap: 28px;
-  }
-}
-
-@media (max-width: 760px) {
-  .app-header {
-    grid-template-columns: auto 1fr auto;
-    padding: 8px 10px;
-  }
-
-  .header-brand p {
-    display: none;
-  }
-
-  .header-brand h1 {
-    font-size: 1.05rem;
-  }
-
-  .header-logo {
-    width: 42px;
-    height: 42px;
-  }
-
-  .header-btn {
-    padding: 9px 12px;
-    font-size: .9rem;
-  }
-
-  .app-shell {
-    width: min(100% - 18px, 1240px);
-    padding-top: 12px;
-  }
-
-  .home-simple {
-    min-height: auto;
-    padding: 14px 6px 28px;
-  }
-
-  .home-title {
-    font-size: clamp(2.25rem, 10vw, 3.6rem);
-  }
-
-  .home-main {
-    grid-template-columns: 1fr;
-    width: min(500px, 100%);
-  }
-
-  .home-logo {
-    width: min(410px, 88vw);
-    justify-self: center;
-  }
-
-  .home-actions {
-    width: min(340px, 88vw);
-    justify-self: center;
-    gap: 14px;
-  }
-
-  .home-action {
-    min-height: 54px;
-    min-width: 0;
-  }
-
-  .arteziq-wordmark {
-    gap: 11px;
-    font-size: clamp(1.8rem, 9vw, 3rem);
-  }
-
-  .workspace-grid,
-  .complete-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .difficulty-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .panel,
-  .puzzle-panel {
-    padding: 15px;
-  }
-
-  .puzzle-toolbar {
-    gap: 7px;
-  }
-
-  .puzzle-toolbar .secondary-btn {
-    padding: 10px 13px;
-    font-size: .88rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .difficulty-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .difficulty-card {
-    min-height: 170px;
-  }
-
-  .screen-heading,
-  .puzzle-topline {
-    flex-direction: column;
-  }
-}
-
+/* ----------------------------
+   Water bubbles
+----------------------------- */
 .water-bubbles {
-  z-index: 1;
-}
-
-.app-header,
-.app-shell {
-  position: relative;
-  z-index: 3;
-}
-
-/* Bubbles are brighter and larger so the animation is actually visible. */
-.water-bubbles .bubble {
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      rgba(255,255,255,.72) 0%,
-      rgba(203,245,255,.34) 18%,
-      rgba(98,213,238,.13) 48%,
-      rgba(76,190,220,.045) 66%,
-      transparent 72%
-    );
-  border: 1px solid rgba(168,235,249,.13);
-  box-shadow:
-    inset 0 0 8px rgba(255,255,255,.10),
-    0 0 10px rgba(90,205,232,.08);
-}
-
-@keyframes bubble-rise {
-  0% {
-    transform: translate3d(0, 0, 0) scale(.86);
-    opacity: 0;
-  }
-  10% {
-    opacity: .48;
-  }
-  48% {
-    opacity: .38;
-  }
-  82% {
-    opacity: .28;
-  }
-  100% {
-    transform:
-      translate3d(var(--drift, 0), -112vh, 0)
-      scale(1.06);
-    opacity: 0;
-  }
-}
-
-/* === Angler's Jigsaw v1.1 — blue-water palette refresh === */
-
-/*
-  New palette:
-  - Abyss:      #00102e
-  - Deep:       #08214a
-  - Current:    #0b2c5c
-  - Crest Blue: #123a72
-  - Aqua:       #2ec6e6
-  - Mist:       #a9c0e0
-  - Foam:       #eef4fb
-  - Sand Gold:  #e5c97a
-*/
-
-:root {
-  --bg: #00102e;
-  --panel: #0c2650;
-  --panel-dark: #081d40;
-  --panel-soft: #123664;
-  --green: #1f5f82;
-  --green-hover: #2b759d;
-  --gold: #e5c97a;
-  --gold-light: #f0db9c;
-  --text: #eef4fb;
-  --muted: #a9c0e0;
-  --line: rgba(169, 192, 224, .22);
-  --shadow: 0 20px 45px rgba(0, 0, 0, .34);
-}
-
-/* Water background similar in spirit to Angler's Arrows */
-html,
-body {
-  background:
-    radial-gradient(120% 80% at 50% -10%, #123a72 0%, rgba(18,58,114,0) 55%),
-    linear-gradient(180deg, #0b2c5c 0%, #08214a 42%, #041a3e 72%, #00102e 100%) !important;
-  background-attachment: fixed;
-  color: var(--text);
-}
-
-/* Slightly brighter blue haze near the top to sell the water feel */
-body::after {
-  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
+  overflow: hidden;
   z-index: 0;
-  background:
-    radial-gradient(70% 30% at 50% 0%, rgba(127, 227, 245, .08), transparent 70%);
-}
-
-/* Make bubbles sit naturally in the underwater page */
-.water-bubbles {
-  z-index: 1;
 }
 
 .water-bubbles .bubble {
-  box-shadow:
-    inset 0 0 10px rgba(255,255,255,.12),
-    0 0 12px rgba(127,227,245,.08);
-}
-
-/* Keep app content above bubbles/light haze */
-.app-header,
-.app-shell,
-.toast {
-  position: relative;
-  z-index: 3;
-}
-
-/* Header */
-.app-header {
-  background: rgba(5, 22, 49, .62) !important;
-  border-bottom: 1px solid rgba(169, 192, 224, .16) !important;
-  backdrop-filter: blur(12px);
-}
-
-.header-btn {
-  background: rgba(255,255,255,.03) !important;
-  border-color: rgba(169, 192, 224, .20) !important;
-}
-
-.header-btn:hover {
-  background: rgba(255,255,255,.06) !important;
-}
-
-.header-brand p {
-  color: var(--muted);
-}
-
-/* Home screen stays simple, just floating over the water */
-#screen-home .home-simple {
-  background: transparent !important;
-}
-
-.home-logo {
-  border: 1px solid rgba(169, 192, 224, .15);
-  background: rgba(4, 17, 39, .36);
-  box-shadow: 0 20px 50px rgba(0,0,0,.34) !important;
-}
-
-.home-title {
-  color: #ffffff;
-  text-shadow: 0 2px 18px rgba(0,0,0,.24);
-}
-
-.arteziq-wordmark {
-  color: #f7fbff;
-}
-
-/* Buttons: sand-gold primary, sea-blue secondary */
-.home-action.gold,
-.primary-btn,
-.secondary-btn.active-filter {
-  background: linear-gradient(180deg, #eedb9b, #e5c97a) !important;
-  color: #172847 !important;
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 8px 18px rgba(229, 201, 122, .16);
-}
-
-.home-action.green,
-.secondary-btn {
-  background: linear-gradient(180deg, #2d7599, #1f5f82) !important;
-  color: #eef4fb !important;
-  border: 1px solid rgba(169, 192, 224, .16) !important;
-  box-shadow: 0 8px 18px rgba(31, 95, 130, .18);
-}
-
-.home-action.green:hover,
-.secondary-btn:hover {
-  background: linear-gradient(180deg, #3687b1, #2b759d) !important;
-}
-
-.home-action.gold:hover,
-.primary-btn:hover,
-.secondary-btn.active-filter:hover {
-  background: linear-gradient(180deg, #f3e3ab, #edd289) !important;
-}
-
-/* Panels and cards */
-.panel,
-.workspace-panel,
-.cooler-card {
-  background:
-    linear-gradient(180deg, rgba(12,38,80,.88), rgba(7,25,56,.92)) !important;
-  border-color: rgba(169, 192, 224, .16) !important;
-  box-shadow: var(--shadow) !important;
-}
-
-.workspace-label,
-.tray-help {
-  background: rgba(4, 17, 39, .34);
-}
-
-.counter-chip {
-  color: #eef4fb !important;
-  background: linear-gradient(180deg, rgba(46,198,230,.28), rgba(18,58,114,.34)) !important;
-  border-color: rgba(127, 227, 245, .22) !important;
-}
-
-.difficulty-card {
-  background:
-    linear-gradient(180deg, rgba(16, 50, 101, .92), rgba(8, 29, 64, .98)) !important;
-  border-color: rgba(169, 192, 224, .17) !important;
-}
-
-.difficulty-card:hover {
-  border-color: rgba(229, 201, 122, .38) !important;
-  box-shadow: 0 12px 28px rgba(0,0,0,.24) !important;
-}
-
-.difficulty-name,
-.complete-kicker {
-  color: #7fe3f5 !important;
-}
-
-.difficulty-word,
-.difficulty-grid-size,
-.difficulty-note,
-.muted,
-.screen-heading p,
-.tray-help,
-.scientific,
-.header-brand p {
-  color: var(--muted) !important;
-}
-
-/* Puzzle areas */
-.puzzle-board {
-  background:
-    radial-gradient(100% 80% at 50% 8%, rgba(127, 227, 245, .07), transparent 48%),
-    linear-gradient(180deg, rgba(11,44,92,.88), rgba(0,16,46,.96)) !important;
-  border: 1px solid rgba(169, 192, 224, .18);
-}
-
-.tray-pieces {
-  background:
-    radial-gradient(100% 80% at 50% 8%, rgba(127, 227, 245, .05), transparent 48%),
-    linear-gradient(180deg, rgba(8,33,74,.92), rgba(0,16,46,.98)) !important;
-}
-
-/* Piece outlines remain light and crisp over blue */
-.piece-outline {
-  stroke: rgba(238, 244, 251, .88);
-}
-
-/* Cooler / overlays */
-.locked-art {
-  background: linear-gradient(180deg, rgba(16, 50, 101, .92), rgba(8, 29, 64, .98)) !important;
-}
-
-.toast {
-  background: rgba(5, 22, 49, .94) !important;
-  border-color: rgba(127, 227, 245, .18) !important;
-}
-
-/* Keep a clean mobile look */
-@media (max-width: 760px) {
-  .app-header {
-    background: rgba(5, 22, 49, .72) !important;
-  }
-}
-
-
-/* === Angler's Jigsaw v1.2 — hard blue-water background override === */
-html,
-body {
-  background-color: #00102e !important;
-  background-image:
-    radial-gradient(120% 80% at 50% -10%, #123a72 0%, rgba(18,58,114,0) 55%),
-    linear-gradient(180deg, #0b2c5c 0%, #08214a 42%, #041a3e 72%, #00102e 100%) !important;
-  background-repeat: no-repeat !important;
-  background-size: cover !important;
-  background-attachment: fixed !important;
-}
-
-body::before {
-  display: none !important;
-}
-
-/* Keep the main screens transparent enough that the water remains visible. */
-.app-shell,
-#screen-home .home-simple {
-  background: transparent !important;
-}
-
-.panel {
-  background:
-    linear-gradient(180deg, rgba(12,38,80,.78), rgba(5,22,49,.86)) !important;
-}
-
-.workspace-panel {
-  background:
-    linear-gradient(180deg, rgba(8,29,64,.90), rgba(4,17,39,.94)) !important;
-}
-
-.puzzle-board {
-  background:
-    radial-gradient(100% 80% at 50% 8%, rgba(127,227,245,.08), transparent 48%),
-    linear-gradient(180deg, rgba(11,44,92,.90), rgba(0,16,46,.97)) !important;
-}
-
-.tray-pieces {
-  background:
-    radial-gradient(100% 80% at 50% 8%, rgba(127,227,245,.055), transparent 48%),
-    linear-gradient(180deg, rgba(8,33,74,.93), rgba(0,16,46,.985)) !important;
-}
-
-
-/* === Angler's Jigsaw v1.3 — bubble distribution fix for iPad/Safari === */
-
-.water-bubbles {
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  inset: auto !important;
-  overflow: hidden !important;
-  pointer-events: none !important;
-}
-
-.water-bubbles .bubble {
-  position: fixed !important;
-  top: auto !important;
-  bottom: calc(-40px + var(--start-y, 0vh)) !important;
-  margin: 0 !important;
-  transform-origin: center;
-  will-change: transform, opacity;
-}
-
-@keyframes bubble-rise {
-  0% {
-    transform: translate3d(0, 0, 0) scale(.86);
-    opacity: 0;
-  }
-  10% {
-    opacity: .48;
-  }
-  48% {
-    opacity: .38;
-  }
-  82% {
-    opacity: .28;
-  }
-  100% {
-    transform:
-      translate3d(var(--drift, 0), -118vh, 0)
-      scale(1.06);
-    opacity: 0;
-  }
-}
-
-
-/* === Angler's Jigsaw v1.4 — crop black padding from logo artwork === */
-
-/*
-  The source logo image includes black canvas around the rounded app icon.
-  Instead of changing the artwork file, render it as a zoomed background
-  inside the same <img> elements so that outer black padding is cropped away.
-*/
-.home-logo,
-.header-logo {
-  object-position: -9999px -9999px;
-  background-image: url("../assets/images/logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 124%;
-  background-color: transparent !important;
-}
-
-/* Preserve the rounded app-icon silhouette without a surrounding black square. */
-.home-logo {
-  border-radius: 22%;
-  border: none !important;
-}
-
-.header-logo {
-  border-radius: 22%;
-  border: none !important;
-}
-
-
-/* === Angler's Jigsaw v1.5 — restore proven Angler's Arrows bubble behavior === */
-
-.water-bubbles {
-  position: fixed !important;
-  inset: 0 !important;
-  width: auto !important;
-  height: auto !important;
-  pointer-events: none !important;
-  overflow: hidden !important;
-  z-index: 1 !important;
-}
-
-.water-bubbles .bubble {
-  position: absolute !important;
-  top: auto !important;
-  bottom: -40px !important;
-  margin: 0 !important;
-  border-radius: 50% !important;
+  position: absolute;
+  bottom: -40px;
+  border-radius: 50%;
   background:
     radial-gradient(
       circle at 32% 30%,
-      rgba(255,255,255,.4),
-      rgba(127,227,245,.06) 60%,
+      rgba(255,255,255,.42),
+      rgba(127,227,245,.07) 60%,
       transparent 70%
-    ) !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  animation-name: bubble-rise-final !important;
-  animation-timing-function: linear !important;
-  animation-iteration-count: infinite !important;
+    );
+  animation: bubble-rise linear infinite;
   opacity: 0;
-  will-change: transform, opacity;
 }
 
-@keyframes bubble-rise-final {
+@keyframes bubble-rise {
   0% {
     transform: translateY(0);
     opacity: 0;
@@ -1115,167 +99,965 @@ body::before {
   }
 }
 
-/* Opening-menu buttons: three distinct colors from the water palette. */
-#startFishingBtn {
-  background: linear-gradient(180deg, #f0db9c, #e5c97a) !important;
-  color: #172847 !important;
-  border-color: rgba(255,255,255,.10) !important;
-}
-
-#howToPlayBtn {
-  background: linear-gradient(180deg, #7fe3f5, #2ec6e6) !important;
-  color: #08214a !important;
-  border-color: rgba(255,255,255,.12) !important;
-}
-
-#homeCoolerBtn {
-  background: linear-gradient(180deg, #66d7b7, #34ad89) !important;
-  color: #06283a !important;
-  border-color: rgba(255,255,255,.10) !important;
-}
-
-#startFishingBtn:hover {
-  background: linear-gradient(180deg, #f4e4ad, #ecd38b) !important;
-}
-
-#howToPlayBtn:hover {
-  background: linear-gradient(180deg, #99ebf8, #48cee9) !important;
-}
-
-#homeCoolerBtn:hover {
-  background: linear-gradient(180deg, #7be0c4, #43bd98) !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .water-bubbles .bubble {
-    display: none !important;
+    display: none;
   }
 }
 
-
-/* === Angler's Jigsaw v1.6 — more classic puzzle-piece look === */
-
-.board-piece svg,
-.tray-piece svg,
-.drag-ghost svg {
-  overflow: visible;
+/* ----------------------------
+   Global app chrome
+----------------------------- */
+.app-header,
+.app-shell,
+.toast,
+.app-version {
+  position: relative;
+  z-index: 2;
 }
 
-.board-piece svg {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .14));
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 120px 1fr 120px;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  background: rgba(4, 20, 49, .72);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
 }
 
-.tray-piece svg {
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .20));
+.header-brand {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.piece-outline {
-  stroke: rgba(247, 244, 230, .94) !important;
-  stroke-width: 1.3 !important;
+.header-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  object-position: -9999px -9999px;
+  background-image: url("../assets/images/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 124%;
+  border-radius: 22%;
 }
 
-
-/* === Angler's Jigsaw v1.7 — classic circular jigsaw tabs + snap-lock === */
-
-.piece-outline {
-  stroke: rgba(248, 248, 244, .92) !important;
-  stroke-width: 1.15 !important;
-  stroke-linejoin: round !important;
-  stroke-linecap: round !important;
+.header-brand h1 {
+  margin: 0;
+  font-size: 1.28rem;
 }
 
-.jigsaw-piece svg {
-  overflow: visible !important;
+.header-brand p {
+  margin: 3px 0 0;
+  color: var(--mist);
+  font-size: .88rem;
 }
 
-.board-piece,
-.tray-piece {
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.24));
+.header-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--foam);
+  background: rgba(255,255,255,.025);
+  font-weight: 700;
 }
 
-.board-piece.locked-piece {
-  cursor: default !important;
-  filter:
-    drop-shadow(0 1px 2px rgba(0,0,0,.18))
-    drop-shadow(0 0 2px rgba(238,244,251,.08));
+.header-btn:last-child {
+  justify-self: end;
 }
 
-.board-piece.locked-piece .piece-outline {
-  stroke: rgba(238, 244, 251, .62) !important;
+.app-shell {
+  width: min(1240px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 20px 0 38px;
 }
 
-.puzzle-board {
-  outline: 1px solid rgba(238,244,251,.10);
-  outline-offset: -1px;
+.screen {
+  display: none;
 }
 
-
-/* === Angler's Jigsaw v1.8 — full-board images + safer loose pieces === */
-
-.board-piece:not(.locked-piece) {
-  cursor: grab;
+.screen.active {
+  display: block;
 }
 
-.board-piece:not(.locked-piece):active {
-  cursor: grabbing;
+.panel {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(12,38,80,.88), rgba(5,22,49,.94));
+  box-shadow: var(--shadow);
 }
 
-.board-piece.locked-piece {
-  z-index: 5 !important;
+.screen-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
 }
 
-/* Make the familiar knob-and-socket silhouette more prominent. */
-.piece-outline {
-  stroke-width: 1.2 !important;
-  stroke: rgba(248, 248, 244, .94) !important;
+.screen-heading h2 {
+  margin: 0 0 6px;
+  font-size: 1.8rem;
 }
 
-/* Prevent cropped connector heads at the edge of the visual board. */
-.puzzle-board {
-  overflow: hidden !important;
+.screen-heading p {
+  margin: 0;
+  color: var(--mist);
+  font-size: 1rem;
 }
 
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
 
-/* === Angler's Jigsaw v1.9 — classic piece shape + cleaner board play === */
+.primary-btn,
+.secondary-btn {
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.08);
+  font-weight: 800;
+}
 
-.puzzle-board {
-  background-color: #0d3770 !important;
-  background-image: var(--board-image) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
+.primary-btn {
+  color: #172847;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+
+.secondary-btn {
+  color: var(--foam);
+  background: linear-gradient(180deg, #2f789d, #1e5e80);
+}
+
+/* ----------------------------
+   Home
+----------------------------- */
+.home-simple {
+  min-height: calc(100svh - 135px);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 24px;
+  padding: 20px;
+}
+
+.home-title {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1;
+  text-align: center;
+}
+
+.home-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 470px) minmax(210px, 290px);
+  align-items: center;
+  gap: 38px;
+}
+
+.home-logo {
+  width: min(100%, 470px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: -9999px -9999px;
+  background-image: url("../assets/images/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 124%;
+  border-radius: 22%;
+  box-shadow: 0 22px 55px rgba(0,0,0,.30);
+}
+
+.home-actions {
+  display: grid;
+  gap: 18px;
+}
+
+.home-action {
+  min-width: 225px;
+  min-height: 62px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 999px;
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.home-action.start {
+  color: #172847;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+
+.home-action.help {
+  color: #08214a;
+  background: linear-gradient(180deg, #8be7f6, var(--aqua));
+}
+
+.home-action.cooler {
+  color: #06283a;
+  background: linear-gradient(180deg, #71ddc0, var(--seafoam));
+}
+
+.arteziq-wordmark {
+  display: flex;
+  align-items: center;
+  gap: clamp(11px, 1.8vw, 25px);
+  color: #fff;
+  font-size: clamp(1.9rem, 4.5vw, 3.8rem);
+  font-weight: 300;
+}
+
+.arteziq-wordmark .ez {
+  color: #dba53e;
+}
+
+/* ----------------------------
+   Puzzle selection
+----------------------------- */
+.select-panel {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.difficulty-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 22px 0 26px;
+}
+
+.difficulty-choice {
+  min-height: 86px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--foam);
+  background: rgba(5, 22, 49, .62);
+}
+
+.difficulty-choice strong {
+  font-size: 1.65rem;
+}
+
+.difficulty-choice span {
+  color: var(--mist);
+  font-size: .86rem;
+}
+
+.difficulty-choice.selected {
+  color: #172847;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border-color: rgba(255,255,255,.12);
+}
+
+.difficulty-choice.selected span {
+  color: #31425c;
+}
+
+.section-label {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+.fish-select-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.fish-select-card {
+  overflow: hidden;
+  padding: 0 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  color: var(--foam);
+  background: rgba(5,22,49,.72);
+  text-align: left;
+}
+
+.fish-select-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+}
+
+.fish-card-name,
+.fish-card-habitat {
+  display: block;
+  padding: 0 13px;
+}
+
+.fish-card-name {
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 1.02rem;
+}
+
+.fish-card-habitat {
+  margin-top: 3px;
+  color: var(--mist);
+  font-size: .82rem;
+}
+
+/* ----------------------------
+   How to play
+----------------------------- */
+.how-panel {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.how-panel > h2 {
+  margin: 0 0 18px;
+  font-size: 1.8rem;
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.how-grid article {
+  padding: 17px;
+  border: 1px solid rgba(169,192,224,.15);
+  border-radius: 15px;
+  background: rgba(5,22,49,.48);
+}
+
+.how-grid h3 {
+  margin: 0 0 7px;
+  font-size: 1.08rem;
+  color: #8be7f6;
+}
+
+.how-grid p {
+  margin: 0;
+  color: #d6e3ef;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ----------------------------
+   v2 play surface
+----------------------------- */
+body.puzzle-mode {
+  overflow: hidden;
+}
+
+body.puzzle-mode .app-header {
+  display: none;
+}
+
+body.puzzle-mode .app-shell {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+.puzzle-screen {
+  width: 100%;
+  height: 100svh;
+}
+
+.play-shell {
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: rgba(2, 15, 42, .22);
+}
+
+.play-toolbar {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(210px, auto) 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(4, 20, 49, .86);
+  backdrop-filter: blur(10px);
+  z-index: 300;
+}
+
+.play-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.play-status {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.play-status strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: .96rem;
+}
+
+.play-status span {
+  color: var(--mist);
+  font-size: .76rem;
+  white-space: nowrap;
+}
+
+.play-toolbar-actions {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.tool-btn {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(169,192,224,.17);
+  border-radius: 999px;
+  color: var(--foam);
+  background: rgba(31,95,130,.68);
+  font-size: .82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tool-btn.edge-tool {
+  color: #172847;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+
+.tool-btn.scatter-tool {
+  color: #06283a;
+  background: linear-gradient(180deg, #71ddc0, var(--seafoam));
+}
+
+.tool-btn.active {
+  color: #08214a;
+  background: linear-gradient(180deg, #8be7f6, var(--aqua));
+}
+
+.piece-count {
+  min-width: 94px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(127,227,245,.19);
+  background: rgba(46,198,230,.13);
+  color: #dff8ff;
+  font-size: .82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.play-table {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  background:
+    radial-gradient(100% 80% at 50% 16%, rgba(127,227,245,.075), transparent 50%),
+    linear-gradient(180deg, rgba(10,45,94,.60), rgba(2,17,49,.68));
+}
+
+.puzzle-frame {
+  position: absolute;
+  border: 2px solid rgba(238,244,251,.44);
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(4,20,49,.54), rgba(2,15,42,.62));
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, .08),
-    inset 0 18px 40px rgba(255, 255, 255, .04),
-    inset 0 -18px 40px rgba(0, 0, 0, .12);
+    0 0 0 1px rgba(0,0,0,.22),
+    0 16px 40px rgba(0,0,0,.18);
+  pointer-events: none;
+  z-index: 2;
 }
 
-.puzzle-board::before {
-  content: "";
+.frame-preview {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(6, 19, 49, .10), rgba(6, 19, 49, .10));
-  pointer-events: none;
+  opacity: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity .16s ease;
 }
 
-.puzzle-board > * {
-  position: relative;
-  z-index: 1;
+.frame-preview.visible {
+  opacity: .34;
 }
 
-.piece-outline {
-  stroke: rgba(248, 249, 245, .96) !important;
-  stroke-width: 1.08 !important;
+.jigsaw-piece {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .jigsaw-piece svg {
   display: block;
+  width: 100%;
+  height: 100%;
   overflow: visible;
+  pointer-events: none;
 }
 
-.workspace-panel {
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.04),
-    0 14px 26px rgba(0, 0, 0, .16);
+.piece-outline {
+  fill: none;
+  stroke: rgba(249,249,244,.93);
+  stroke-width: 1.08;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.board-piece {
+  position: absolute;
+  cursor: grab;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.30));
+}
+
+.board-piece:active {
+  cursor: grabbing;
+}
+
+.board-piece.dragging {
+  filter:
+    drop-shadow(0 8px 12px rgba(0,0,0,.40))
+    drop-shadow(0 0 5px rgba(127,227,245,.18));
+}
+
+.board-piece.locked-piece {
+  cursor: default;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.14));
+}
+
+.board-piece.locked-piece .piece-outline {
+  stroke: rgba(238,244,251,.58);
+}
+
+.drag-proxy {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 10px 16px rgba(0,0,0,.42))
+    drop-shadow(0 0 5px rgba(127,227,245,.20));
+}
+
+/* ----------------------------
+   Bottom Tackle Tray
+----------------------------- */
+.tray-bar {
+  height: 164px;
+  display: grid;
+  grid-template-rows: 42px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+  background: rgba(4,20,49,.94);
+  transition: height .18s ease;
+  z-index: 300;
+}
+
+.tray-bar.collapsed {
+  height: 42px;
+}
+
+.tray-bar.collapsed .tray-pieces {
+  display: none;
+}
+
+.tray-header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 12px;
+}
+
+.tray-title {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
+}
+
+.tray-title strong {
+  font-size: .92rem;
+}
+
+.tray-title span {
+  color: var(--mist);
+  font-size: .75rem;
+  white-space: nowrap;
+}
+
+.tray-options {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .76rem;
+}
+
+.tray-options label {
+  color: var(--mist);
+}
+
+.tray-options select {
+  max-width: 175px;
+  height: 31px;
+  padding: 0 28px 0 9px;
+  border: 1px solid rgba(169,192,224,.19);
+  border-radius: 8px;
+  color: var(--foam);
+  background: #0a2d5d;
+}
+
+.tray-toggle {
+  min-height: 31px;
+  padding: 5px 10px;
+  border: 1px solid rgba(169,192,224,.17);
+  border-radius: 999px;
+  color: var(--foam);
+  background: rgba(31,95,130,.60);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.tray-pieces {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.tray-piece {
+  flex: 0 0 auto;
+  cursor: grab;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.26));
+}
+
+.tray-piece:active {
+  cursor: grabbing;
+}
+
+/* ----------------------------
+   Complete / Cooler
+----------------------------- */
+.complete-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 410px) 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.catch-art img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.complete-kicker {
+  color: #8be7f6;
+  font-size: .84rem;
+  font-weight: 800;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.scientific {
+  color: var(--mist);
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
+.cooler-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.cooler-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(5,22,49,.72);
+}
+
+.cooler-card img,
+.locked-art {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.cooler-card img {
+  display: block;
+  object-fit: cover;
+}
+
+.locked-art {
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  background: rgba(12,38,80,.86);
+  font-size: 3.6rem;
+}
+
+.cooler-body {
+  padding: 14px;
+}
+
+.cooler-body h3 {
+  margin: 0 0 5px;
+}
+
+.cooler-card.locked {
+  opacity: .64;
+}
+
+.counter-chip {
+  flex: 0 0 auto;
+  padding: 9px 13px;
+  border: 1px solid rgba(127,227,245,.18);
+  border-radius: 999px;
+  background: rgba(46,198,230,.13);
+  color: #dff8ff;
+  font-weight: 800;
+}
+
+/* ----------------------------
+   Version / Toast
+----------------------------- */
+.app-version {
+  position: fixed;
+  left: 50%;
+  bottom: 3px;
+  z-index: 5000;
+  transform: translateX(-50%);
+  color: rgba(220,233,245,.58);
+  font-size: 11px;
+  letter-spacing: .04em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  z-index: 12000;
+  transform: translateX(-50%);
+  max-width: min(680px, 90vw);
+  padding: 11px 16px;
+  border: 1px solid rgba(127,227,245,.18);
+  border-radius: 13px;
+  color: var(--foam);
+  background: rgba(4,20,49,.96);
+  box-shadow: var(--shadow);
+  font-size: .9rem;
+}
+
+/* Full-screen play */
+.play-shell:fullscreen,
+.play-shell:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  background: var(--abyss);
+}
+
+/* ----------------------------
+   Responsive
+----------------------------- */
+@media (max-width: 900px) {
+  .fish-select-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .play-toolbar {
+    grid-template-columns: minmax(155px, auto) 1fr auto;
+  }
+
+  .tool-btn {
+    padding-inline: 9px;
+    font-size: .76rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    grid-template-columns: auto 1fr auto;
+    min-height: 60px;
+    padding: 6px 9px;
+  }
+
+  .header-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-brand h1 {
+    font-size: 1rem;
+  }
+
+  .header-brand p {
+    display: none;
+  }
+
+  .header-btn {
+    min-height: 36px;
+    padding: 7px 11px;
+    font-size: .86rem;
+  }
+
+  .app-shell {
+    width: calc(100% - 16px);
+    padding-top: 10px;
+  }
+
+  .home-simple {
+    min-height: auto;
+    padding: 12px 4px 28px;
+  }
+
+  .home-main {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .home-logo {
+    width: min(370px, 84vw);
+    justify-self: center;
+  }
+
+  .home-actions {
+    width: min(330px, 86vw);
+    justify-self: center;
+    gap: 12px;
+  }
+
+  .home-action {
+    min-width: 0;
+    min-height: 52px;
+  }
+
+  .difficulty-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fish-select-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .how-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 15px;
+  }
+
+  .play-toolbar {
+    min-height: 52px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 5px 7px;
+  }
+
+  .play-status {
+    display: none;
+  }
+
+  .play-toolbar-actions {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .play-toolbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tool-btn {
+    min-height: 35px;
+    padding: 6px 9px;
+    font-size: .72rem;
+  }
+
+  .piece-count {
+    min-width: 78px;
+    padding: 7px 8px;
+    font-size: .72rem;
+  }
+
+  .tray-bar {
+    height: 142px;
+  }
+
+  .tray-header {
+    padding-inline: 8px;
+  }
+
+  .tray-options label {
+    display: none;
+  }
+
+  .tray-options select {
+    max-width: 138px;
+  }
+
+  .tray-title span {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .fish-select-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .screen-heading h2,
+  .how-panel > h2 {
+    font-size: 1.55rem;
+  }
+
+  .screen-heading p,
+  .how-grid p {
+    font-size: .95rem;
+  }
+
+  .complete-grid {
+    grid-template-columns: 1fr;
+  }
 }
