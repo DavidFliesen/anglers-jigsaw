@@ -988,3 +988,48 @@ body::before {
     radial-gradient(100% 80% at 50% 8%, rgba(127,227,245,.055), transparent 48%),
     linear-gradient(180deg, rgba(8,33,74,.93), rgba(0,16,46,.985)) !important;
 }
+
+
+/* === Angler's Jigsaw v1.3 — bubble distribution fix for iPad/Safari === */
+
+.water-bubbles {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  inset: auto !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.water-bubbles .bubble {
+  position: fixed !important;
+  top: auto !important;
+  bottom: calc(-40px + var(--start-y, 0vh)) !important;
+  margin: 0 !important;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(.86);
+    opacity: 0;
+  }
+  10% {
+    opacity: .48;
+  }
+  48% {
+    opacity: .38;
+  }
+  82% {
+    opacity: .28;
+  }
+  100% {
+    transform:
+      translate3d(var(--drift, 0), -118vh, 0)
+      scale(1.06);
+    opacity: 0;
+  }
+}
