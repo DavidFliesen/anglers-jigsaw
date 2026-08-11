@@ -1234,3 +1234,48 @@ body::before {
 .puzzle-board {
   overflow: hidden !important;
 }
+
+
+/* === Angler's Jigsaw v1.9 — classic piece shape + cleaner board play === */
+
+.puzzle-board {
+  background-color: #0d3770 !important;
+  background-image: var(--board-image) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .08),
+    inset 0 18px 40px rgba(255, 255, 255, .04),
+    inset 0 -18px 40px rgba(0, 0, 0, .12);
+}
+
+.puzzle-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6, 19, 49, .10), rgba(6, 19, 49, .10));
+  pointer-events: none;
+}
+
+.puzzle-board > * {
+  position: relative;
+  z-index: 1;
+}
+
+.piece-outline {
+  stroke: rgba(248, 249, 245, .96) !important;
+  stroke-width: 1.08 !important;
+}
+
+.jigsaw-piece svg {
+  display: block;
+  overflow: visible;
+}
+
+.workspace-panel {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.04),
+    0 14px 26px rgba(0, 0, 0, .16);
+}
