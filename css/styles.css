@@ -1062,3 +1062,92 @@ body::before {
   border-radius: 22%;
   border: none !important;
 }
+
+
+/* === Angler's Jigsaw v1.5 — restore proven Angler's Arrows bubble behavior === */
+
+.water-bubbles {
+  position: fixed !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+}
+
+.water-bubbles .bubble {
+  position: absolute !important;
+  top: auto !important;
+  bottom: -40px !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(
+      circle at 32% 30%,
+      rgba(255,255,255,.4),
+      rgba(127,227,245,.06) 60%,
+      transparent 70%
+    ) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  animation-name: bubble-rise-final !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+@keyframes bubble-rise-final {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: .4;
+  }
+  80% {
+    opacity: .3;
+  }
+  100% {
+    transform: translateY(-108vh) translateX(var(--drift, 0));
+    opacity: 0;
+  }
+}
+
+/* Opening-menu buttons: three distinct colors from the water palette. */
+#startFishingBtn {
+  background: linear-gradient(180deg, #f0db9c, #e5c97a) !important;
+  color: #172847 !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+
+#howToPlayBtn {
+  background: linear-gradient(180deg, #7fe3f5, #2ec6e6) !important;
+  color: #08214a !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+
+#homeCoolerBtn {
+  background: linear-gradient(180deg, #66d7b7, #34ad89) !important;
+  color: #06283a !important;
+  border-color: rgba(255,255,255,.10) !important;
+}
+
+#startFishingBtn:hover {
+  background: linear-gradient(180deg, #f4e4ad, #ecd38b) !important;
+}
+
+#howToPlayBtn:hover {
+  background: linear-gradient(180deg, #99ebf8, #48cee9) !important;
+}
+
+#homeCoolerBtn:hover {
+  background: linear-gradient(180deg, #7be0c4, #43bd98) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water-bubbles .bubble {
+    display: none !important;
+  }
+}
