@@ -1033,3 +1033,32 @@ body::before {
     opacity: 0;
   }
 }
+
+
+/* === Angler's Jigsaw v1.4 — crop black padding from logo artwork === */
+
+/*
+  The source logo image includes black canvas around the rounded app icon.
+  Instead of changing the artwork file, render it as a zoomed background
+  inside the same <img> elements so that outer black padding is cropped away.
+*/
+.home-logo,
+.header-logo {
+  object-position: -9999px -9999px;
+  background-image: url("../assets/images/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 124%;
+  background-color: transparent !important;
+}
+
+/* Preserve the rounded app-icon silhouette without a surrounding black square. */
+.home-logo {
+  border-radius: 22%;
+  border: none !important;
+}
+
+.header-logo {
+  border-radius: 22%;
+  border: none !important;
+}
