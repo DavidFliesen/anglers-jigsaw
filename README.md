@@ -1,8 +1,8 @@
-# Angler's Jigsaw v2.0
+# Angler's Jigsaw v2.0.2
 
 Angler's Jigsaw is a fishing-inspired jigsaw puzzle Progressive Web App designed first for GitHub Pages and modern browsers, with the longer-term goal of packaging it for iOS and Android.
 
-Version 2.0 is a gameplay redesign. The central idea is that solving a jigsaw is not only about placing pieces into fixed slots. The fun comes from handling pieces, sorting them, making piles, testing relationships, building clusters, changing strategies, and gradually turning a table full of pieces into a completed picture.
+Version 2.0 introduced the gameplay redesign. Version 2.0.1 is the first interaction-stability and traditional-piece-shape test build. The central idea is that solving a jigsaw is not only about placing pieces into fixed slots. The fun comes from handling pieces, sorting them, making piles, testing relationships, building clusters, changing strategies, and gradually turning a table full of pieces into a completed picture.
 
 ## v2.0 gameplay philosophy
 
@@ -181,7 +181,7 @@ Species accuracy should be checked against reliable reference material before fi
 
 The active build number is shown in small text at the bottom of every screen:
 
-`Angler's Jigsaw • v2.0`
+`Angler's Jigsaw • v2.0.2`
 
 This is intentional. During game testing, screenshots and bug reports should always include the visible version number so errors can be matched to the correct build.
 
@@ -208,7 +208,7 @@ The service worker uses:
 
 - network-first loading for the HTML, CSS, and JavaScript app shell;
 - cached assets for offline-friendly behavior;
-- cache version `anglers-jigsaw-v2-0`.
+- cache version `anglers-jigsaw-v2-0-2`.
 
 This reduces the likelihood that an older JavaScript or CSS build remains stuck in the browser during testing.
 
@@ -231,7 +231,7 @@ Before adding more features, test these behaviors carefully on iPad, desktop, an
 13. Enter and exit full-screen mode.
 14. Rotate the device and confirm the tabletop remains usable.
 15. Complete a puzzle and confirm the Fish Cooler records it.
-16. Confirm the visible version number reads `v2.0`.
+16. Confirm the visible version number reads `v2.0.2`.
 
 ## Recommended next development phases
 
@@ -260,3 +260,23 @@ Before adding more features, test these behaviors carefully on iPad, desktop, an
 Angler's Jigsaw should feel like a puzzle table for anglers, not a slot-placement exercise.
 
 The player should have enough freedom to develop a personal solving strategy, enough tactile feedback to enjoy manipulating pieces, and puzzle artwork good enough that completing the image feels worth the effort.
+
+
+## v2.0.1 bug-fix notes
+
+This test build addresses issues found during iPad testing:
+
+- Replaced the earlier simplified connector profile with a more familiar traditional ribbon-cut jigsaw silhouette using narrow necks and fuller rounded knob/socket heads.
+- Starting a new puzzle now removes every old board piece and drag proxy before the new puzzle is constructed.
+- An unlocked single piece can be dragged from the tabletop back into the Tackle Tray.
+- Connected groups are protected from accidental destruction if they are dragged over the tray.
+- iPad/iPhone uses a stable app-level full-screen layout instead of native element fullscreen, because Safari can exit native fullscreen during touch-drag gestures.
+- Pinch and double-tap zoom gestures are suppressed while actively playing to reduce the chance of becoming stuck zoomed into the board.
+- The home/header logo is cropped more tightly so the surrounding black source-image canvas is no longer intended to show around the icon.
+
+
+## v2.0.2 puzzle-piece shape update
+
+- Replaced the previous piece silhouette with a simpler classic jigsaw profile based directly on the user's reference examples.
+- Tabs and sockets are now centered circular forms with straighter ribbon-cut lines, matching the visual language players expect from a traditional jigsaw puzzle.
+- This build focuses specifically on the piece-shape correction request.
