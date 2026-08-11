@@ -991,8 +991,9 @@ function initWaterBubbles() {
 
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
-    bubble.style.left = `${Math.random() * 100}%`;
-    bubble.style.setProperty('--drift', `${Math.random() * 40 - 20}px`);
+    bubble.style.left = `${Math.random() * 100}vw`;
+    bubble.style.setProperty('--drift', `${Math.random() * 80 - 40}px`);
+    bubble.style.setProperty('--start-y', `${Math.random() * 105}vh`);
     bubble.style.animationDuration = `${11 + Math.random() * 13}s`;
     bubble.style.animationDelay = `${-Math.random() * 22}s`;
 
