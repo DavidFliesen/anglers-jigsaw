@@ -10,13 +10,14 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=1.2" />
+  <link rel="stylesheet" href="css/styles.css?v=2.0" />
 </head>
-<body>
-  <div class="water-bubbles" id="water-bubbles" aria-hidden="true"></div>
-  <div id="toast" class="toast hidden"></div>
 
-  <header class="app-header">
+<body>
+  <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+  <header class="app-header" id="appHeader">
     <button class="header-btn" id="homeBtn">Home</button>
 
     <div class="header-brand">
@@ -30,7 +31,7 @@
     <button class="header-btn" id="coolerBtn">Fish Cooler</button>
   </header>
 
-  <main class="app-shell">
+  <main class="app-shell" id="appShell">
     <!-- HOME -->
     <section id="screen-home" class="screen active">
       <div class="home-simple">
@@ -44,9 +45,9 @@
           />
 
           <div class="home-actions">
-            <button class="home-action gold" id="startFishingBtn">Start Fishing</button>
-            <button class="home-action green" id="howToPlayBtn">How to Play</button>
-            <button class="home-action gold" id="homeCoolerBtn">Fish Cooler</button>
+            <button class="home-action start" id="startFishingBtn">Start Fishing</button>
+            <button class="home-action help" id="howToPlayBtn">How to Play</button>
+            <button class="home-action cooler" id="homeCoolerBtn">Fish Cooler</button>
           </div>
         </div>
 
@@ -56,17 +57,20 @@
       </div>
     </section>
 
-    <!-- DIFFICULTY -->
-    <section id="screen-difficulty" class="screen">
-      <div class="panel">
+    <!-- CHOOSE PUZZLE -->
+    <section id="screen-select" class="screen">
+      <div class="panel select-panel">
         <div class="screen-heading">
           <div>
-            <h2>Choose Puzzle Difficulty</h2>
-            <p>Every level uses the same 4:3 puzzle board. Higher levels divide it into more interlocking pieces.</p>
+            <h2>Choose Your Puzzle</h2>
+            <p>Pick a difficulty, then choose the fish you want to complete.</p>
           </div>
         </div>
 
-        <div id="difficultyGrid" class="difficulty-grid"></div>
+        <div class="difficulty-strip" id="difficultyStrip"></div>
+
+        <h3 class="section-label">Choose a Fish</h3>
+        <div class="fish-select-grid" id="fishSelectGrid"></div>
 
         <div class="button-row">
           <button class="secondary-btn" data-back-home="true">Back</button>
@@ -74,58 +78,108 @@
       </div>
     </section>
 
-    <!-- HOW -->
+    <!-- HOW TO PLAY -->
     <section id="screen-how" class="screen">
-      <div class="panel narrow">
+      <div class="panel how-panel">
         <h2>How to Play</h2>
-        <ol class="how-list">
-          <li>Choose a difficulty based on the number of puzzle pieces.</li>
-          <li>A fish is selected from the Angler's Jigsaw collection.</li>
-          <li>Use <strong>Edges Only</strong> to work the border first, or switch to <strong>All Pieces</strong>.</li>
-          <li>Drag pieces from the Tackle Tray onto the puzzle table.</li>
-          <li>Bring matching edges close together and they will snap into a connected group.</li>
-          <li>Connected groups move together until the entire puzzle is complete.</li>
-          <li>Finish the puzzle to learn about the species and add it to your Fish Cooler.</li>
-        </ol>
+
+        <div class="how-grid">
+          <article>
+            <h3>Play Your Way</h3>
+            <p>Drag pieces from the Tackle Tray and leave them anywhere on the table. Make piles, sort by color or shape, or build small groups before moving them to the puzzle frame.</p>
+          </article>
+
+          <article>
+            <h3>Start With the Edges</h3>
+            <p><strong>Edges to Table</strong> scatters every loose edge piece onto the tabletop. Sort them into top, bottom, left, right, and corner groups if that is how you like to start.</p>
+          </article>
+
+          <article>
+            <h3>Connect Pieces Anywhere</h3>
+            <p>Correct neighboring pieces snap together even when they are away from the frame. Once connected, the group moves as one unit.</p>
+          </article>
+
+          <article>
+            <h3>Use the Whole Table</h3>
+            <p><strong>All to Table</strong> scatters every loose tray piece. The same button then becomes <strong>Recall Singles</strong>, which sends only unconnected single pieces back to the tray.</p>
+          </article>
+
+          <article>
+            <h3>Sort the Tray</h3>
+            <p>Use the tray filter to show edges, corners, or pieces with 0–4 outward tabs. One-tab pieces can also be filtered by direction.</p>
+          </article>
+
+          <article>
+            <h3>Snap to the Frame</h3>
+            <p>When a piece or connected group reaches its correct place in the puzzle frame, it snap-locks into position. Finish the puzzle to reveal the species information and add it to your Fish Cooler.</p>
+          </article>
+        </div>
 
         <div class="button-row">
-          <button class="primary-btn" id="howStartBtn">Start Fishing</button>
+          <button class="primary-btn" id="howStartBtn">Choose a Puzzle</button>
           <button class="secondary-btn" data-back-home="true">Back</button>
         </div>
       </div>
     </section>
 
-    <!-- PUZZLE -->
-    <section id="screen-puzzle" class="screen">
-      <div class="panel puzzle-panel">
-        <div class="puzzle-topline">
-          <div>
-            <h2>Puzzle Your Catch</h2>
-            <p id="puzzleInfo" class="muted"></p>
-          </div>
-          <div class="counter-chip" id="pieceCounterChip">0 / 0</div>
-        </div>
-
-        <div class="puzzle-toolbar">
-          <button class="secondary-btn" id="edgesOnlyBtn">Edges Only</button>
-          <button class="secondary-btn" id="allPiecesBtn">All Pieces</button>
-          <button class="secondary-btn" id="spreadPiecesBtn">Spread Pieces</button>
-          <button class="secondary-btn" id="newPuzzleBtn">New Puzzle</button>
-        </div>
-
-        <div class="workspace-grid">
-          <div class="workspace-panel">
-            <div class="workspace-label">Puzzle Table</div>
-            <div id="puzzleBoard" class="puzzle-board"></div>
-          </div>
-
-          <div class="workspace-panel">
-            <div class="workspace-label">Tackle Tray</div>
-            <div class="tray-help">
-              Drag pieces onto the puzzle table. Matching edges snap together when they get close.
+    <!-- PUZZLE PLAY -->
+    <section id="screen-puzzle" class="screen puzzle-screen">
+      <div class="play-shell" id="playShell">
+        <div class="play-toolbar">
+          <div class="play-toolbar-left">
+            <button class="tool-btn" id="playHomeBtn">Home</button>
+            <div class="play-status">
+              <strong id="puzzleTitle">Angler's Jigsaw</strong>
+              <span id="puzzleInfo"></span>
             </div>
-            <div id="trayPieces" class="tray-pieces"></div>
           </div>
+
+          <div class="play-toolbar-actions">
+            <button class="tool-btn edge-tool" id="edgesToTableBtn">Edges to Table</button>
+            <button class="tool-btn scatter-tool" id="allTableBtn">All to Table</button>
+            <button class="tool-btn" id="previewBtn">Preview</button>
+            <button class="tool-btn" id="fullscreenBtn">Full Screen</button>
+            <button class="tool-btn" id="newPuzzleBtn">New Puzzle</button>
+          </div>
+
+          <div class="piece-count" id="pieceCounterChip">0 / 0</div>
+        </div>
+
+        <div class="play-table" id="playTable" aria-label="Puzzle tabletop">
+          <div class="puzzle-frame" id="puzzleFrame" aria-label="Puzzle frame">
+            <div class="frame-preview" id="framePreview" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="tray-bar" id="trayBar">
+          <div class="tray-header">
+            <div class="tray-title">
+              <strong>Tackle Tray</strong>
+              <span id="trayCount">0 pieces</span>
+            </div>
+
+            <div class="tray-options">
+              <label for="trayFilter">Show</label>
+              <select id="trayFilter">
+                <option value="all">All pieces</option>
+                <option value="edges">Edges only</option>
+                <option value="corners">Corners</option>
+                <option value="out-0">0 outward tabs</option>
+                <option value="out-1">1 outward tab</option>
+                <option value="out-up">1 tab — up</option>
+                <option value="out-right">1 tab — right</option>
+                <option value="out-down">1 tab — down</option>
+                <option value="out-left">1 tab — left</option>
+                <option value="out-2">2 outward tabs</option>
+                <option value="out-3">3 outward tabs</option>
+                <option value="out-4">4 outward tabs</option>
+              </select>
+
+              <button class="tray-toggle" id="collapseTrayBtn">Hide Tray</button>
+            </div>
+          </div>
+
+          <div class="tray-pieces" id="trayPieces"></div>
         </div>
       </div>
     </section>
@@ -139,7 +193,7 @@
           </div>
 
           <div>
-            <div class="complete-kicker">Catch Complete</div>
+            <div class="complete-kicker">Puzzle Complete</div>
             <h2 id="completeTitle"></h2>
             <p class="scientific" id="completeScientific"></p>
             <p id="completeDescription"></p>
@@ -148,7 +202,7 @@
             <p id="completeHistory"></p>
 
             <div class="button-row">
-              <button class="primary-btn" id="fishAgainBtn">New Puzzle</button>
+              <button class="primary-btn" id="fishAgainBtn">Choose Another Puzzle</button>
               <button class="secondary-btn" id="openCoolerBtn">Fish Cooler</button>
             </div>
           </div>
@@ -162,7 +216,7 @@
         <div class="screen-heading">
           <div>
             <h2>Fish Cooler</h2>
-            <p>Species you have completed and collected.</p>
+            <p>Fish you have completed and collected.</p>
           </div>
           <div class="counter-chip" id="coolerCountChip">0 discovered</div>
         </div>
@@ -172,7 +226,9 @@
     </section>
   </main>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <div class="app-version" id="versionLabel">Angler's Jigsaw • v2.0</div>
+
+  <script src="js/data.js?v=2.0"></script>
+  <script src="js/app.js?v=2.0"></script>
 </body>
 </html>

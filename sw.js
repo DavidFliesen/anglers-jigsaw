@@ -1,5 +1,4 @@
-
-const CACHE_NAME = 'anglers-jigsaw-v1-9';
+const CACHE_NAME = 'anglers-jigsaw-v2-0';
 
 const ASSETS = [
   './',
@@ -45,13 +44,14 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  const isAppShell =
+  const networkFirst =
     request.mode === 'navigate' ||
     url.pathname.endsWith('/index.html') ||
     url.pathname.endsWith('/css/styles.css') ||
-    url.pathname.endsWith('/js/app.js');
+    url.pathname.endsWith('/js/app.js') ||
+    url.pathname.endsWith('/js/data.js');
 
-  if (isAppShell) {
+  if (networkFirst) {
     event.respondWith(
       fetch(request)
         .then(response => {
@@ -65,6 +65,7 @@ self.addEventListener('fetch', event => {
   }
 
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request))
+    caches.match(request)
+      .then(cached => cached || fetch(request))
   );
 });

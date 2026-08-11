@@ -3,9 +3,9 @@
   "short_name": "AnglerJigsaw",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#10271f",
-  "theme_color": "#173d2d",
-  "description": "Cast, catch, puzzle, and collect fish in this fishing-inspired jigsaw PWA.",
+  "background_color": "#00102e",
+  "theme_color": "#08214a",
+  "description": "A fishing-inspired jigsaw puzzle PWA with free tabletop play, piece clusters, sorting tools, and a Fish Cooler collection.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
