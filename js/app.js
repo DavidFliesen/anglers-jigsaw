@@ -251,40 +251,26 @@ function updatePuzzleGeometry() {
   if (!puzzleState) return;
 
   const rect = puzzleBoard.getBoundingClientRect();
-  const oldStepPx = puzzleState.stepPx || 0;
 
   /*
-    The SVG piece is 120×120, but its square "body" is 90×90
-    from coordinate 15..105. The extra 15 units on each side are
-    only connector padding.
+    Classic ribbon-cut geometry:
+    - SVG canvas = 120 × 120
+    - visible "body" cell = 84 × 84
+    - connector padding = 18 on each side
 
-    The puzzle image itself therefore uses exactly one body cell per
-    board grid cell. This makes the assembled picture fill the complete
-    4:3 board instead of leaving artificial side strips.
+    That gives a familiar puzzle silhouette while keeping the
+    assembled picture aligned to the full 4:3 board area.
   */
+  const BODY = 84;
+  const PAD = 18;
   const stepX = rect.width / puzzleState.cols;
   const stepY = rect.height / puzzleState.rows;
   const stepPx = Math.min(stepX, stepY);
 
   puzzleState.stepPx = stepPx;
-  puzzleState.piecePx = stepPx * (120 / 90);
-  puzzleState.connectorPadPx = puzzleState.piecePx * (15 / 120);
-
-  puzzleState.snapDistance = Math.max(
-    13,
-    Math.min(54, stepPx * 0.48)
-  );
-
-  if (oldStepPx > 0 && Math.abs(oldStepPx - stepPx) > 0.5) {
-    const scale = stepPx / oldStepPx;
-
-    puzzleState.pieces.forEach(piece => {
-      if (piece.onBoard && !piece.locked) {
-        piece.boardX *= scale;
-        piece.boardY *= scale;
-      }
-    });
-  }
+  puzzleState.piecePx = stepPx * (120 / BODY);
+  puzzleState.connectorPadPx = puzzleState.piecePx * (PAD / 120);
+  puzzleState.snapDistance = Math.max(18, Math.min(60, stepPx * 0.52));
 }
 
 
@@ -293,89 +279,79 @@ function piecePath(edges) {
   const { top, right, bottom, left } = edges;
 
   /*
-    Familiar ribbon-cut jigsaw geometry:
-    - straight grid edges
-    - short necks
-    - rounded circular-looking knob heads
-    - mirrored blanks for exact matching
+    Traditional ribbon-cut piece:
+    - straight body box
+    - centered circular-looking knobs and blanks
+    - mirrored curves so neighboring pieces line up cleanly
   */
-  const k = 5.8;
-  let d = 'M 15 15';
+  let d = 'M 18 18';
 
-  // TOP — left to right
+  // TOP
   if (top === 0) {
-    d += ' L 105 15';
+    d += ' L 102 18';
   } else if (top === 1) {
-    d += ` L 45 15
-           C 49 15, 50 13, 50 10
-           C 50 4, ${60 - k} 0, 60 0
-           C ${60 + k} 0, 70 4, 70 10
-           C 70 13, 71 15, 75 15
-           L 105 15`;
+    d += ` L 43 18
+           C 46 18, 47 12, 50 9
+           C 54 4, 66 4, 70 9
+           C 73 12, 74 18, 77 18
+           L 102 18`;
   } else {
-    d += ` L 45 15
-           C 49 15, 50 17, 50 20
-           C 50 26, ${60 - k} 30, 60 30
-           C ${60 + k} 30, 70 26, 70 20
-           C 70 17, 71 15, 75 15
-           L 105 15`;
+    d += ` L 43 18
+           C 46 18, 47 24, 50 27
+           C 54 32, 66 32, 70 27
+           C 73 24, 74 18, 77 18
+           L 102 18`;
   }
 
-  // RIGHT — top to bottom
+  // RIGHT
   if (right === 0) {
-    d += ' L 105 105';
+    d += ' L 102 102';
   } else if (right === 1) {
-    d += ` L 105 45
-           C 105 49, 107 50, 110 50
-           C 116 50, 120 ${60 - k}, 120 60
-           C 120 ${60 + k}, 116 70, 110 70
-           C 107 70, 105 71, 105 75
-           L 105 105`;
+    d += ` L 102 43
+           C 102 46, 108 47, 111 50
+           C 116 54, 116 66, 111 70
+           C 108 73, 102 74, 102 77
+           L 102 102`;
   } else {
-    d += ` L 105 45
-           C 105 49, 103 50, 100 50
-           C 94 50, 90 ${60 - k}, 90 60
-           C 90 ${60 + k}, 94 70, 100 70
-           C 103 70, 105 71, 105 75
-           L 105 105`;
+    d += ` L 102 43
+           C 102 46, 96 47, 93 50
+           C 88 54, 88 66, 93 70
+           C 96 73, 102 74, 102 77
+           L 102 102`;
   }
 
-  // BOTTOM — right to left
+  // BOTTOM
   if (bottom === 0) {
-    d += ' L 15 105';
+    d += ' L 18 102';
   } else if (bottom === 1) {
-    d += ` L 75 105
-           C 71 105, 70 107, 70 110
-           C 70 116, ${60 + k} 120, 60 120
-           C ${60 - k} 120, 50 116, 50 110
-           C 50 107, 49 105, 45 105
-           L 15 105`;
+    d += ` L 77 102
+           C 74 102, 73 108, 70 111
+           C 66 116, 54 116, 50 111
+           C 47 108, 46 102, 43 102
+           L 18 102`;
   } else {
-    d += ` L 75 105
-           C 71 105, 70 103, 70 100
-           C 70 94, ${60 + k} 90, 60 90
-           C ${60 - k} 90, 50 94, 50 100
-           C 50 103, 49 105, 45 105
-           L 15 105`;
+    d += ` L 77 102
+           C 74 102, 73 96, 70 93
+           C 66 88, 54 88, 50 93
+           C 47 96, 46 102, 43 102
+           L 18 102`;
   }
 
-  // LEFT — bottom to top
+  // LEFT
   if (left === 0) {
-    d += ' L 15 15';
+    d += ' L 18 18';
   } else if (left === 1) {
-    d += ` L 15 75
-           C 15 71, 13 70, 10 70
-           C 4 70, 0 ${60 + k}, 0 60
-           C 0 ${60 - k}, 4 50, 10 50
-           C 13 50, 15 49, 15 45
-           L 15 15`;
+    d += ` L 18 77
+           C 18 74, 12 73, 9 70
+           C 4 66, 4 54, 9 50
+           C 12 47, 18 46, 18 43
+           L 18 18`;
   } else {
-    d += ` L 15 75
-           C 15 71, 17 70, 20 70
-           C 26 70, 30 ${60 + k}, 30 60
-           C 30 ${60 - k}, 26 50, 20 50
-           C 17 50, 15 49, 15 45
-           L 15 15`;
+    d += ` L 18 77
+           C 18 74, 24 73, 27 70
+           C 32 66, 32 54, 27 50
+           C 24 47, 18 46, 18 43
+           L 18 18`;
   }
 
   return d + ' Z';
@@ -385,18 +361,19 @@ function piecePath(edges) {
   Each piece shows its exact part of one common 4:3 source image.
 */
 function pieceSvgMarkup(piece, uniqueId) {
-  const imageStep = 90;
-  const fullWidth = imageStep * puzzleState.cols;
-  const fullHeight = imageStep * puzzleState.rows;
+  const BODY = 84;
+  const PAD = 18;
+  const fullWidth = BODY * puzzleState.cols;
+  const fullHeight = BODY * puzzleState.rows;
   const path = piecePath(piece.edges);
 
   /*
-    The image is rendered once conceptually across the complete 4:3 puzzle.
-    Each piece simply clips its portion. The source artwork is center-cropped
-    to the board's 4:3 aspect ratio, so there are no empty side strips.
+    The image is mapped across one shared 4:3 board image so every piece
+    lines up cleanly. The puzzle board itself now shows that same image
+    beneath the pieces, which eliminates the distracting blue side strips.
   */
-  const imageX = 15 - piece.col * imageStep;
-  const imageY = 15 - piece.row * imageStep;
+  const imageX = PAD - piece.col * BODY;
+  const imageY = PAD - piece.row * BODY;
 
   return `
     <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -407,9 +384,6 @@ function pieceSvgMarkup(piece, uniqueId) {
       </defs>
 
       <g clip-path="url(#${uniqueId})">
-        <rect x="-1000" y="-1000" width="3000" height="3000"
-              fill="#0b2c5c"></rect>
-
         <image
           href="${puzzleState.species.image}"
           x="${imageX}"
@@ -485,6 +459,7 @@ function renderPuzzle() {
 
   puzzleBoard.innerHTML = '';
   puzzleBoard.classList.add('free-jigsaw-board');
+  puzzleBoard.style.setProperty('--board-image', `url("${puzzleState.species.image}")`);
 
   puzzleState.pieces
     .filter(piece => piece.onBoard)
@@ -734,6 +709,7 @@ function endPieceDrag(event) {
     event.clientY <= boardRect.bottom;
 
   if (!overBoard) {
+    piece.onBoard = false;
     cleanupDrag();
     renderPuzzle();
     showToast('Drop the piece onto the puzzle table.');
@@ -755,8 +731,12 @@ function endPieceDrag(event) {
   const snapped = trySnapLockPiece(piece);
 
   if (!snapped) {
-    piece.zIndex = ++puzzleState.nextZ;
-    separateLooseOverlap(piece);
+    piece.onBoard = false;
+    piece.boardX = 0;
+    piece.boardY = 0;
+    renderPuzzle();
+    showToast('Not quite — move it closer to its matching spot.');
+    return;
   }
 
   checkBorderComplete();
