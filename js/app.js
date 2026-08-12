@@ -1,4 +1,4 @@
-const APP_VERSION = '2.0.3';
+const APP_VERSION = '2.1.0';
 
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -230,102 +230,83 @@ function outwardTabInfo(edges) {
 }
 
 /*
-  Conventional ribbon-cut jigsaw shape:
-  a square body with centered round knobs and sockets.
-  Shared edges are exact mirrored opposites.
+  Traditional ribbon-cut jigsaw shape with centered circular tabs and blanks.
+  This follows the visual language from the user's reference examples: flat outer borders,
+  straight rows/columns, and familiar rounded connectors.
 */
 function piecePath(edges) {
   const { top, right, bottom, left } = edges;
 
-  /*
-    Classic jigsaw silhouette inspired by the user's reference images:
-    - straight ribbon-cut rows and columns
-    - centered circular tabs and sockets
-    - familiar physical-puzzle proportions
-    - mirrored neighboring edges so they line up exactly
-  */
   const MIN = 18;
   const MAX = 102;
-  const START = 46;
-  const END = 74;
-  const NECK_IN_1 = 50;
-  const NECK_IN_2 = 70;
-  const NECK_OUT_1 = 52;
-  const NECK_OUT_2 = 68;
-  const PEAK = 6;
-  const WELL = 30;
+  const SHOULDER_A = 50;
+  const SHOULDER_B = 70;
+  const OUTER = 10;
+  const INNER = 26;
 
   let d = `M ${MIN} ${MIN}`;
 
   function topEdge(type) {
     if (type === 0) return ` L ${MAX} ${MIN}`;
     if (type === 1) {
-      return ` L ${START} ${MIN}
-               C ${NECK_IN_1} ${MIN}, ${NECK_OUT_1} 14, ${NECK_OUT_1} 14
-               C ${NECK_OUT_1} 10, 55 ${PEAK}, 60 ${PEAK}
-               C 65 ${PEAK}, ${NECK_OUT_2} 10, ${NECK_OUT_2} 14
-               C ${NECK_OUT_2} 14, ${NECK_IN_2} ${MIN}, ${END} ${MIN}
+      return ` L ${SHOULDER_A} ${MIN}
+               C ${SHOULDER_A} 14, 52 ${OUTER}, 56 ${OUTER}
+               A 10 10 0 0 1 64 ${OUTER}
+               C 68 ${OUTER}, ${SHOULDER_B} 14, ${SHOULDER_B} ${MIN}
                L ${MAX} ${MIN}`;
     }
-    return ` L ${START} ${MIN}
-             C ${NECK_IN_1} ${MIN}, ${NECK_OUT_1} 22, ${NECK_OUT_1} 22
-             C ${NECK_OUT_1} 26, 55 ${WELL}, 60 ${WELL}
-             C 65 ${WELL}, ${NECK_OUT_2} 26, ${NECK_OUT_2} 22
-             C ${NECK_OUT_2} 22, ${NECK_IN_2} ${MIN}, ${END} ${MIN}
+    return ` L ${SHOULDER_A} ${MIN}
+             C ${SHOULDER_A} 22, 52 ${INNER}, 56 ${INNER}
+             A 10 10 0 0 0 64 ${INNER}
+             C 68 ${INNER}, ${SHOULDER_B} 22, ${SHOULDER_B} ${MIN}
              L ${MAX} ${MIN}`;
   }
 
   function rightEdge(type) {
     if (type === 0) return ` L ${MAX} ${MAX}`;
     if (type === 1) {
-      return ` L ${MAX} ${START}
-               C ${MAX} ${NECK_IN_1}, 106 ${NECK_OUT_1}, 106 ${NECK_OUT_1}
-               C 110 ${NECK_OUT_1}, 114 55, 114 60
-               C 114 65, 110 ${NECK_OUT_2}, 106 ${NECK_OUT_2}
-               C 106 ${NECK_OUT_2}, ${MAX} ${NECK_IN_2}, ${MAX} ${END}
+      return ` L ${MAX} ${SHOULDER_A}
+               C 106 ${SHOULDER_A}, 110 52, 110 56
+               A 10 10 0 0 1 110 64
+               C 110 68, 106 ${SHOULDER_B}, ${MAX} ${SHOULDER_B}
                L ${MAX} ${MAX}`;
     }
-    return ` L ${MAX} ${START}
-             C ${MAX} ${NECK_IN_1}, 98 ${NECK_OUT_1}, 98 ${NECK_OUT_1}
-             C 94 ${NECK_OUT_1}, 90 55, 90 60
-             C 90 65, 94 ${NECK_OUT_2}, 98 ${NECK_OUT_2}
-             C 98 ${NECK_OUT_2}, ${MAX} ${NECK_IN_2}, ${MAX} ${END}
+    return ` L ${MAX} ${SHOULDER_A}
+             C 98 ${SHOULDER_A}, 94 52, 94 56
+             A 10 10 0 0 0 94 64
+             C 94 68, 98 ${SHOULDER_B}, ${MAX} ${SHOULDER_B}
              L ${MAX} ${MAX}`;
   }
 
   function bottomEdge(type) {
     if (type === 0) return ` L ${MIN} ${MAX}`;
     if (type === 1) {
-      return ` L ${END} ${MAX}
-               C ${NECK_IN_2} ${MAX}, ${NECK_OUT_2} 106, ${NECK_OUT_2} 106
-               C ${NECK_OUT_2} 110, 65 114, 60 114
-               C 55 114, ${NECK_OUT_1} 110, ${NECK_OUT_1} 106
-               C ${NECK_OUT_1} 106, ${NECK_IN_1} ${MAX}, ${START} ${MAX}
+      return ` L ${SHOULDER_B} ${MAX}
+               C ${SHOULDER_B} 106, 68 110, 64 110
+               A 10 10 0 0 1 56 110
+               C 52 110, ${SHOULDER_A} 106, ${SHOULDER_A} ${MAX}
                L ${MIN} ${MAX}`;
     }
-    return ` L ${END} ${MAX}
-             C ${NECK_IN_2} ${MAX}, ${NECK_OUT_2} 98, ${NECK_OUT_2} 98
-             C ${NECK_OUT_2} 94, 65 90, 60 90
-             C 55 90, ${NECK_OUT_1} 94, ${NECK_OUT_1} 98
-             C ${NECK_OUT_1} 98, ${NECK_IN_1} ${MAX}, ${START} ${MAX}
+    return ` L ${SHOULDER_B} ${MAX}
+             C ${SHOULDER_B} 98, 68 94, 64 94
+             A 10 10 0 0 0 56 94
+             C 52 94, ${SHOULDER_A} 98, ${SHOULDER_A} ${MAX}
              L ${MIN} ${MAX}`;
   }
 
   function leftEdge(type) {
     if (type === 0) return ` L ${MIN} ${MIN}`;
     if (type === 1) {
-      return ` L ${MIN} ${END}
-               C ${MIN} ${NECK_IN_2}, 14 ${NECK_OUT_2}, 14 ${NECK_OUT_2}
-               C 10 ${NECK_OUT_2}, ${PEAK} 65, ${PEAK} 60
-               C ${PEAK} 55, 10 ${NECK_OUT_1}, 14 ${NECK_OUT_1}
-               C 14 ${NECK_OUT_1}, ${MIN} ${NECK_IN_1}, ${MIN} ${START}
+      return ` L ${MIN} ${SHOULDER_B}
+               C 14 ${SHOULDER_B}, ${OUTER} 68, ${OUTER} 64
+               A 10 10 0 0 1 ${OUTER} 56
+               C ${OUTER} 52, 14 ${SHOULDER_A}, ${MIN} ${SHOULDER_A}
                L ${MIN} ${MIN}`;
     }
-    return ` L ${MIN} ${END}
-             C ${MIN} ${NECK_IN_2}, 22 ${NECK_OUT_2}, 22 ${NECK_OUT_2}
-             C 26 ${NECK_OUT_2}, ${WELL} 65, ${WELL} 60
-             C ${WELL} 55, 26 ${NECK_OUT_1}, 22 ${NECK_OUT_1}
-             C 22 ${NECK_OUT_1}, ${MIN} ${NECK_IN_1}, ${MIN} ${START}
+    return ` L ${MIN} ${SHOULDER_B}
+             C 22 ${SHOULDER_B}, ${INNER} 68, ${INNER} 64
+             A 10 10 0 0 0 ${INNER} 56
+             C ${INNER} 52, 22 ${SHOULDER_A}, ${MIN} ${SHOULDER_A}
              L ${MIN} ${MIN}`;
   }
 
@@ -334,18 +315,41 @@ function piecePath(edges) {
   d += bottomEdge(bottom);
   d += leftEdge(left);
 
-  return d + ' Z';
+  return `${d} Z`;
+}
+
+function imageCoverGeometry() {
+  const BODY = 84;
+  const boardWidth = BODY * puzzleState.cols;
+  const boardHeight = BODY * puzzleState.rows;
+  const aspect = puzzleState.species.imageAspect || 1;
+
+  let drawWidth;
+  let drawHeight;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (boardWidth / boardHeight > aspect) {
+    drawWidth = boardWidth;
+    drawHeight = drawWidth / aspect;
+    offsetY = -(drawHeight - boardHeight) / 2;
+  } else {
+    drawHeight = boardHeight;
+    drawWidth = drawHeight * aspect;
+    offsetX = -(drawWidth - boardWidth) / 2;
+  }
+
+  return { drawWidth, drawHeight, offsetX, offsetY };
 }
 
 function pieceSvgMarkup(piece) {
   const BODY = 84;
   const PAD = 18;
-  const fullWidth = BODY * puzzleState.cols;
-  const fullHeight = BODY * puzzleState.rows;
   const path = piecePath(piece.edges);
   const clipId = `clip-${puzzleState.id}-${piece.id}`;
-  const imageX = PAD - piece.col * BODY;
-  const imageY = PAD - piece.row * BODY;
+  const cover = imageCoverGeometry();
+  const imageX = PAD + cover.offsetX - piece.col * BODY;
+  const imageY = PAD + cover.offsetY - piece.row * BODY;
 
   return `
     <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -360,8 +364,8 @@ function pieceSvgMarkup(piece) {
           href="${puzzleState.species.image}"
           x="${imageX}"
           y="${imageY}"
-          width="${fullWidth}"
-          height="${fullHeight}"
+          width="${cover.drawWidth}"
+          height="${cover.drawHeight}"
           preserveAspectRatio="xMidYMid slice">
         </image>
       </g>
@@ -376,11 +380,12 @@ function startPuzzle(species, difficulty) {
     cleanupDrag();
   }
 
-  // Remove every piece from the previous puzzle before building a new one.
+  // Hard reset the current board before building a new puzzle.
   els.playTable.querySelectorAll('.jigsaw-piece').forEach(element => element.remove());
   document.querySelectorAll('.drag-proxy').forEach(element => element.remove());
   els.trayPieces.replaceChildren();
-  pieceElements.clear();
+  pieceElements = new Map();
+  puzzleState = null;
 
   const edges = generatePieceEdges(difficulty.rows, difficulty.cols);
   const pieces = [];
@@ -474,8 +479,8 @@ function layoutPuzzle(preserveLoosePositions = true) {
 
   const old = puzzleState.geometry;
 
-  const boardMaxW = rect.width * 0.66;
-  const boardMaxH = rect.height * 0.72;
+  const boardMaxW = rect.width * 0.72;
+  const boardMaxH = rect.height * 0.80;
   const boardWidth = Math.min(boardMaxW, boardMaxH * (4 / 3));
   const boardHeight = boardWidth * (3 / 4);
   const boardLeft = (rect.width - boardWidth) / 2;
