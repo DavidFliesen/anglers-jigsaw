@@ -1,46 +1,34 @@
-# Angler's Jigsaw — v3.2.1
+# Angler's Jigsaw — v3.2.2
 
-Version 3.2 refines the traditional jigsaw geometry and improves the Fish Cooler discovery system.
+Version 3.2.2 adds subtle ambient fish animation to the water background so the game feels more alive without distracting from puzzle play.
 
-## v3.2.1 changes
+## v3.2.2 changes
 
-### Cleaner piece appearance
-- Removed the white perimeter stroke from loose puzzle pieces on the table.
-- Removed the white perimeter stroke from pieces shown in the Tackle Tray.
-- Kept the puzzle-board cut-line guide so the target layout remains visible while solving.
-- The actual clipped image now defines each piece edge, producing a cleaner, less artificial look.
+### Ambient fish swimmers
+- Added three animated background fish that loop gently behind the interface:
+  - Rainbow Trout
+  - Catfish
+  - Flounder
+- Fish swim across the background just above the water layer.
+- The system limits the scene to **no more than 3 fish on screen at one time**.
+- Fish sizes stay modest so they do not dominate the play area.
 
-### Exact matching tabs and blanks
-- Every outward tab and inward blank now uses **one shared canonical connector profile**.
-- Tabs and blanks use the same circle size, neck width, depth, and curve math.
-- The smaller connector size requested during testing is now used for both male and female connections.
-- The puzzle board cut lines use that same connector profile, so the loose piece and its destination are generated from the same geometry.
+### Subtle “breathing” motion
+- Each fish has a very light breathing / life-like motion.
+- The animation is intentionally restrained so it does not become tiring on the eyes while solving puzzles.
+- Swim speed, opacity, direction, and vertical drift are varied for a more natural feel.
 
-### Fish Cooler now shows discoveries only
-- The Fish Cooler no longer shows undiscovered species.
-- If no fish have been discovered yet, the Cooler shows an empty-state message.
-- Completed fish become visible in the Cooler after their puzzle is finished.
-- The discovered count continues to reflect the number of fish actually caught/completed.
+### Accessibility / motion restraint
+- Ambient fish are non-interactive and sit behind the gameplay UI.
+- Reduced-motion users are respected through `prefers-reduced-motion`, which disables the ambient fish animation.
 
-### Fish Cooler species cards are clickable
-- Tap a discovered fish to open its species-information screen.
-- The species screen now includes:
-  - common name
-  - scientific name
-  - description
-  - **How to Identify It**
-  - typical habitat
-  - species history
-- From that screen, the player can play that fish again or return to the Fish Cooler.
-
-### Version / cache
-- App version: `v3.2.1`
-- Service-worker cache: `anglers-jigsaw-v3-2-1`
+### Version / cache notes
+- App version text updated to: `v3.2.2`
+- Asset query strings updated in `index.html` to help refresh the new build.
 
 ## Changed files
 - `index.html`
-- `css/styles.css`
-- `js/app.js`
-- `js/data.js`
-- `sw.js`
 - `README.md`
+- `assets/images/ambient/rainbow-trout.png`
+- `assets/images/ambient/catfish.png`
+- `assets/images/ambient/flounder.png`
