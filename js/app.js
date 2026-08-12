@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.2';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -48,10 +48,13 @@ const els = {
   trayCount: document.getElementById('trayCount'),
   trayFilter: document.getElementById('trayFilter'),
   collapseTrayBtn: document.getElementById('collapseTrayBtn'),
+  completeKicker: document.getElementById('completeKicker'),
   completeImage: document.getElementById('completeImage'),
   completeTitle: document.getElementById('completeTitle'),
   completeScientific: document.getElementById('completeScientific'),
   completeDescription: document.getElementById('completeDescription'),
+  completeIdentification: document.getElementById('completeIdentification'),
+  completeHabitat: document.getElementById('completeHabitat'),
   completeHistory: document.getElementById('completeHistory'),
   fishAgainBtn: document.getElementById('fishAgainBtn'),
   openCoolerBtn: document.getElementById('openCoolerBtn'),
@@ -67,6 +70,7 @@ let currentDifficulty = difficulties[1];
 let puzzleState = null;
 let currentScreen = 'home';
 let zCounter = 20;
+let detailFish = null;
 
 const dragState = {
   active: false,
@@ -105,7 +109,13 @@ function bindUI() {
   els.newPuzzleBtn.addEventListener('click', () => showScreen('select'));
   els.trayFilter.addEventListener('change', renderTray);
   els.collapseTrayBtn.addEventListener('click', toggleTray);
-  els.fishAgainBtn.addEventListener('click', () => showScreen('select'));
+  els.fishAgainBtn.addEventListener('click', () => {
+    if (els.completeKicker.textContent === 'Fish Cooler Species' && detailFish) {
+      startPuzzle(detailFish, currentDifficulty);
+    } else {
+      showScreen('select');
+    }
+  });
   els.openCoolerBtn.addEventListener('click', () => openCooler());
   els.coolerPlayBtn.addEventListener('click', () => showScreen('select'));
 
@@ -211,22 +221,53 @@ function openCooler() {
 
 function renderCooler() {
   els.coolerGrid.innerHTML = '';
+  const discoveredFish = Object.values(speciesData).filter(fish => Boolean(cooler[fish.id]));
 
-  Object.values(speciesData).forEach(fish => {
-    const discovered = Boolean(cooler[fish.id]);
-    const card = document.createElement('article');
-    card.className = 'cooler-card';
-    card.innerHTML = `
-      <img src="${fish.image}" alt="${fish.commonName}" />
-      <div class="cooler-card-body">
-        <strong>${fish.commonName}</strong>
-        <div class="cooler-status">${discovered ? 'Discovered' : 'Not discovered yet'}</div>
-      </div>
+  if (!discoveredFish.length) {
+    const empty = document.createElement('div');
+    empty.className = 'cooler-empty';
+    empty.innerHTML = `
+      <strong>Your Fish Cooler is empty.</strong>
+      <p>Complete a puzzle to discover your first fish. Each catch you complete will be saved here.</p>
     `;
-    els.coolerGrid.appendChild(card);
-  });
+    els.coolerGrid.appendChild(empty);
+  } else {
+    discoveredFish.forEach(fish => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'cooler-card cooler-card-button';
+      card.innerHTML = `
+        <img src="${fish.image}" alt="${fish.commonName}" />
+        <div class="cooler-card-body">
+          <strong>${fish.commonName}</strong>
+          <div class="cooler-status">Tap to view identification and species information</div>
+        </div>
+      `;
+      card.addEventListener('click', () => showFishDetails(fish));
+      els.coolerGrid.appendChild(card);
+    });
+  }
 
   updateCoolerChip();
+}
+
+function populateFishInfo(fish, fromCooler = false) {
+  detailFish = fish;
+  els.completeKicker.textContent = fromCooler ? 'Fish Cooler Species' : 'Puzzle Complete';
+  els.completeImage.src = fish.image;
+  els.completeTitle.textContent = fish.commonName;
+  els.completeScientific.textContent = fish.scientificName;
+  els.completeDescription.textContent = fish.description;
+  els.completeIdentification.textContent = fish.identification || fish.description;
+  els.completeHabitat.textContent = fish.habitat;
+  els.completeHistory.textContent = fish.history;
+  els.fishAgainBtn.textContent = fromCooler ? 'Play This Fish' : 'Choose Another Puzzle';
+  els.openCoolerBtn.textContent = fromCooler ? 'Back to Fish Cooler' : 'Fish Cooler';
+}
+
+function showFishDetails(fish) {
+  populateFishInfo(fish, true);
+  showScreen('complete');
 }
 
 async function startPuzzle(fish, difficulty) {
@@ -463,6 +504,18 @@ function computeCoverRect(imageRatio, boardW, boardH) {
   return { w, h, x: 0, y: (boardH - h) / 2 };
 }
 
+function ribbonProfile(sideLength) {
+  // One canonical connector profile is used for BOTH outward tabs and inward blanks.
+  // This guarantees that every male/female pair is the same size and shape.
+  return {
+    neckHalf: sideLength * 0.075,
+    lobeRadius: sideLength * 0.125,
+    depth: sideLength * 0.235,
+    shoulder: sideLength * 0.025,
+    k: 0.5522847498
+  };
+}
+
 function buildPieceShape(cell, margin, edges) {
   const s = cell;
   const m = margin;
@@ -472,12 +525,8 @@ function buildPieceShape(cell, margin, edges) {
   const x1 = m + s;
   const y1 = m + s;
 
-  // Deep, round, narrow-neck ribbon cut based on the supplied mockup.
-  const neckHalf = s * 0.095;
-  const lobeRadius = s * 0.175;
-  const depth = s * 0.31;
-  const shoulder = s * 0.045;
-  const k = 0.5522847498;
+  // Use the exact same compact circular profile for tabs and blanks.
+  const { neckHalf, lobeRadius, depth, shoulder, k } = ribbonProfile(s);
 
   let d = `M ${x0} ${y0}`;
   d += edgeSegment({x:x0,y:y0},{x:x1,y:y0},{x:0,y:-1},edges.top,s,neckHalf,lobeRadius,depth,shoulder,k);
@@ -559,11 +608,7 @@ function renderBoardCutlines() {
 }
 
 function sharedCutPath(start, end, normal, edge, sideLength) {
-  const neckHalf = sideLength * 0.095;
-  const lobeRadius = sideLength * 0.175;
-  const depth = sideLength * 0.31;
-  const shoulder = sideLength * 0.045;
-  const k = 0.5522847498;
+  const { neckHalf, lobeRadius, depth, shoulder, k } = ribbonProfile(sideLength);
   return `M ${start.x} ${start.y}` + edgeSegment(start,end,normal,edge,sideLength,neckHalf,lobeRadius,depth,shoulder,k);
 }
 
@@ -962,10 +1007,6 @@ function checkCompletion() {
   saveCooler();
   renderCooler();
 
-  els.completeImage.src = puzzleState.fish.image;
-  els.completeTitle.textContent = puzzleState.fish.commonName;
-  els.completeScientific.textContent = puzzleState.fish.scientificName;
-  els.completeDescription.textContent = puzzleState.fish.description;
-  els.completeHistory.textContent = puzzleState.fish.history;
+  populateFishInfo(puzzleState.fish, false);
   showScreen('complete');
 }
