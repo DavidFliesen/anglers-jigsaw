@@ -94,6 +94,81 @@
         display: none;
       }
     }
+
+body {
+  transition: background 600ms ease;
+}
+
+body[data-sea-theme="open-ocean"] {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(100,170,255,.36) 0%, rgba(18,58,114,0) 55%),
+    linear-gradient(180deg, #1f5faa 0%, #12498c 28%, #0b2c5c 60%, #041a3e 100%);
+}
+
+body[data-sea-theme="deep-abyss"] {
+  background:
+    radial-gradient(34% 18% at 76% 30%, rgba(248,214,118,.16) 0%, rgba(248,214,118,0) 34%),
+    radial-gradient(90% 60% at 50% 0%, rgba(18,58,114,.28) 0%, rgba(18,58,114,0) 52%),
+    linear-gradient(180deg, #072454 0%, #041535 44%, #02081a 100%);
+}
+
+body[data-sea-theme="coral-reef"] {
+  background:
+    radial-gradient(100% 70% at 50% 12%, rgba(104,211,255,.24) 0%, rgba(104,211,255,0) 52%),
+    linear-gradient(180deg, #1678a3 0%, #0f5b88 38%, #0e426b 68%, #14334a 100%);
+}
+
+body[data-sea-theme="shipwreck"] {
+  background:
+    radial-gradient(30% 22% at 75% 74%, rgba(241,200,108,.16) 0%, rgba(241,200,108,0) 36%),
+    radial-gradient(55% 30% at 18% 82%, rgba(84,40,18,.18) 0%, rgba(84,40,18,0) 42%),
+    linear-gradient(180deg, #195b8f 0%, #0c3f70 34%, #07254a 66%, #03152f 100%);
+}
+
+body[data-sea-theme="kelp-lagoon"] {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(130,226,180,.18) 0%, rgba(130,226,180,0) 55%),
+    linear-gradient(180deg, #1a6e7d 0%, #145a70 34%, #0f435d 70%, #09273d 100%);
+}
+
+.app-header {
+  background:
+    linear-gradient(180deg, rgba(6, 23, 48, .9), rgba(4, 16, 36, .78));
+  border-bottom: 1px solid rgba(229, 201, 122, .22);
+  box-shadow: 0 14px 28px rgba(1, 8, 20, .22);
+}
+
+.panel,
+.play-toolbar,
+.tray-bar {
+  border-color: rgba(229, 201, 122, .16);
+  box-shadow: 0 16px 34px rgba(1, 8, 20, .18);
+}
+
+.panel {
+  background:
+    linear-gradient(180deg, rgba(10, 32, 68, .88), rgba(4, 18, 42, .95));
+}
+
+.play-toolbar,
+.tray-bar {
+  background:
+    linear-gradient(180deg, rgba(4, 20, 49, .94), rgba(4, 18, 40, .90));
+}
+
+.header-btn,
+.tool-btn,
+.tray-toggle {
+  border-color: rgba(229, 201, 122, .18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.play-table {
+  background:
+    radial-gradient(90% 70% at 50% 8%, rgba(255,255,255,.05), transparent 48%),
+    linear-gradient(180deg, rgba(10,45,94,.50), rgba(2,17,49,.72));
+}
+
   </style>
 
 </head>
@@ -134,7 +209,7 @@
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
 
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.2.4</span></div>
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.3.0</span></div>
       </div>
     </section>
 
@@ -262,7 +337,7 @@
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.2.4</span></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.3.0</span></div>
         </div>
       </div>
     </section>
@@ -321,136 +396,147 @@
   <script src="js/data.js?v=3.2.4"></script>
   <script src="js/app.js?v=3.2.4"></script>
 
-  <script>
-    (function () {
-      if (window.__anglersAmbientFishInitialized) return;
-      window.__anglersAmbientFishInitialized = true;
 
-      const layer = document.getElementById('ambientFishLayer');
-      if (!layer) return;
+<script>
+  (function () {
+    if (window.__anglersAmbientFishInitialized) return;
+    window.__anglersAmbientFishInitialized = true;
 
-      const fishPool = [
-        { name: 'Rainbow Trout', src: 'assets/images/ambient/rainbow-trout.png' },
-        { name: 'Catfish', src: 'assets/images/ambient/catfish.png' },
-        { name: 'Flounder', src: 'assets/images/ambient/flounder.png' }
-      ];
+    const layer = document.getElementById('ambientFishLayer');
+    if (!layer) return;
 
-      const MIN_FISH = 2;
-      const MAX_FISH = 5;
-      const MIN_WIDTH = 84;
-      const MAX_WIDTH = 172;
-      const timers = new Set();
-      let activeFish = 0;
-      let desiredFishCount = 3;
-      let spawnQueued = false;
+    const fishPool = [
+      { name: 'Rainbow Trout', src: 'assets/images/ambient/rainbow-trout.png' },
+      { name: 'Catfish', src: 'assets/images/ambient/catfish.png' },
+      { name: 'Flounder', src: 'assets/images/ambient/flounder.png' }
+    ];
 
-      function randomBetween(min, max) {
-        return Math.random() * (max - min) + min;
+    const MIN_FISH = 3;
+    const MAX_FISH = 7;
+    const MIN_WIDTH = 90;
+    const MAX_WIDTH = 210;
+    const timers = new Set();
+    let activeFish = 0;
+    let desiredFishCount = 4;
+    let spawnQueued = false;
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(randomBetween(min, max + 1));
+    }
+
+    function clearTimers() {
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
+    }
+
+    function schedule(fn, delay) {
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        fn();
+      }, delay);
+      timers.add(timer);
+    }
+
+    function chooseDesiredCount() {
+      desiredFishCount = randomInt(MIN_FISH, MAX_FISH);
+    }
+
+    function scheduleNextFish(delay = randomBetween(2200, 5200)) {
+      if (spawnQueued || document.hidden || activeFish >= MAX_FISH || activeFish >= desiredFishCount) return;
+      spawnQueued = true;
+      schedule(() => {
+        spawnQueued = false;
+        if (document.hidden) return;
+        spawnFish();
+        if (activeFish < desiredFishCount) {
+          scheduleNextFish(randomBetween(2600, 6200));
+        }
+      }, delay);
+    }
+
+    function maintainPopulation() {
+      if (!document.hidden) {
+        chooseDesiredCount();
+        if (activeFish < desiredFishCount) {
+          scheduleNextFish(randomBetween(1200, 4200));
+        }
       }
+      schedule(maintainPopulation, randomBetween(7000, 13000));
+    }
 
-      function randomInt(min, max) {
-        return Math.floor(randomBetween(min, max + 1));
-      }
+    function spawnFish() {
+      if (document.hidden || activeFish >= MAX_FISH) return;
 
-      function clearTimers() {
-        timers.forEach((t) => clearTimeout(t));
-        timers.clear();
-      }
+      const spec = fishPool[Math.floor(Math.random() * fishPool.length)];
+      const reverse = Math.random() > 0.5;
+      const fish = document.createElement('div');
+      fish.className = 'ambient-fish' + (reverse ? ' reverse' : '');
 
-      function schedule(fn, delay) {
-        const timer = setTimeout(() => {
-          timers.delete(timer);
-          fn();
-        }, delay);
-        timers.add(timer);
-      }
+      const topBase = window.innerHeight * randomBetween(0.12, 0.76);
+      const drift = randomBetween(-44, 44);
+      const width = randomBetween(MIN_WIDTH, MAX_WIDTH);
+      const sizeFactor = (width - MIN_WIDTH) / (MAX_WIDTH - MIN_WIDTH);
+      const opacity = 0.28 + sizeFactor * 0.14;
+      const duration = randomBetween(30, 46) + sizeFactor * randomBetween(6, 12);
+      const zLevel = 8 + Math.round(sizeFactor * 24);
 
-      function chooseDesiredCount() {
-        desiredFishCount = randomInt(MIN_FISH, MAX_FISH);
-      }
+      fish.style.width = width + 'px';
+      fish.style.zIndex = String(zLevel);
+      fish.style.setProperty('--y-start', topBase + 'px');
+      fish.style.setProperty('--y-mid', (topBase + drift) + 'px');
+      fish.style.setProperty('--y-end', (topBase - drift * 0.45) + 'px');
+      fish.style.setProperty('--fish-opacity', opacity.toFixed(2));
+      fish.style.setProperty('--swim-duration', duration.toFixed(1) + 's');
 
-      function scheduleNextFish(delay = randomBetween(3200, 6200)) {
-        if (spawnQueued || document.hidden || activeFish >= MAX_FISH || activeFish >= desiredFishCount) return;
-        spawnQueued = true;
-        schedule(() => {
-          spawnQueued = false;
-          if (document.hidden) return;
-          spawnFish();
-          // Only ONE fish is queued at a time, so the background builds gradually
-          // rather than releasing a cluster of fish together.
-          if (activeFish < desiredFishCount) {
-            scheduleNextFish(randomBetween(3600, 7200));
-          }
-        }, delay);
-      }
-
-      function maintainPopulation() {
+      const body = document.createElement('div');
+      body.className = 'ambient-fish-body';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.loading = 'eager';
+      img.decoding = 'async';
+      img.src = spec.src;
+      img.addEventListener('error', () => {
+        fish.remove();
+        activeFish = Math.max(0, activeFish - 1);
         if (!document.hidden) {
-          chooseDesiredCount();
-          if (activeFish < desiredFishCount) {
-            scheduleNextFish(randomBetween(1400, 4200));
-          }
+          scheduleNextFish(randomBetween(1800, 3200));
         }
-        schedule(maintainPopulation, randomBetween(9000, 15000));
-      }
+      }, { once: true });
+      body.appendChild(img);
+      fish.appendChild(body);
 
-      function spawnFish() {
-        if (document.hidden || activeFish >= MAX_FISH) return;
-
-        const spec = fishPool[Math.floor(Math.random() * fishPool.length)];
-        const reverse = Math.random() > 0.5;
-        const fish = document.createElement('div');
-        fish.className = 'ambient-fish' + (reverse ? ' reverse' : '');
-
-        const topBase = window.innerHeight * randomBetween(0.14, 0.68);
-        const drift = randomBetween(-34, 34);
-        const width = randomBetween(MIN_WIDTH, MAX_WIDTH);
-        const sizeFactor = (width - MIN_WIDTH) / (MAX_WIDTH - MIN_WIDTH);
-        const opacity = 0.18 + sizeFactor * 0.12;
-        const duration = randomBetween(34, 48) + sizeFactor * randomBetween(4, 10);
-        const zLevel = 10 + Math.round(sizeFactor * 20);
-
-        fish.style.width = width + 'px';
-        fish.style.zIndex = String(zLevel);
-        fish.style.setProperty('--y-start', topBase + 'px');
-        fish.style.setProperty('--y-mid', (topBase + drift) + 'px');
-        fish.style.setProperty('--y-end', (topBase - drift * 0.45) + 'px');
-        fish.style.setProperty('--fish-opacity', opacity.toFixed(2));
-        fish.style.setProperty('--swim-duration', duration.toFixed(1) + 's');
-
-        fish.innerHTML = '<div class="ambient-fish-body"><img src="' + spec.src + '" alt="" loading="eager" decoding="async" /></div>';
-
-        fish.addEventListener('animationend', (event) => {
-          if (event.target !== fish) return;
-          fish.remove();
-          activeFish = Math.max(0, activeFish - 1);
-          if (!document.hidden && activeFish < desiredFishCount) {
-            scheduleNextFish(randomBetween(2200, 5200));
-          }
-        }, { once: true });
-
-        layer.appendChild(fish);
-        activeFish += 1;
-      }
-
-      document.addEventListener('visibilitychange', () => {
+      fish.addEventListener('animationend', (event) => {
+        if (event.target !== fish) return;
+        fish.remove();
+        activeFish = Math.max(0, activeFish - 1);
         if (!document.hidden && activeFish < desiredFishCount) {
-          scheduleNextFish(700);
+          scheduleNextFish(randomBetween(1700, 4400));
         }
-      });
+      }, { once: true });
 
-      window.addEventListener('beforeunload', clearTimers);
-      window.addEventListener('load', () => {
-        // First fish enters almost immediately. The rest arrive one at a time.
-        desiredFishCount = 3;
-        schedule(() => {
-          spawnFish();
-          scheduleNextFish(randomBetween(3800, 6200));
-        }, 120);
-        schedule(maintainPopulation, 7000);
-      });
-    })();
-  </script>
+      layer.appendChild(fish);
+      activeFish += 1;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && activeFish < desiredFishCount) {
+        scheduleNextFish(700);
+      }
+    });
+
+    window.addEventListener('beforeunload', clearTimers);
+    window.addEventListener('load', () => {
+      desiredFishCount = 4;
+      spawnFish();
+      scheduleNextFish(randomBetween(2400, 4800));
+      schedule(maintainPopulation, 6000);
+    });
+  })();
+</script>
 
   <script>
     if ('serviceWorker' in navigator) {
