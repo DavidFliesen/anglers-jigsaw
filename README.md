@@ -1,8 +1,14 @@
-# Angler's Jigsaw — v3.2
+# Angler's Jigsaw — v3.2.1
 
 Version 3.2 refines the traditional jigsaw geometry and improves the Fish Cooler discovery system.
 
-## v3.2 changes
+## v3.2.1 changes
+
+### Cleaner piece appearance
+- Removed the white perimeter stroke from loose puzzle pieces on the table.
+- Removed the white perimeter stroke from pieces shown in the Tackle Tray.
+- Kept the puzzle-board cut-line guide so the target layout remains visible while solving.
+- The actual clipped image now defines each piece edge, producing a cleaner, less artificial look.
 
 ### Exact matching tabs and blanks
 - Every outward tab and inward blank now uses **one shared canonical connector profile**.
@@ -28,8 +34,8 @@ Version 3.2 refines the traditional jigsaw geometry and improves the Fish Cooler
 - From that screen, the player can play that fish again or return to the Fish Cooler.
 
 ### Version / cache
-- App version: `v3.2`
-- Service-worker cache: `anglers-jigsaw-v3-2`
+- App version: `v3.2.1`
+- Service-worker cache: `anglers-jigsaw-v3-2-1`
 
 ## Changed files
 - `index.html`
