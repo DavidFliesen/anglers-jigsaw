@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.0';
+const APP_VERSION = 'v3.1';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -278,7 +278,10 @@ function loadImageRatio(src) {
 
 function buildPieces() {
   const { rows, cols } = puzzleState;
-  const edgesList = generateEdgeGrid(rows, cols);
+  const edgeGrid = generateEdgeGrid(rows, cols);
+  const edgesList = edgeGrid.pieces;
+  puzzleState.horizontalCuts = edgeGrid.horizontal;
+  puzzleState.verticalCuts = edgeGrid.vertical;
   const pieces = [];
 
   for (let row = 0; row < rows; row += 1) {
@@ -320,16 +323,32 @@ function buildPieces() {
 
 function generateEdgeGrid(rows, cols) {
   const horizontal = Array.from({ length: rows - 1 }, (_, row) =>
-    Array.from({ length: cols }, (_, col) => (((row + col) % 2 === 0 ? 1 : -1) * (((row * 7 + col * 5) % 3) === 0 ? -1 : 1)))
-  );
-  const vertical = Array.from({ length: rows }, (_, row) =>
-    Array.from({ length: cols - 1 }, (_, col) => (((row + col) % 2 === 0 ? -1 : 1) * (((row * 11 + col * 3) % 4) === 0 ? -1 : 1)))
+    Array.from({ length: cols }, (_, col) => {
+      const seed = (row * 17 + col * 11 + row * col * 3) % 7;
+      return seed % 2 === 0 ? 1 : -1;
+    })
   );
 
-  const result = [];
+  const vertical = Array.from({ length: rows }, (_, row) =>
+    Array.from({ length: cols - 1 }, (_, col) => {
+      const seed = (row * 13 + col * 19 + row * col * 5) % 9;
+      return seed % 2 === 0 ? 1 : -1;
+    })
+  );
+
+  // Match the supplied 12-piece reference with a balanced classic cut pattern.
+  if (rows === 3 && cols === 4) {
+    horizontal[0] = [1, -1, 1, -1];
+    horizontal[1] = [-1, 1, -1, 1];
+    vertical[0] = [-1, 1, -1];
+    vertical[1] = [1, -1, 1];
+    vertical[2] = [-1, 1, -1];
+  }
+
+  const pieces = [];
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
-      result.push({
+      pieces.push({
         top: row === 0 ? 0 : -horizontal[row - 1][col],
         right: col === cols - 1 ? 0 : vertical[row][col],
         bottom: row === rows - 1 ? 0 : horizontal[row][col],
@@ -337,7 +356,8 @@ function generateEdgeGrid(rows, cols) {
       });
     }
   }
-  return result;
+
+  return { pieces, horizontal, vertical };
 }
 
 function isEdgePiece(row, col, rows, cols) {
@@ -451,77 +471,100 @@ function buildPieceShape(cell, margin, edges) {
   const y0 = m;
   const x1 = m + s;
   const y1 = m + s;
-  const cx = m + s / 2;
-  const cy = m + s / 2;
-  const neck = s * 0.17;
-  const depth = s * 0.23;
-  const spread = s * 0.17;
+
+  // Deep, round, narrow-neck ribbon cut based on the supplied mockup.
+  const neckHalf = s * 0.095;
+  const lobeRadius = s * 0.175;
+  const depth = s * 0.31;
+  const shoulder = s * 0.045;
+  const k = 0.5522847498;
 
   let d = `M ${x0} ${y0}`;
-
-  d += topEdgePath(x0, y0, x1, cx, neck, depth, spread, edges.top);
-  d += rightEdgePath(x1, y0, y1, cy, neck, depth, spread, edges.right);
-  d += bottomEdgePath(x1, y1, x0, cx, neck, depth, spread, edges.bottom);
-  d += leftEdgePath(x0, y1, y0, cy, neck, depth, spread, edges.left);
+  d += edgeSegment({x:x0,y:y0},{x:x1,y:y0},{x:0,y:-1},edges.top,s,neckHalf,lobeRadius,depth,shoulder,k);
+  d += edgeSegment({x:x1,y:y0},{x:x1,y:y1},{x:1,y:0},edges.right,s,neckHalf,lobeRadius,depth,shoulder,k);
+  d += edgeSegment({x:x1,y:y1},{x:x0,y:y1},{x:0,y:1},edges.bottom,s,neckHalf,lobeRadius,depth,shoulder,k);
+  d += edgeSegment({x:x0,y:y1},{x:x0,y:y0},{x:-1,y:0},edges.left,s,neckHalf,lobeRadius,depth,shoulder,k);
   d += ' Z';
-
   return { path: d, size: ext, margin: m };
 }
 
-function topEdgePath(x0, y, x1, cx, neck, depth, spread, edge) {
-  if (edge === 0) return ` L ${x1} ${y}`;
-  const dir = edge === 1 ? -1 : 1;
-  return [
-    ` L ${cx - neck} ${y}`,
-    ` C ${cx - neck * 0.9} ${y}, ${cx - spread} ${y + dir * depth}, ${cx} ${y + dir * depth}`,
-    ` C ${cx + spread} ${y + dir * depth}, ${cx + neck * 0.9} ${y}, ${cx + neck} ${y}`,
-    ` L ${x1} ${y}`
-  ].join(' ');
-}
+function edgeSegment(start, end, normal, edge, sideLength, neckHalf, radius, depth, shoulder, k) {
+  if (edge === 0) return ` L ${end.x} ${end.y}`;
 
-function rightEdgePath(x, y0, y1, cy, neck, depth, spread, edge) {
-  if (edge === 0) return ` L ${x} ${y1}`;
+  const tx = (end.x - start.x) / sideLength;
+  const ty = (end.y - start.y) / sideLength;
   const dir = edge === 1 ? 1 : -1;
-  return [
-    ` L ${x} ${cy - neck}`,
-    ` C ${x} ${cy - neck * 0.9}, ${x + dir * depth} ${cy - spread}, ${x + dir * depth} ${cy}`,
-    ` C ${x + dir * depth} ${cy + spread}, ${x} ${cy + neck * 0.9}, ${x} ${cy + neck}`,
-    ` L ${x} ${y1}`
-  ].join(' ');
-}
+  const nx = normal.x * dir;
+  const ny = normal.y * dir;
+  const mid = { x:(start.x+end.x)/2, y:(start.y+end.y)/2 };
 
-function bottomEdgePath(x1, y, x0, cx, neck, depth, spread, edge) {
-  if (edge === 0) return ` L ${x0} ${y}`;
-  const dir = edge === 1 ? 1 : -1;
-  return [
-    ` L ${cx + neck} ${y}`,
-    ` C ${cx + neck * 0.9} ${y}, ${cx + spread} ${y + dir * depth}, ${cx} ${y + dir * depth}`,
-    ` C ${cx - spread} ${y + dir * depth}, ${cx - neck * 0.9} ${y}, ${cx - neck} ${y}`,
-    ` L ${x0} ${y}`
-  ].join(' ');
-}
+  const neckA = { x:mid.x-tx*neckHalf, y:mid.y-ty*neckHalf };
+  const neckB = { x:mid.x+tx*neckHalf, y:mid.y+ty*neckHalf };
+  const center = { x:mid.x+nx*(depth-radius), y:mid.y+ny*(depth-radius) };
+  const circleA = { x:center.x-tx*radius, y:center.y-ty*radius };
+  const circleB = { x:center.x+tx*radius, y:center.y+ty*radius };
+  const far = { x:center.x+nx*radius, y:center.y+ny*radius };
 
-function leftEdgePath(x, y1, y0, cy, neck, depth, spread, edge) {
-  if (edge === 0) return ` L ${x} ${y0}`;
-  const dir = edge === 1 ? -1 : 1;
+  const c1 = { x:neckA.x+nx*shoulder, y:neckA.y+ny*shoulder };
+  const c2 = { x:circleA.x-nx*shoulder, y:circleA.y-ny*shoulder };
+  const q1 = { x:circleA.x+nx*k*radius, y:circleA.y+ny*k*radius };
+  const q2 = { x:far.x-tx*k*radius, y:far.y-ty*k*radius };
+  const q3 = { x:far.x+tx*k*radius, y:far.y+ty*k*radius };
+  const q4 = { x:circleB.x+nx*k*radius, y:circleB.y+ny*k*radius };
+  const c3 = { x:circleB.x-nx*shoulder, y:circleB.y-ny*shoulder };
+  const c4 = { x:neckB.x+nx*shoulder, y:neckB.y+ny*shoulder };
+
   return [
-    ` L ${x} ${cy + neck}`,
-    ` C ${x} ${cy + neck * 0.9}, ${x + dir * depth} ${cy + spread}, ${x + dir * depth} ${cy}`,
-    ` C ${x + dir * depth} ${cy - spread}, ${x} ${cy - neck * 0.9}, ${x} ${cy - neck}`,
-    ` L ${x} ${y0}`
+    ` L ${neckA.x} ${neckA.y}`,
+    ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${circleA.x} ${circleA.y}`,
+    ` C ${q1.x} ${q1.y}, ${q2.x} ${q2.y}, ${far.x} ${far.y}`,
+    ` C ${q3.x} ${q3.y}, ${q4.x} ${q4.y}, ${circleB.x} ${circleB.y}`,
+    ` C ${c3.x} ${c3.y}, ${c4.x} ${c4.y}, ${neckB.x} ${neckB.y}`,
+    ` L ${end.x} ${end.y}`
   ].join(' ');
 }
 
 function renderBoardCutlines() {
   if (!puzzleState) return;
   const { boardW, boardH, cell } = puzzleState.metrics;
-  const stroke = Math.max(1.2, cell * 0.05);
+  const stroke = Math.max(2.2, cell * 0.045);
+  const color = 'rgba(27, 39, 54, 0.70)';
   els.boardCutlines.setAttribute('viewBox', `0 0 ${boardW} ${boardH}`);
-  els.boardCutlines.innerHTML = puzzleState.pieces.map(piece => {
-    const tx = piece.col * cell - piece.margin;
-    const ty = piece.row * cell - piece.margin;
-    return `<path d="${piece.path}" transform="translate(${tx} ${ty})" fill="none" stroke="rgba(22, 43, 75, 0.75)" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />`;
-  }).join('');
+
+  const parts = [`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${color}" stroke-width="${stroke}" />`];
+
+  for (let row = 0; row < puzzleState.rows; row += 1) {
+    for (let boundary = 0; boundary < puzzleState.cols - 1; boundary += 1) {
+      const edge = puzzleState.verticalCuts[row][boundary];
+      const x = (boundary + 1) * cell;
+      const y0 = row * cell;
+      const y1 = (row + 1) * cell;
+      const path = sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell);
+      parts.push(`<path d="${path}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />`);
+    }
+  }
+
+  for (let boundary = 0; boundary < puzzleState.rows - 1; boundary += 1) {
+    for (let col = 0; col < puzzleState.cols; col += 1) {
+      const edge = puzzleState.horizontalCuts[boundary][col];
+      const y = (boundary + 1) * cell;
+      const x0 = col * cell;
+      const x1 = (col + 1) * cell;
+      const path = sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell);
+      parts.push(`<path d="${path}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />`);
+    }
+  }
+
+  els.boardCutlines.innerHTML = parts.join('');
+}
+
+function sharedCutPath(start, end, normal, edge, sideLength) {
+  const neckHalf = sideLength * 0.095;
+  const lobeRadius = sideLength * 0.175;
+  const depth = sideLength * 0.31;
+  const shoulder = sideLength * 0.045;
+  const k = 0.5522847498;
+  return `M ${start.x} ${start.y}` + edgeSegment(start,end,normal,edge,sideLength,neckHalf,lobeRadius,depth,shoulder,k);
 }
 
 function pieceSvgMarkup(piece) {
@@ -537,7 +580,7 @@ function pieceSvgMarkup(piece) {
       <g clip-path="url(#${clipId})">
         <image href="${puzzleState.fish.image}" x="${piece.imgX}" y="${piece.imgY}" width="${piece.imgW}" height="${piece.imgH}" preserveAspectRatio="xMidYMid slice" />
       </g>
-      <path d="${piece.path}" fill="none" stroke="rgba(245,251,255,0.92)" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />
+      <path d="${piece.path}" fill="none" stroke="rgba(248,252,255,0.97)" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />
       <path class="piece-hit" d="${piece.path}" />
     </svg>
   `;
@@ -636,7 +679,7 @@ function trayPieceMarkup(piece) {
       <g clip-path="url(#${piece.id}-thumb-clip)">
         <image href="${puzzleState.fish.image}" x="${piece.imgX}" y="${piece.imgY}" width="${piece.imgW}" height="${piece.imgH}" preserveAspectRatio="xMidYMid slice" />
       </g>
-      <path d="${piece.path}" fill="none" stroke="rgba(245,251,255,0.92)" stroke-width="${Math.max(1.1, puzzleState.metrics.cell * 0.04)}" stroke-linejoin="round" stroke-linecap="round" />
+      <path d="${piece.path}" fill="none" stroke="rgba(248,252,255,0.97)" stroke-width="${Math.max(1.1, puzzleState.metrics.cell * 0.04)}" stroke-linejoin="round" stroke-linecap="round" />
     </svg>
   `;
 }
