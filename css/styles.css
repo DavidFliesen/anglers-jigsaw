@@ -141,13 +141,11 @@ select:focus-visible {
 .header-logo {
   width: 48px;
   height: 48px;
-  object-fit: cover;
-  object-position: -9999px -9999px;
-  background-image: url("../assets/images/logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 124%;
-  border-radius: 22%;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .header-brand h1 {
@@ -269,16 +267,15 @@ select:focus-visible {
 }
 
 .home-logo {
+  display: block;
   width: min(100%, 470px);
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  object-position: -9999px -9999px;
-  background-image: url("../assets/images/logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 124%;
-  border-radius: 22%;
-  box-shadow: 0 22px 55px rgba(0,0,0,.30);
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 22px 55px rgba(0,0,0,.20);
 }
 
 .home-actions {
@@ -601,8 +598,6 @@ body.puzzle-mode .app-shell {
   inset: 0;
   opacity: 0;
   background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   transition: opacity .16s ease;
 }
 
@@ -1060,4 +1055,72 @@ body.puzzle-mode .app-shell {
   .complete-grid {
     grid-template-columns: 1fr;
   }
+}
+
+
+/* ==========================================================
+   Angler's Jigsaw v2.0.1 — interaction and iPad bug fixes
+   ========================================================== */
+
+
+/* Avoid browser overscroll and accidental page-scale gestures while solving. */
+body.puzzle-mode {
+  overscroll-behavior: none;
+}
+
+.play-table,
+.board-piece,
+.drag-proxy {
+  touch-action: none !important;
+}
+
+.play-toolbar,
+.tray-header,
+.tray-options,
+.tool-btn,
+.tray-toggle {
+  touch-action: manipulation;
+}
+
+/* The tray itself must remain horizontally scrollable. */
+.tray-pieces {
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Stable iPad/iPhone fullscreen replacement.
+   It does not rely on Safari's element fullscreen state, so dragging
+   a puzzle piece cannot kick the game out of this mode. */
+.play-shell.app-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 20000 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  background: #00102e;
+}
+
+body.app-fullscreen-active {
+  overflow: hidden !important;
+}
+
+body.app-fullscreen-active .app-version {
+  z-index: 22000;
+}
+
+
+/* === Angler's Jigsaw v2.0.3 — transparent logo asset === */
+.header-logo,
+.home-logo {
+  object-position: center !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+}
+
+.home-logo {
+  height: auto !important;
 }
