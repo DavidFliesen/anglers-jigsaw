@@ -1,4 +1,4 @@
-# Angler's Jigsaw v2.0.2
+# Angler's Jigsaw v2.0.3
 
 Angler's Jigsaw is a fishing-inspired jigsaw puzzle Progressive Web App designed first for GitHub Pages and modern browsers, with the longer-term goal of packaging it for iOS and Android.
 
@@ -181,7 +181,7 @@ Species accuracy should be checked against reliable reference material before fi
 
 The active build number is shown in small text at the bottom of every screen:
 
-`Angler's Jigsaw • v2.0.2`
+`Angler's Jigsaw • v2.0.3`
 
 This is intentional. During game testing, screenshots and bug reports should always include the visible version number so errors can be matched to the correct build.
 
@@ -208,7 +208,7 @@ The service worker uses:
 
 - network-first loading for the HTML, CSS, and JavaScript app shell;
 - cached assets for offline-friendly behavior;
-- cache version `anglers-jigsaw-v2-0-2`.
+- cache version `anglers-jigsaw-v2-0-3`.
 
 This reduces the likelihood that an older JavaScript or CSS build remains stuck in the browser during testing.
 
@@ -231,7 +231,7 @@ Before adding more features, test these behaviors carefully on iPad, desktop, an
 13. Enter and exit full-screen mode.
 14. Rotate the device and confirm the tabletop remains usable.
 15. Complete a puzzle and confirm the Fish Cooler records it.
-16. Confirm the visible version number reads `v2.0.2`.
+16. Confirm the visible version number reads `v2.0.3`.
 
 ## Recommended next development phases
 
@@ -280,3 +280,11 @@ This test build addresses issues found during iPad testing:
 - Replaced the previous piece silhouette with a simpler classic jigsaw profile based directly on the user's reference examples.
 - Tabs and sockets are now centered circular forms with straighter ribbon-cut lines, matching the visual language players expect from a traditional jigsaw puzzle.
 - This build focuses specifically on the piece-shape correction request.
+
+
+## v2.0.3 transparent logo update
+
+- Replaced `assets/images/logo.png` with the supplied transparent-background logo.
+- Removed the CSS background-image zoom/crop workaround previously used to hide black padding.
+- The header and opening-screen logo now render the PNG directly with `object-fit: contain`.
+- No artificial black box or CSS-created border should appear around the logo.
