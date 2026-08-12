@@ -1,27 +1,21 @@
-# Angler's Jigsaw — v3.2.3
+# Angler's Jigsaw — v3.2.4
 
-Version 3.2.3 refines the ambient background fish so they feel more present and natural without becoming distracting during puzzle play.
+Version 3.2.4 fixes the initial puzzle-board positioning on iPad/Safari and refines the ambient fish entry timing.
 
-## v3.2.3 changes
+## v3.2.4 changes
 
-### Ambient fish tuning
-- Fish are now **less transparent** so they read more clearly in the background.
-- The **current fish size is now the smallest size**, and some fish can appear larger.
-- Larger fish are assigned a **higher visual layer** so they appear in front of smaller fish if their paths cross.
+### Puzzle board now opens fully visible
+- Entering the puzzle screen now resets the page scroll position to the top.
+- This prevents Safari from carrying over the scroll position from the puzzle-selection screen and hiding the puzzle toolbar/top of the board.
+- Puzzle layout is re-measured several times during the first fraction of a second so the iPad visual viewport and flex layout can settle before the final board size is used.
+- Temporary tiny layout measurements are ignored instead of creating a board larger than the visible play area.
+- Added resize/orientation/visual-viewport layout checks for more reliable iPad behavior.
 
-### More natural population
-- The background can now show **a few more fish than before**.
-- The number of fish on screen now **fluctuates** instead of staying capped at a fixed constant count.
-- Population varies gently within a restrained range so the scene stays lively without becoming crowded.
-
-### Persistent background across screens
-- The ambient fish layer remains a **continuous background element** while moving between screens in the PWA.
-- Fish should **not restart just because you switch screens** inside the app.
-- The controller is now initialized as a persistent singleton so it keeps running across in-app screen changes.
-
-### Version / cache updates
-- App version updated to `v3.2.3`.
-- Service worker cache updated for the new build.
+### Ambient fish enter one at a time
+- The first background fish enters almost immediately after the PWA loads.
+- Additional fish now enter **one at a time** with a few seconds between arrivals.
+- The fish population can still fluctuate naturally, but the app no longer releases an initial cluster of three fish at once.
+- The persistent ambient-fish layer continues running as the player changes screens inside the PWA.
 
 ## Changed files
 - `index.html`
