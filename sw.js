@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anglers-jigsaw-v2-1';
+const CACHE_NAME = 'anglers-jigsaw-v3-0';
 
 const ASSETS = [
   './',
@@ -29,13 +29,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys =>
-        Promise.all(
-          keys
-            .filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
-        )
-      )
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -64,8 +58,5 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  event.respondWith(
-    caches.match(request)
-      .then(cached => cached || fetch(request))
-  );
+  event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
 });

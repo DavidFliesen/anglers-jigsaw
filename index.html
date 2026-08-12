@@ -2,26 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
-  <meta name="theme-color" content="#08214a" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b2c5c" />
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=2.1.0" />
+  <link rel="stylesheet" href="css/styles.css?v=3.0" />
 </head>
-
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
-  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+  <div class="toast hidden" id="toast" aria-live="polite"></div>
 
   <header class="app-header" id="appHeader">
     <button class="header-btn" id="homeBtn">Home</button>
 
     <div class="header-brand">
-      <img src="assets/images/logo.png" alt="" class="header-logo" />
+      <img src="assets/images/logo.png" alt="Angler's Jigsaw" class="header-logo" />
       <div>
         <h1>Angler's Jigsaw</h1>
         <p>Piece together the catch.</p>
@@ -31,18 +27,12 @@
     <button class="header-btn" id="coolerBtn">Fish Cooler</button>
   </header>
 
-  <main class="app-shell" id="appShell">
-    <!-- HOME -->
-    <section id="screen-home" class="screen active">
-      <div class="home-simple">
+  <main class="app-shell">
+    <section class="screen active" id="screen-home">
+      <div class="home-shell">
         <h2 class="home-title">Angler's Jigsaw</h2>
-
         <div class="home-main">
-          <img
-            src="assets/images/logo.png"
-            alt="Angler's Jigsaw"
-            class="home-logo"
-          />
+          <img src="assets/images/logo.png" alt="Angler's Jigsaw logo" class="home-logo" />
 
           <div class="home-actions">
             <button class="home-action start" id="startFishingBtn">Start Fishing</button>
@@ -54,16 +44,17 @@
         <div class="arteziq-wordmark" aria-label="ARTEZIQ">
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
+
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.0</span></div>
       </div>
     </section>
 
-    <!-- CHOOSE PUZZLE -->
-    <section id="screen-select" class="screen">
+    <section class="screen" id="screen-select">
       <div class="panel select-panel">
         <div class="screen-heading">
           <div>
             <h2>Choose Your Puzzle</h2>
-            <p>Pick a difficulty, then choose the fish you want to complete.</p>
+            <p>Pick a piece count, then choose the fish you want to complete.</p>
           </div>
         </div>
 
@@ -78,40 +69,39 @@
       </div>
     </section>
 
-    <!-- HOW TO PLAY -->
-    <section id="screen-how" class="screen">
+    <section class="screen" id="screen-how">
       <div class="panel how-panel">
         <h2>How to Play</h2>
 
         <div class="how-grid">
           <article>
-            <h3>Play Your Way</h3>
-            <p>Drag pieces from the Tackle Tray and leave them anywhere on the table. Make piles, sort by color or shape, or build small groups before moving them to the puzzle frame.</p>
+            <h3>Large Play Area</h3>
+            <p>The tabletop is kept as open as possible so you can see pieces clearly, spread them out, and play in a way that feels natural.</p>
           </article>
 
           <article>
-            <h3>Start With the Edges</h3>
-            <p><strong>Edges to Table</strong> scatters every loose edge piece onto the tabletop. Sort them into top, bottom, left, right, and corner groups if that is how you like to start.</p>
+            <h3>Start Your Way</h3>
+            <p>All pieces start in the bottom Tackle Tray. Use <strong>Edges to Table</strong> to scatter edge pieces first, or <strong>All to Table</strong> to push everything out and start exploring.</p>
           </article>
 
           <article>
-            <h3>Connect Pieces Anywhere</h3>
-            <p>Correct neighboring pieces snap together even when they are away from the frame. Once connected, the group moves as one unit.</p>
+            <h3>Traditional Puzzle Feel</h3>
+            <p>Pieces use a classic ribbon-cut jigsaw style with deeper tabs and blanks so they feel like real puzzle pieces instead of simplified blocks.</p>
           </article>
 
           <article>
-            <h3>Use the Whole Table</h3>
-            <p><strong>All to Table</strong> scatters every loose tray piece. The same button then becomes <strong>Recall Singles</strong>, which sends only unconnected single pieces back to the tray.</p>
+            <h3>Snap Into Place</h3>
+            <p>When a piece is close enough to its correct spot on the puzzle, it snap-locks into place. Locked pieces stay put.</p>
           </article>
 
           <article>
-            <h3>Sort the Tray</h3>
-            <p>Use the tray filter to show edges, corners, or pieces with 0–4 outward tabs. One-tab pieces can also be filtered by direction.</p>
+            <h3>Use the Tray</h3>
+            <p>You can drag a piece out of the tray or drag a loose piece back into the tray when you want to clear space and rethink your approach.</p>
           </article>
 
           <article>
-            <h3>Snap to the Frame</h3>
-            <p>When a piece or connected group reaches its correct place in the puzzle frame, it snap-locks into position. Finish the puzzle to reveal the species information and add it to your Fish Cooler.</p>
+            <h3>Preview and Full Screen</h3>
+            <p>Turn on a preview when you want a quick reminder of the full image, or go full screen for the biggest playing area possible.</p>
           </article>
         </div>
 
@@ -122,9 +112,8 @@
       </div>
     </section>
 
-    <!-- PUZZLE PLAY -->
-    <section id="screen-puzzle" class="screen puzzle-screen">
-      <div class="play-shell" id="playShell">
+    <section class="screen puzzle-screen" id="screen-puzzle">
+      <div class="play-shell">
         <div class="play-toolbar">
           <div class="play-toolbar-left">
             <button class="tool-btn" id="playHomeBtn">Home</button>
@@ -142,13 +131,17 @@
             <button class="tool-btn" id="newPuzzleBtn">New Puzzle</button>
           </div>
 
-          <div class="piece-count" id="pieceCounterChip">0 / 0</div>
+          <div class="piece-count" id="pieceCounterChip">0/0 locked</div>
         </div>
 
-        <div class="play-table" id="playTable" aria-label="Puzzle tabletop">
-          <div class="puzzle-frame" id="puzzleFrame" aria-label="Puzzle frame">
-            <div class="frame-preview" id="framePreview" aria-hidden="true"></div>
+        <div class="play-table" id="playTable">
+          <div class="board-shell" id="boardShell">
+            <div class="board-preview" id="boardPreview">
+              <img id="boardPreviewImage" alt="Puzzle preview" />
+            </div>
+            <svg class="board-cutlines" id="boardCutlines" aria-hidden="true"></svg>
           </div>
+          <div class="pieces-layer" id="piecesLayer"></div>
         </div>
 
         <div class="tray-bar" id="trayBar">
@@ -180,16 +173,16 @@
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.0</span></div>
         </div>
       </div>
     </section>
 
-    <!-- COMPLETE -->
-    <section id="screen-complete" class="screen">
+    <section class="screen" id="screen-complete">
       <div class="panel">
         <div class="complete-grid">
           <div class="catch-art">
-            <img id="completeImage" src="" alt="Completed fish puzzle" />
+            <img id="completeImage" alt="Completed fish puzzle" />
           </div>
 
           <div>
@@ -197,7 +190,6 @@
             <h2 id="completeTitle"></h2>
             <p class="scientific" id="completeScientific"></p>
             <p id="completeDescription"></p>
-
             <h3>Species History</h3>
             <p id="completeHistory"></p>
 
@@ -210,25 +202,34 @@
       </div>
     </section>
 
-    <!-- COOLER -->
-    <section id="screen-cooler" class="screen">
+    <section class="screen" id="screen-cooler">
       <div class="panel">
         <div class="screen-heading">
           <div>
             <h2>Fish Cooler</h2>
             <p>Fish you have completed and collected.</p>
           </div>
-          <div class="counter-chip" id="coolerCountChip">0 discovered</div>
+          <div class="piece-count" id="coolerCountChip">0 discovered</div>
         </div>
 
-        <div id="coolerGrid" class="cooler-grid"></div>
+        <div class="cooler-grid" id="coolerGrid"></div>
+
+        <div class="button-row">
+          <button class="primary-btn" id="coolerPlayBtn">Choose a Puzzle</button>
+          <button class="secondary-btn" data-back-home="true">Back</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <div class="app-version" id="versionLabel">Angler's Jigsaw • v2.0.3</div>
-
-  <script src="js/data.js?v=2.1.0"></script>
-  <script src="js/app.js?v=2.1.0"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js?v=3.0"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
