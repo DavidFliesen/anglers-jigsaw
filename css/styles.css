@@ -394,9 +394,8 @@ select:focus-visible {
 }
 .board-shell {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  left: 0;
+  top: 0;
   border: 2px solid rgba(235,244,255,.42);
   box-shadow: 0 12px 28px rgba(0,0,0,.24);
   overflow: hidden;
@@ -576,3 +575,14 @@ body.puzzle-mode .app-shell { min-height: 100vh; }
   .version-line,
   .screen-heading p { font-size: .9rem; }
 }
+
+
+/* === v3.1 traditional jigsaw template refinement === */
+.board-shell {
+  overflow: visible;
+  border-radius: 2px;
+  border: 2px solid rgba(231, 242, 252, .62);
+}
+.board-cutlines { pointer-events: none; overflow: visible; }
+.piece, .tray-piece { border-radius: 0; }
+.piece svg, .tray-piece svg { overflow: visible; }
