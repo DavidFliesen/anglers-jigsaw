@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.2.4';
+const APP_VERSION = 'v3.3.0';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -71,6 +71,7 @@ let puzzleState = null;
 let currentScreen = 'home';
 let zCounter = 20;
 let detailFish = null;
+const puzzleThemes = ['open-ocean', 'deep-abyss', 'coral-reef', 'shipwreck', 'kelp-lagoon'];
 
 const dragState = {
   active: false,
@@ -88,11 +89,15 @@ function initialize() {
   els.playVersion.textContent = APP_VERSION;
   buildWaterBubbles();
   bindUI();
+  document.addEventListener('fullscreenchange', updateFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
   renderPuzzleChoices();
   renderCooler();
   updateCoolerChip();
   showScreen('home');
+  updateFullscreenButton();
 }
+
 
 function bindUI() {
   els.homeBtn.addEventListener('click', () => showScreen('home'));
@@ -152,17 +157,18 @@ function buildWaterBubbles() {
   if (!els.waterBubbles) return;
   els.waterBubbles.innerHTML = '';
 
-  const count = 12;
+  const count = 22;
   for (let i = 0; i < count; i += 1) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    const size = 6 + Math.random() * 16;
+    const size = 5 + Math.random() * 18;
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
     bubble.style.left = `${Math.random() * 100}%`;
-    bubble.style.setProperty('--drift', `${Math.random() * 42 - 21}px`);
-    bubble.style.animationDuration = `${12 + Math.random() * 14}s`;
-    bubble.style.animationDelay = `${-Math.random() * 20}s`;
+    bubble.style.setProperty('--drift', `${Math.random() * 56 - 28}px`);
+    bubble.style.animationDuration = `${10 + Math.random() * 18}s`;
+    bubble.style.animationDelay = `${-Math.random() * 26}s`;
+    bubble.style.opacity = (0.25 + Math.random() * 0.35).toFixed(2);
     els.waterBubbles.appendChild(bubble);
   }
 }
@@ -306,6 +312,8 @@ function showFishDetails(fish) {
 }
 
 async function startPuzzle(fish, difficulty) {
+  // Request fullscreen while still inside the user's tap/click gesture.
+  ensureFullscreenOnStart();
   clearPuzzle();
   const ratio = await loadImageRatio(fish.image).catch(() => 4 / 3);
 
@@ -319,15 +327,18 @@ async function startPuzzle(fish, difficulty) {
     previewOn: false,
     trayCollapsed: false,
     metrics: null,
-    completeShown: false
+    completeShown: false,
+    theme: pickPuzzleTheme()
   };
 
+  applyPuzzleTheme(puzzleState.theme);
   buildPieces();
   showScreen('puzzle');
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
   window.scrollTo(0, 0);
   schedulePuzzleLayout(true);
+  setTimeout(() => schedulePuzzleLayout(false), 550);
 }
 
 function clearPuzzle() {
@@ -922,32 +933,23 @@ function edgesToTable() {
   renderTray();
 }
 
+
 function scatterEdgePiece(piece) {
   const { boardLeft, boardTop, boardW, boardH, cell } = puzzleState.metrics;
   piece.location = 'table';
   piece.locked = false;
   piece.z = ++zCounter;
 
-  let x = boardLeft;
-  let y = boardTop;
+  const bands = [
+    { x1: boardLeft - cell * 1.15, x2: boardLeft + boardW - cell * 0.3, y1: boardTop - cell * 1.15, y2: boardTop - cell * 0.25 },
+    { x1: boardLeft - cell * 1.15, x2: boardLeft + boardW - cell * 0.3, y1: boardTop + boardH - cell * 0.1, y2: boardTop + boardH + cell * 0.65 },
+    { x1: boardLeft - cell * 1.15, x2: boardLeft - cell * 0.18, y1: boardTop - cell * 0.3, y2: boardTop + boardH - cell * 0.3 },
+    { x1: boardLeft + boardW - cell * 0.1, x2: boardLeft + boardW + cell * 0.65, y1: boardTop - cell * 0.3, y2: boardTop + boardH - cell * 0.3 }
+  ];
 
-  if (piece.isCorner) {
-    x = piece.col === 0 ? boardLeft - cell * 0.8 : boardLeft + boardW - cell * 0.2;
-    y = piece.row === 0 ? boardTop - cell * 0.8 : boardTop + boardH - cell * 0.2;
-  } else if (piece.row === 0) {
-    x = boardLeft + Math.random() * (boardW - cell);
-    y = boardTop - cell * (0.7 + Math.random() * 0.6);
-  } else if (piece.row === puzzleState.rows - 1) {
-    x = boardLeft + Math.random() * (boardW - cell);
-    y = boardTop + boardH + Math.random() * (cell * 0.6);
-  } else if (piece.col === 0) {
-    x = boardLeft - cell * (0.7 + Math.random() * 0.6);
-    y = boardTop + Math.random() * (boardH - cell);
-  } else if (piece.col === puzzleState.cols - 1) {
-    x = boardLeft + boardW + Math.random() * (cell * 0.6);
-    y = boardTop + Math.random() * (boardH - cell);
-  }
-
+  const zone = bands[Math.floor(Math.random() * bands.length)];
+  const x = zone.x1 + Math.random() * Math.max(8, zone.x2 - zone.x1);
+  const y = zone.y1 + Math.random() * Math.max(8, zone.y2 - zone.y1);
   piece.x = x - piece.margin;
   piece.y = y - piece.margin;
   clampPieceToTable(piece);
@@ -984,21 +986,32 @@ function movePieceToTraySilently(piece) {
   }
 }
 
+
 function scatterPieceOnTable(piece) {
-  const { boardLeft, boardTop, boardW, boardH, cell } = puzzleState.metrics;
+  const { boardLeft, boardTop, boardW, boardH, cell, tableW, tableH } = puzzleState.metrics;
   piece.location = 'table';
   piece.locked = false;
   piece.z = ++zCounter;
 
-  const outerBand = [
-    { x1: boardLeft - cell * 1.6, x2: boardLeft + boardW + cell * 0.6, y1: boardTop - cell * 1.1, y2: boardTop - cell * 0.2 },
-    { x1: boardLeft - cell * 1.6, x2: boardLeft + boardW + cell * 0.6, y1: boardTop + boardH + cell * 0.1, y2: boardTop + boardH + cell * 0.8 },
-    { x1: boardLeft - cell * 1.2, x2: boardLeft - cell * 0.2, y1: boardTop - cell * 0.4, y2: boardTop + boardH + cell * 0.4 },
-    { x1: boardLeft + boardW + cell * 0.1, x2: boardLeft + boardW + cell * 0.8, y1: boardTop - cell * 0.4, y2: boardTop + boardH + cell * 0.4 },
-    { x1: boardLeft + cell * 0.2, x2: boardLeft + boardW - cell * 1.2, y1: boardTop + cell * 0.2, y2: boardTop + boardH - cell * 1.2 }
+  const perimeterZones = [
+    { x1: boardLeft - cell * 1.25, x2: boardLeft + boardW - cell * 0.15, y1: boardTop - cell * 1.2, y2: boardTop - cell * 0.15 },
+    { x1: boardLeft - cell * 1.25, x2: boardLeft + boardW - cell * 0.15, y1: boardTop + boardH - cell * 0.1, y2: boardTop + boardH + cell * 0.85 },
+    { x1: boardLeft - cell * 1.2, x2: boardLeft - cell * 0.1, y1: boardTop - cell * 0.4, y2: boardTop + boardH - cell * 0.15 },
+    { x1: boardLeft + boardW - cell * 0.05, x2: boardLeft + boardW + cell * 0.85, y1: boardTop - cell * 0.4, y2: boardTop + boardH - cell * 0.15 }
   ];
+  const interiorZone = { x1: boardLeft + cell * 0.1, x2: boardLeft + boardW - cell * 1.1, y1: boardTop + cell * 0.1, y2: boardTop + boardH - cell * 1.1 };
+  const wholeTableZone = { x1: 0, x2: tableW - piece.size, y1: 0, y2: tableH - piece.size };
 
-  const zone = outerBand[Math.floor(Math.random() * outerBand.length)];
+  let zone;
+  const roll = Math.random();
+  if (roll < 0.58) {
+    zone = perimeterZones[Math.floor(Math.random() * perimeterZones.length)];
+  } else if (roll < 0.84) {
+    zone = interiorZone;
+  } else {
+    zone = wholeTableZone;
+  }
+
   const x = zone.x1 + Math.random() * Math.max(8, zone.x2 - zone.x1);
   const y = zone.y1 + Math.random() * Math.max(8, zone.y2 - zone.y1);
   piece.x = x - piece.margin;
@@ -1020,13 +1033,16 @@ function toggleTray() {
   els.collapseTrayBtn.textContent = puzzleState.trayCollapsed ? 'Show Tray' : 'Hide Tray';
 }
 
+
 async function toggleFullscreen() {
   try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen?.();
+    if (!isFullscreenActive()) {
+      await requestFullscreenCompat(document.documentElement);
     } else {
-      await document.exitFullscreen?.();
+      await exitFullscreenCompat();
     }
+    updateFullscreenButton();
+    schedulePuzzleLayout(false);
   } catch {
     showToast('Full screen is not available here.');
   }
@@ -1038,7 +1054,9 @@ function confirmLeavePuzzle() {
     return;
   }
   showScreen('home');
+  updateFullscreenButton();
 }
+
 
 function checkCompletion() {
   if (!puzzleState) return;
@@ -1052,4 +1070,55 @@ function checkCompletion() {
 
   populateFishInfo(puzzleState.fish, false);
   showScreen('complete');
+}
+
+
+function pickPuzzleTheme() {
+  return puzzleThemes[Math.floor(Math.random() * puzzleThemes.length)];
+}
+
+function applyPuzzleTheme(theme) {
+  document.body.setAttribute('data-sea-theme', theme || 'open-ocean');
+}
+
+function isFullscreenActive() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+async function requestFullscreenCompat(element) {
+  if (element.requestFullscreen) {
+    return element.requestFullscreen();
+  }
+  if (element.webkitRequestFullscreen) {
+    return Promise.resolve(element.webkitRequestFullscreen());
+  }
+  throw new Error('fullscreen unavailable');
+}
+
+async function exitFullscreenCompat() {
+  if (document.exitFullscreen) {
+    return document.exitFullscreen();
+  }
+  if (document.webkitExitFullscreen) {
+    return Promise.resolve(document.webkitExitFullscreen());
+  }
+  throw new Error('fullscreen unavailable');
+}
+
+function ensureFullscreenOnStart() {
+  if (isFullscreenActive()) {
+    updateFullscreenButton();
+    return;
+  }
+  requestFullscreenCompat(document.documentElement)
+    .then(() => {
+      updateFullscreenButton();
+      schedulePuzzleLayout(false);
+    })
+    .catch(() => updateFullscreenButton());
+}
+
+function updateFullscreenButton() {
+  if (!els.fullscreenBtn) return;
+  els.fullscreenBtn.textContent = isFullscreenActive() ? 'Exit Full Screen' : 'Full Screen';
 }
