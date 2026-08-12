@@ -1,34 +1,30 @@
-# Angler's Jigsaw — v3.2.2
+# Angler's Jigsaw — v3.2.3
 
-Version 3.2.2 adds subtle ambient fish animation to the water background so the game feels more alive without distracting from puzzle play.
+Version 3.2.3 refines the ambient background fish so they feel more present and natural without becoming distracting during puzzle play.
 
-## v3.2.2 changes
+## v3.2.3 changes
 
-### Ambient fish swimmers
-- Added three animated background fish that loop gently behind the interface:
-  - Rainbow Trout
-  - Catfish
-  - Flounder
-- Fish swim across the background just above the water layer.
-- The system limits the scene to **no more than 3 fish on screen at one time**.
-- Fish sizes stay modest so they do not dominate the play area.
+### Ambient fish tuning
+- Fish are now **less transparent** so they read more clearly in the background.
+- The **current fish size is now the smallest size**, and some fish can appear larger.
+- Larger fish are assigned a **higher visual layer** so they appear in front of smaller fish if their paths cross.
 
-### Subtle “breathing” motion
-- Each fish has a very light breathing / life-like motion.
-- The animation is intentionally restrained so it does not become tiring on the eyes while solving puzzles.
-- Swim speed, opacity, direction, and vertical drift are varied for a more natural feel.
+### More natural population
+- The background can now show **a few more fish than before**.
+- The number of fish on screen now **fluctuates** instead of staying capped at a fixed constant count.
+- Population varies gently within a restrained range so the scene stays lively without becoming crowded.
 
-### Accessibility / motion restraint
-- Ambient fish are non-interactive and sit behind the gameplay UI.
-- Reduced-motion users are respected through `prefers-reduced-motion`, which disables the ambient fish animation.
+### Persistent background across screens
+- The ambient fish layer remains a **continuous background element** while moving between screens in the PWA.
+- Fish should **not restart just because you switch screens** inside the app.
+- The controller is now initialized as a persistent singleton so it keeps running across in-app screen changes.
 
-### Version / cache notes
-- App version text updated to: `v3.2.2`
-- Asset query strings updated in `index.html` to help refresh the new build.
+### Version / cache updates
+- App version updated to `v3.2.3`.
+- Service worker cache updated for the new build.
 
 ## Changed files
 - `index.html`
+- `js/app.js`
+- `sw.js`
 - `README.md`
-- `assets/images/ambient/rainbow-trout.png`
-- `assets/images/ambient/catfish.png`
-- `assets/images/ambient/flounder.png`

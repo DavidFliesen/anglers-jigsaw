@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anglers-jigsaw-v3-2-1';
+const CACHE_NAME = 'anglers-jigsaw-v3-2-3';
 
 const ASSETS = [
   './',
@@ -15,7 +15,10 @@ const ASSETS = [
   './assets/fish/channel-catfish.svg',
   './assets/fish/rainbow-trout.svg',
   './assets/fish/brook-trout.svg',
-  './assets/fish/red-drum.svg'
+  './assets/fish/red-drum.svg',
+  './assets/images/ambient/rainbow-trout.png',
+  './assets/images/ambient/catfish.png',
+  './assets/images/ambient/flounder.png'
 ];
 
 self.addEventListener('install', event => {

@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.2.2" />
+  <link rel="stylesheet" href="css/styles.css?v=3.2.3" />
 
   <style>
     .ambient-fish-layer {
@@ -22,10 +22,10 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: clamp(74px, 8vw, 122px);
+      width: clamp(84px, 9vw, 172px);
       opacity: 0;
       will-change: transform, opacity;
-      filter: drop-shadow(0 6px 14px rgba(0, 10, 25, 0.14));
+      filter: drop-shadow(0 7px 16px rgba(0, 10, 25, 0.16));
       animation: ambient-fish-swim var(--swim-duration, 44s) linear forwards;
     }
 
@@ -62,15 +62,15 @@
 
     @keyframes ambient-fish-swim {
       0% { transform: translate3d(-16vw, var(--y-start), 0); opacity: 0; }
-      10% { opacity: var(--fish-opacity, 0.18); }
-      50% { transform: translate3d(50vw, var(--y-mid), 0); opacity: calc(var(--fish-opacity, 0.18) - 0.02); }
+      10% { opacity: var(--fish-opacity, 0.26); }
+      50% { transform: translate3d(50vw, var(--y-mid), 0); opacity: calc(var(--fish-opacity, 0.26) - 0.02); }
       100% { transform: translate3d(116vw, var(--y-end), 0); opacity: 0; }
     }
 
     @keyframes ambient-fish-swim-reverse {
       0% { transform: translate3d(116vw, var(--y-start), 0); opacity: 0; }
-      10% { opacity: var(--fish-opacity, 0.18); }
-      50% { transform: translate3d(50vw, var(--y-mid), 0); opacity: calc(var(--fish-opacity, 0.18) - 0.02); }
+      10% { opacity: var(--fish-opacity, 0.26); }
+      50% { transform: translate3d(50vw, var(--y-mid), 0); opacity: calc(var(--fish-opacity, 0.26) - 0.02); }
       100% { transform: translate3d(-18vw, var(--y-end), 0); opacity: 0; }
     }
 
@@ -134,7 +134,7 @@
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
 
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.2.2</span></div>
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.2.3</span></div>
       </div>
     </section>
 
@@ -262,7 +262,7 @@
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.2.2</span></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.2.3</span></div>
         </div>
       </div>
     </section>
@@ -318,11 +318,14 @@
     </section>
   </main>
 
-  <script src="js/data.js?v=3.2.2"></script>
-  <script src="js/app.js?v=3.2.2"></script>
+  <script src="js/data.js?v=3.2.3"></script>
+  <script src="js/app.js?v=3.2.3"></script>
 
   <script>
     (function () {
+      if (window.__anglersAmbientFishInitialized) return;
+      window.__anglersAmbientFishInitialized = true;
+
       const layer = document.getElementById('ambientFishLayer');
       if (!layer) return;
 
@@ -332,12 +335,20 @@
         { name: 'Flounder', src: 'assets/images/ambient/flounder.png' }
       ];
 
-      const MAX_FISH = 3;
+      const MIN_FISH = 2;
+      const MAX_FISH = 5;
+      const MIN_WIDTH = 84;
+      const MAX_WIDTH = 172;
       const timers = new Set();
       let activeFish = 0;
+      let desiredFishCount = 3;
 
       function randomBetween(min, max) {
         return Math.random() * (max - min) + min;
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(randomBetween(min, max + 1));
       }
 
       function clearTimers() {
@@ -345,20 +356,36 @@
         timers.clear();
       }
 
-      function scheduleSpawn(delay) {
+      function schedule(fn, delay) {
         const timer = setTimeout(() => {
           timers.delete(timer);
-          if (!document.hidden) spawnFish();
-          else scheduleSpawn(4000);
+          fn();
         }, delay);
         timers.add(timer);
       }
 
-      function spawnFish() {
-        if (activeFish >= MAX_FISH) {
-          scheduleSpawn(randomBetween(3200, 5200));
-          return;
+      function chooseDesiredCount() {
+        desiredFishCount = randomInt(MIN_FISH, MAX_FISH);
+      }
+
+      function queuePopulationTopUp() {
+        if (document.hidden) return;
+        const needed = Math.max(0, Math.min(MAX_FISH, desiredFishCount) - activeFish);
+        for (let i = 0; i < needed; i += 1) {
+          schedule(() => spawnFish(), randomBetween(300, 1600) + i * randomBetween(500, 1100));
         }
+      }
+
+      function maintainPopulation() {
+        if (document.hidden) return;
+        chooseDesiredCount();
+        queuePopulationTopUp();
+        schedule(maintainPopulation, randomBetween(7000, 13000));
+      }
+
+      function spawnFish() {
+        if (document.hidden) return;
+        if (activeFish >= MAX_FISH || activeFish >= desiredFishCount) return;
 
         const spec = fishPool[Math.floor(Math.random() * fishPool.length)];
         const reverse = Math.random() > 0.5;
@@ -366,12 +393,15 @@
         fish.className = 'ambient-fish' + (reverse ? ' reverse' : '');
 
         const topBase = window.innerHeight * randomBetween(0.14, 0.68);
-        const drift = randomBetween(-30, 30);
-        const width = randomBetween(84, 128);
-        const opacity = randomBetween(0.11, 0.19);
-        const duration = randomBetween(34, 52);
+        const drift = randomBetween(-34, 34);
+        const width = randomBetween(MIN_WIDTH, MAX_WIDTH);
+        const sizeFactor = (width - MIN_WIDTH) / (MAX_WIDTH - MIN_WIDTH);
+        const opacity = 0.18 + sizeFactor * 0.12;
+        const duration = randomBetween(34, 48) + sizeFactor * randomBetween(4, 10);
+        const zLevel = 10 + Math.round(sizeFactor * 20);
 
         fish.style.width = width + 'px';
+        fish.style.zIndex = String(zLevel);
         fish.style.setProperty('--y-start', topBase + 'px');
         fish.style.setProperty('--y-mid', (topBase + drift) + 'px');
         fish.style.setProperty('--y-end', (topBase - drift * 0.45) + 'px');
@@ -384,7 +414,9 @@
           if (event.target !== fish) return;
           fish.remove();
           activeFish = Math.max(0, activeFish - 1);
-          scheduleSpawn(randomBetween(3500, 9000));
+          if (!document.hidden && activeFish < desiredFishCount) {
+            schedule(() => spawnFish(), randomBetween(1500, 4200));
+          }
         }, { once: true });
 
         layer.appendChild(fish);
@@ -392,16 +424,16 @@
       }
 
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && activeFish < 2 && layer.childElementCount < 2) {
-          scheduleSpawn(600);
+        if (!document.hidden) {
+          queuePopulationTopUp();
         }
       });
 
       window.addEventListener('beforeunload', clearTimers);
       window.addEventListener('load', () => {
-        scheduleSpawn(700);
-        scheduleSpawn(3800);
-        scheduleSpawn(7600);
+        desiredFishCount = 3;
+        queuePopulationTopUp();
+        schedule(maintainPopulation, 5000);
       });
     })();
   </script>
