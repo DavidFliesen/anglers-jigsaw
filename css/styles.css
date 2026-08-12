@@ -586,3 +586,33 @@ body.puzzle-mode .app-shell { min-height: 100vh; }
 .board-cutlines { pointer-events: none; overflow: visible; }
 .piece, .tray-piece { border-radius: 0; }
 .piece svg, .tray-piece svg { overflow: visible; }
+
+
+/* v3.2 Fish Cooler discovery view */
+.cooler-card-button {
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.cooler-card-button:hover,
+.cooler-card-button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(0,0,0,.28);
+}
+.cooler-empty {
+  grid-column: 1 / -1;
+  padding: 28px;
+  border: 1px dashed rgba(255,255,255,.22);
+  border-radius: 18px;
+  text-align: center;
+  color: var(--mist);
+  background: rgba(255,255,255,.035);
+}
+.cooler-empty strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--foam);
+  font-size: 1.15rem;
+}
