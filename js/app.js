@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.2';
+const APP_VERSION = 'v3.2.1';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -625,7 +625,6 @@ function pieceSvgMarkup(piece) {
       <g clip-path="url(#${clipId})">
         <image href="${puzzleState.fish.image}" x="${piece.imgX}" y="${piece.imgY}" width="${piece.imgW}" height="${piece.imgH}" preserveAspectRatio="xMidYMid slice" />
       </g>
-      <path d="${piece.path}" fill="none" stroke="rgba(248,252,255,0.97)" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round" />
       <path class="piece-hit" d="${piece.path}" />
     </svg>
   `;
@@ -724,7 +723,6 @@ function trayPieceMarkup(piece) {
       <g clip-path="url(#${piece.id}-thumb-clip)">
         <image href="${puzzleState.fish.image}" x="${piece.imgX}" y="${piece.imgY}" width="${piece.imgW}" height="${piece.imgH}" preserveAspectRatio="xMidYMid slice" />
       </g>
-      <path d="${piece.path}" fill="none" stroke="rgba(248,252,255,0.97)" stroke-width="${Math.max(1.1, puzzleState.metrics.cell * 0.04)}" stroke-linejoin="round" stroke-linecap="round" />
     </svg>
   `;
 }
