@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.1" />
+  <link rel="stylesheet" href="css/styles.css?v=3.2" />
 </head>
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
@@ -45,7 +45,7 @@
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
 
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.1</span></div>
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.2</span></div>
       </div>
     </section>
 
@@ -173,7 +173,7 @@
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.1</span></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.2</span></div>
         </div>
       </div>
     </section>
@@ -186,10 +186,17 @@
           </div>
 
           <div>
-            <div class="complete-kicker">Puzzle Complete</div>
+            <div class="complete-kicker" id="completeKicker">Puzzle Complete</div>
             <h2 id="completeTitle"></h2>
             <p class="scientific" id="completeScientific"></p>
             <p id="completeDescription"></p>
+
+            <h3>How to Identify It</h3>
+            <p id="completeIdentification"></p>
+
+            <h3>Typical Habitat</h3>
+            <p id="completeHabitat"></p>
+
             <h3>Species History</h3>
             <p id="completeHistory"></p>
 
@@ -222,8 +229,8 @@
     </section>
   </main>
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js?v=3.1"></script>
+  <script src="js/data.js?v=3.2"></script>
+  <script src="js/app.js?v=3.2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
