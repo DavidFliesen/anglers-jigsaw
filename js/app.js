@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.2.3';
+const APP_VERSION = 'v3.2.4';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -125,9 +125,23 @@ function bindUI() {
 
   window.addEventListener('resize', () => {
     if (currentScreen === 'puzzle' && puzzleState) {
-      layoutPuzzle();
+      schedulePuzzleLayout(false);
     }
   });
+
+  window.addEventListener('orientationchange', () => {
+    if (currentScreen === 'puzzle' && puzzleState) {
+      schedulePuzzleLayout(false);
+    }
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      if (currentScreen === 'puzzle' && puzzleState) {
+        schedulePuzzleLayout(false);
+      }
+    });
+  }
 
   window.addEventListener('pointermove', onPointerMove, { passive: false });
   window.addEventListener('pointerup', onPointerUp, { passive: false });
@@ -163,8 +177,29 @@ function showScreen(name) {
   els.body.classList.toggle('puzzle-mode', playing);
 
   if (playing && puzzleState) {
-    requestAnimationFrame(() => layoutPuzzle());
+    // The puzzle screen must always begin at the top of the page. Safari/iPad
+    // otherwise preserves the scroll position from the puzzle-selection screen,
+    // which can make the toolbar and top of the board appear cut off.
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
+    schedulePuzzleLayout(false);
   }
+}
+
+function schedulePuzzleLayout(initial = false) {
+  if (!puzzleState || currentScreen !== 'puzzle') return;
+
+  // iPad Safari may need more than one frame for the flex layout and browser
+  // chrome/visual viewport to settle. Re-measure a few times without disturbing
+  // gameplay state so the full board stays inside the visible play table.
+  const delays = [0, 80, 220, 420];
+  delays.forEach((delay, index) => {
+    setTimeout(() => {
+      if (!puzzleState || currentScreen !== 'puzzle') return;
+      requestAnimationFrame(() => layoutPuzzle(initial && index === 0));
+    }, delay);
+  });
 }
 
 function showToast(message) {
@@ -289,7 +324,10 @@ async function startPuzzle(fish, difficulty) {
 
   buildPieces();
   showScreen('puzzle');
-  requestAnimationFrame(() => layoutPuzzle(true));
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  window.scrollTo(0, 0);
+  schedulePuzzleLayout(true);
 }
 
 function clearPuzzle() {
@@ -425,8 +463,15 @@ function layoutPuzzle(initial = false) {
 
   const tableRect = els.playTable.getBoundingClientRect();
   const oldMetrics = puzzleState.metrics;
-  const maxW = Math.max(320, tableRect.width - 72);
-  const maxH = Math.max(240, tableRect.height - 72);
+
+  // If Safari reports a tiny temporary flexbox height while changing screens,
+  // wait for the scheduled follow-up measurement rather than creating a board
+  // that is taller than the visible table and therefore clipped at the top.
+  if (tableRect.width < 260 || tableRect.height < 220) return;
+
+  const gutter = Math.max(18, Math.min(36, tableRect.width * 0.025));
+  const maxW = Math.max(1, tableRect.width - gutter * 2);
+  const maxH = Math.max(1, tableRect.height - gutter * 2);
   let boardW = maxW;
   let boardH = boardW * 3 / 4;
   if (boardH > maxH) {
