@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.2.1';
+const APP_VERSION = 'v3.2.3';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
