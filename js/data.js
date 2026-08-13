@@ -1,67 +1,78 @@
 const speciesData = {
-  "largemouth-bass": {
-    id: "largemouth-bass",
-    commonName: "Largemouth Bass",
-    scientificName: "Micropterus salmoides",
-    description: "A powerful freshwater predator known for explosive strikes and life around cover such as weeds, timber, and docks.",
-    identification: "Look for a large mouth with the upper jaw extending past the rear of the eye, a greenish body, and a dark horizontal band along the side.",
-    history: "Native mostly to eastern and central North America, largemouth bass helped shape modern recreational and tournament fishing in the United States.",
-    habitat: "Lakes, reservoirs, rivers, and ponds",
-    image: "assets/fish/largemouth-bass.svg"
-  },
-
-  "bluegill": {
-    id: "bluegill",
-    commonName: "Bluegill",
-    scientificName: "Lepomis macrochirus",
-    description: "A deep-bodied panfish with a small mouth, dark gill flap, vertical bars, and blue coloration around the cheek and gill area.",
-    identification: "Look for a deep, compressed body, a small mouth, a dark blue-black flap at the rear of the gill cover, and usually several darker vertical bars on the side.",
-    history: "Bluegill have long been a gateway species for young anglers and remain one of the most familiar freshwater fish in North America.",
-    habitat: "Ponds, lakes, slow rivers, and reservoirs",
-    image: "assets/fish/bluegill.svg"
+  "rainbow-trout": {
+    id: "rainbow-trout",
+    commonName: "Rainbow Trout",
+    scientificName: "Oncorhynchus mykiss",
+    description: "A cold-water trout with a rosy lateral stripe, dense dark spotting, and a sleek athletic build that makes a beautiful puzzle image.",
+    identification: "Look for the pink-to-rose stripe along the side, dark speckles across the back and tail, and the silver-green body.",
+    history: "Native to Pacific-drainage waters of western North America, rainbow trout became one of the world's best-known sportfish through stockings and aquaculture.",
+    habitat: "Cold streams, rivers, tailwaters, and clear lakes",
+    image: "assets/fish/rainbow-trout.png"
   },
 
   "channel-catfish": {
     id: "channel-catfish",
     commonName: "Channel Catfish",
     scientificName: "Ictalurus punctatus",
-    description: "A whiskered freshwater catfish with a deeply forked tail, often found in rivers, lakes, reservoirs, and ponds.",
-    identification: "Look for whisker-like barbels, a deeply forked tail, a smooth scaleless body, and often small dark spots on younger fish.",
-    history: "Channel catfish became one of the most widely stocked and harvested catfish species in the United States because of their adaptability and popularity.",
+    description: "A whiskered freshwater catfish with a sleek body, deeply forked tail, and smooth scaleless skin.",
+    identification: "Notice the barbels or whiskers around the mouth, the forked tail, and the smooth blue-gray to olive body.",
+    history: "Channel catfish became one of the most widespread and popular catfish in America because they adapt well to rivers, reservoirs, ponds, and stocking programs.",
     habitat: "Rivers, lakes, reservoirs, and ponds",
-    image: "assets/fish/channel-catfish.svg"
+    image: "assets/fish/channel-catfish.png"
   },
 
-  "rainbow-trout": {
-    id: "rainbow-trout",
-    commonName: "Rainbow Trout",
-    scientificName: "Oncorhynchus mykiss",
-    description: "A cold-water trout known for its streamlined form, dark spotting, and pink-to-rosy stripe along the side.",
-    identification: "Look for a pink-to-red stripe along the side, many small black spots over the back and tail, and a streamlined trout-shaped body.",
-    history: "Native to Pacific drainage waters of western North America, rainbow trout were introduced widely and became one of the world's best-known sportfish.",
-    habitat: "Cold streams, rivers, and lakes",
-    image: "assets/fish/rainbow-trout.svg"
+  "flounder": {
+    id: "flounder",
+    commonName: "Flounder",
+    scientificName: "Paralichthys species",
+    description: "A flat ambush predator with both eyes on one side of the head and a mottled sandy pattern that helps it disappear on the bottom.",
+    identification: "Look for the flattened body, both eyes on the upper side, and the camouflage pattern that matches sand or mud.",
+    history: "Flounder have long been valued as both sportfish and table fare in coastal waters, especially where bays and inlets meet sandy bottom.",
+    habitat: "Bays, estuaries, inlets, and sandy coastal bottoms",
+    image: "assets/fish/flounder.png"
   },
 
-  "brook-trout": {
-    id: "brook-trout",
-    commonName: "Brook Trout",
-    scientificName: "Salvelinus fontinalis",
-    description: "A beautifully marked native char known for vermiculated back markings, red spots, and white leading edges on the lower fins.",
-    identification: "Look for pale worm-like markings on the back, red spots often ringed with blue, and white leading edges on the lower fins.",
-    history: "Brook trout are native to eastern North America and are especially treasured in Appalachian and northeastern waters for their beauty and heritage.",
-    habitat: "Cold creeks, streams, and lakes",
-    image: "assets/fish/brook-trout.svg"
+  "largemouth-bass": {
+    id: "largemouth-bass",
+    commonName: "Largemouth Bass",
+    scientificName: "Micropterus salmoides",
+    description: "A broad-mouthed freshwater predator famous for explosive strikes around weed edges, docks, timber, and shoreline cover.",
+    identification: "Look for the oversized mouth that extends past the eye, the dark lateral stripe, and the green upper body fading to a pale belly.",
+    history: "Largemouth bass helped define modern sportfishing and bass tournament culture throughout the United States.",
+    habitat: "Lakes, ponds, reservoirs, rivers, and backwaters",
+    image: "assets/fish/largemouth-bass.png"
   },
 
-  "red-drum": {
-    id: "red-drum",
-    commonName: "Red Drum",
+  "redfish": {
+    id: "redfish",
+    commonName: "Redfish",
     scientificName: "Sciaenops ocellatus",
-    description: "An iconic inshore gamefish with a coppery body and one or more dark spots near the tail.",
-    identification: "Look for a bronze-to-copper body and one or more distinct black spots near the base of the tail; the tail is not deeply forked.",
-    history: "Red drum are a hallmark species along the Atlantic and Gulf coasts and are deeply tied to southern coastal angling culture and estuary conservation.",
-    habitat: "Estuaries, marshes, flats, and coastal shallows",
-    image: "assets/fish/red-drum.svg"
+    description: "A coppery inshore gamefish, also known as red drum, prized for powerful runs and its unmistakable tail spot.",
+    identification: "Look for the bronze-red body, streamlined shape, and one or more black spots near the tail.",
+    history: "Redfish are deeply tied to southern coastal angling culture and are one of the signature gamefish of marshes, flats, and estuaries.",
+    habitat: "Estuaries, marshes, coastal creeks, flats, and nearshore surf",
+    image: "assets/fish/redfish.png"
+  },
+
+  "mudfish": {
+    id: "mudfish",
+    commonName: "Mudfish",
+    scientificName: "Amia calva",
+    description: "A prehistoric-looking fish, also called bowfin, with a long dorsal fin and a hardy reputation in weedy backwaters.",
+    identification: "Notice the long continuous dorsal fin, olive-brown mottling, sturdy head, and dark eye-spot near the tail.",
+    history: "Bowfin are ancient survivors native to eastern North America and are known for tolerating low-oxygen habitats that many other fish avoid.",
+    habitat: "Weedy lakes, sloughs, swamps, oxbows, and slow backwaters",
+    image: "assets/fish/mudfish.png"
+  },
+
+  "anglerfish": {
+    id: "anglerfish",
+    commonName: "Angler Fish",
+    scientificName: "Lophiiformes",
+    description: "A deep-sea predator with a glowing lure, oversized mouth, and dramatic silhouette that brings a darker ocean mood to the puzzle collection.",
+    identification: "Look for the bioluminescent lure extending over the head, the huge mouth, and the spiny, rough-textured body.",
+    history: "Anglerfish became one of the most iconic deep-sea fish because of their glowing lure and strange adaptations for life in the abyss.",
+    habitat: "Deep ocean waters and abyssal zones",
+    image: "assets/fish/anglerfish.png"
   }
 };
