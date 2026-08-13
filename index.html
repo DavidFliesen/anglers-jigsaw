@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0b2c5c" />
+  <meta name="theme-color" content="#082b3e" />
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.4.2" />
+  <link rel="stylesheet" href="css/styles.css?v=3.5.0" />
 
   <style>
     .ambient-fish-layer {
@@ -121,11 +121,6 @@ body[data-sea-theme="shipwreck"] {
     linear-gradient(180deg, #195b8f 0%, #0c3f70 34%, #07254a 66%, #03152f 100%);
 }
 
-body[data-sea-theme="kelp-lagoon"] {
-  background:
-    radial-gradient(120% 80% at 50% -10%, rgba(130,226,180,.18) 0%, rgba(130,226,180,0) 55%),
-    linear-gradient(180deg, #1a6e7d 0%, #145a70 34%, #0f435d 70%, #09273d 100%);
-}
 
 .app-header {
   background:
@@ -332,36 +327,8 @@ body.puzzle-mode select {
   animation: scene-fish-drift 16s ease-in-out infinite alternate;
 }
 
-.theme-kelp-lagoon .lagoon-bass {
-  left: 4%;
-  bottom: 12%;
-  width: min(30vw, 420px);
-  animation: scene-fish-drift 14s ease-in-out infinite alternate;
-}
 
-.theme-kelp-lagoon .lagoon-mudfish {
-  right: 2%;
-  bottom: 22%;
-  width: min(28vw, 390px);
-  animation: scene-fish-drift-alt 17s ease-in-out infinite alternate;
-}
 
-.kelp-silhouette {
-  position: absolute;
-  bottom: -8%;
-  width: 18vw;
-  max-width: 240px;
-  min-width: 120px;
-  height: 72%;
-  opacity: .18;
-  background: linear-gradient(180deg, rgba(47, 97, 74, .05), rgba(84, 154, 113, .35));
-  clip-path: polygon(52% 0%, 60% 8%, 54% 18%, 68% 28%, 58% 42%, 70% 56%, 54% 70%, 60% 84%, 46% 100%, 38% 78%, 46% 64%, 36% 48%, 46% 34%, 34% 18%, 42% 0%);
-  filter: blur(1px);
-  animation: kelp-wave 10s ease-in-out infinite alternate;
-}
-
-.kelp-a { left: 8%; }
-.kelp-b { right: 10%; animation-duration: 12s; }
 
 .abyss-glow {
   position: absolute;
@@ -406,10 +373,6 @@ body.puzzle-mode select {
   to { transform: translate3d(-14px, -12px, 0); }
 }
 
-@keyframes kelp-wave {
-  from { transform: rotate(-2deg); }
-  to { transform: rotate(3deg); }
-}
 
 @keyframes abyss-pulse {
   0%, 100% { opacity: .44; }
@@ -428,37 +391,36 @@ body.puzzle-mode select {
 
   <header class="app-header" id="appHeader">
     <button class="header-btn" id="homeBtn">Home</button>
-
-    <div class="header-brand">
-      <img src="assets/images/logo.png" alt="Angler's Jigsaw" class="header-logo" />
-      <div>
-        <h1>Angler's Jigsaw</h1>
-        <p>Piece together the catch.</p>
-      </div>
-    </div>
-
-    <button class="header-btn" id="coolerBtn">Fish Cooler</button>
+    <button class="header-btn" id="coolerBtn">Cooler</button>
+    <button class="header-btn" id="globalFullscreenBtn">Full Screen</button>
   </header>
 
   <main class="app-shell">
     <section class="screen active" id="screen-home">
       <div class="home-shell">
-        <h2 class="home-title">Angler's Jigsaw</h2>
-        <div class="home-main">
-          <img src="assets/images/logo.png" alt="Angler's Jigsaw logo" class="home-logo" />
+        <div class="home-main home-main-refresh">
+          <div class="home-art-wrap">
+            <img src="assets/images/logo.png?v=3.5.0" alt="Angler's Jigsaw logo" class="home-logo" />
+          </div>
 
-          <div class="home-actions">
-            <button class="home-action start" id="startFishingBtn">Start Fishing</button>
-            <button class="home-action help" id="howToPlayBtn">How to Play</button>
-            <button class="home-action cooler" id="homeCoolerBtn">Fish Cooler</button>
+          <div class="home-copy">
+            <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
+            <h2 class="home-title">Angler's Jigsaw</h2>
+            <p class="home-tagline">Piece together the catch.</p>
+
+            <div class="home-actions">
+              <button class="home-action start" id="startFishingBtn">
+                <strong>Start Fishing</strong><span>Choose your fish and puzzle size</span>
+              </button>
+              <button class="home-action help" id="howToPlayBtn">
+                <strong>How to Play</strong><span>Learn the board, tray, and controls</span>
+              </button>
+              <button class="home-action cooler" id="homeCoolerBtn">
+                <strong>Fish Cooler</strong><span>See the species you have completed</span>
+              </button>
+            </div>
           </div>
         </div>
-
-        <div class="arteziq-wordmark" aria-label="ARTEZIQ">
-          <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
-        </div>
-
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.4.2</span></div>
       </div>
     </section>
 
@@ -529,7 +491,6 @@ body.puzzle-mode select {
       <div class="play-shell">
         <div class="play-toolbar">
           <div class="play-toolbar-left">
-            <button class="tool-btn" id="playHomeBtn">Home</button>
             <div class="play-status">
               <strong id="puzzleTitle">Angler's Jigsaw</strong>
               <span id="puzzleInfo"></span>
@@ -540,7 +501,6 @@ body.puzzle-mode select {
             <button class="tool-btn edge-tool" id="edgesToTableBtn">Edges to Table</button>
             <button class="tool-btn scatter-tool" id="allTableBtn">All to Table</button>
             <button class="tool-btn" id="previewBtn">Preview</button>
-            <button class="tool-btn" id="fullscreenBtn">Full Screen</button>
             <button class="tool-btn" id="newPuzzleBtn">New Puzzle</button>
           </div>
 
@@ -586,7 +546,6 @@ body.puzzle-mode select {
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.4.2</span></div>
         </div>
       </div>
     </section>
@@ -641,9 +600,16 @@ body.puzzle-mode select {
       </div>
     </section>
   </main>
+  <footer class="app-footer" id="appFooter">
+    <div class="footer-wordmark" aria-label="ARTEZIQ"><span>ART</span><span class="footer-ez">EZ</span><span>IQ</span></div>
+    <span class="footer-divider">•</span>
+    <span>Angler's Jigsaw</span>
+    <span class="footer-divider">•</span>
+    <span id="globalVersion">v3.5.0</span>
+  </footer>
 
-  <script src="js/data.js?v=3.4.2"></script>
-  <script src="js/app.js?v=3.4.2"></script>
+  <script src="js/data.js?v=3.5.0"></script>
+  <script src="js/app.js?v=3.5.0"></script>
 
 
 <script>
