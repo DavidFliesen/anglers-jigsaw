@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anglers-jigsaw-v3-3-1';
+const CACHE_NAME = 'anglers-jigsaw-v3-4-0';
 
 const ASSETS = [
   './',
@@ -10,15 +10,15 @@ const ASSETS = [
   './assets/images/logo.png',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
-  './assets/fish/largemouth-bass.svg',
-  './assets/fish/bluegill.svg',
-  './assets/fish/channel-catfish.svg',
-  './assets/fish/rainbow-trout.svg',
-  './assets/fish/brook-trout.svg',
-  './assets/fish/red-drum.svg',
-  './assets/images/ambient/rainbow-trout.png',
-  './assets/images/ambient/catfish.png',
-  './assets/images/ambient/flounder.png'
+  './assets/fish/rainbow-trout.png',
+  './assets/fish/channel-catfish.png',
+  './assets/fish/flounder.png',
+  './assets/fish/largemouth-bass.png',
+  './assets/fish/redfish.png',
+  './assets/fish/mudfish.png',
+  './assets/fish/anglerfish.png',
+  './assets/images/themes/coral-reef.png',
+  './assets/images/themes/sunken-pirate-ship.png'
 ];
 
 self.addEventListener('install', event => {

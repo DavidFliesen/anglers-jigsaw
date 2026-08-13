@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.3.1" />
+  <link rel="stylesheet" href="css/styles.css?v=3.4.0" />
 
   <style>
     .ambient-fish-layer {
@@ -253,6 +253,170 @@ body.puzzle-mode select {
   }
 }
 
+  
+
+.sea-theme-layer .theme-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.theme-ray {
+  position: absolute;
+  top: -10%;
+  width: 12vw;
+  height: 120%;
+  background: linear-gradient(180deg, rgba(222,245,255,.25), rgba(222,245,255,0));
+  filter: blur(2px);
+  opacity: .45;
+  animation: theme-ray-drift 11s ease-in-out infinite alternate;
+}
+
+.theme-ray.ray-a {
+  left: 20%;
+  transform: rotate(9deg);
+}
+
+.theme-ray.ray-b {
+  left: 62%;
+  transform: rotate(-8deg);
+  opacity: .34;
+  animation-duration: 14s;
+}
+
+.theme-asset,
+.theme-faint-fish {
+  position: absolute;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.theme-faint-fish {
+  opacity: .15;
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,.18));
+}
+
+.theme-asset.coral-reef {
+  left: 50%;
+  bottom: -2%;
+  width: min(74vw, 980px);
+  transform: translateX(-50%);
+  opacity: .46;
+  animation: reef-sway 9s ease-in-out infinite alternate;
+}
+
+.theme-asset.pirate-ship {
+  left: 50%;
+  bottom: -1%;
+  width: min(76vw, 1050px);
+  transform: translateX(-50%);
+  opacity: .34;
+  animation: wreck-rock 12s ease-in-out infinite alternate;
+}
+
+.theme-asset.anglerfish {
+  right: 3%;
+  top: 15%;
+  width: min(34vw, 520px);
+  opacity: .38;
+  animation: angler-drift 8.5s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 26px rgba(255, 195, 83, .22));
+}
+
+.theme-open-ocean .open-redfish {
+  right: 6%;
+  bottom: 15%;
+  width: min(26vw, 360px);
+  animation: scene-fish-drift 16s ease-in-out infinite alternate;
+}
+
+.theme-kelp-lagoon .lagoon-bass {
+  left: 4%;
+  bottom: 12%;
+  width: min(30vw, 420px);
+  animation: scene-fish-drift 14s ease-in-out infinite alternate;
+}
+
+.theme-kelp-lagoon .lagoon-mudfish {
+  right: 2%;
+  bottom: 22%;
+  width: min(28vw, 390px);
+  animation: scene-fish-drift-alt 17s ease-in-out infinite alternate;
+}
+
+.kelp-silhouette {
+  position: absolute;
+  bottom: -8%;
+  width: 18vw;
+  max-width: 240px;
+  min-width: 120px;
+  height: 72%;
+  opacity: .18;
+  background: linear-gradient(180deg, rgba(47, 97, 74, .05), rgba(84, 154, 113, .35));
+  clip-path: polygon(52% 0%, 60% 8%, 54% 18%, 68% 28%, 58% 42%, 70% 56%, 54% 70%, 60% 84%, 46% 100%, 38% 78%, 46% 64%, 36% 48%, 46% 34%, 34% 18%, 42% 0%);
+  filter: blur(1px);
+  animation: kelp-wave 10s ease-in-out infinite alternate;
+}
+
+.kelp-a { left: 8%; }
+.kelp-b { right: 10%; animation-duration: 12s; }
+
+.abyss-glow {
+  position: absolute;
+  right: 14%;
+  top: 18%;
+  width: 34vw;
+  max-width: 520px;
+  height: 34vw;
+  max-height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,214,112,.18) 0%, rgba(255,214,112,.06) 28%, rgba(255,214,112,0) 66%);
+  animation: abyss-pulse 3.8s ease-in-out infinite;
+}
+
+@keyframes theme-ray-drift {
+  from { transform: translateY(-8px) rotate(8deg); }
+  to { transform: translateY(10px) rotate(11deg); }
+}
+
+@keyframes scene-fish-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-24px, -10px, 0); }
+}
+
+@keyframes scene-fish-drift-alt {
+  from { transform: translate3d(0, 0, 0) scaleX(-1); }
+  to { transform: translate3d(18px, -12px, 0) scaleX(-1); }
+}
+
+@keyframes reef-sway {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-8px); }
+}
+
+@keyframes wreck-rock {
+  from { transform: translateX(-50%) rotate(-1deg); }
+  to { transform: translateX(-50%) rotate(1deg); }
+}
+
+@keyframes angler-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-14px, -12px, 0); }
+}
+
+@keyframes kelp-wave {
+  from { transform: rotate(-2deg); }
+  to { transform: rotate(3deg); }
+}
+
+@keyframes abyss-pulse {
+  0%, 100% { opacity: .44; }
+  50% { opacity: .88; }
+}
+
+
   </style>
 
 </head>
@@ -294,7 +458,7 @@ body.puzzle-mode select {
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
 
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.3.1</span></div>
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.4.0</span></div>
       </div>
     </section>
 
@@ -422,7 +586,7 @@ body.puzzle-mode select {
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.3.1</span></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.4.0</span></div>
         </div>
       </div>
     </section>
@@ -478,8 +642,8 @@ body.puzzle-mode select {
     </section>
   </main>
 
-  <script src="js/data.js?v=3.3.1"></script>
-  <script src="js/app.js?v=3.3.1"></script>
+  <script src="js/data.js?v=3.4.0"></script>
+  <script src="js/app.js?v=3.4.0"></script>
 
 
 <script>
@@ -491,18 +655,21 @@ body.puzzle-mode select {
     if (!layer) return;
 
     const fishPool = [
-      { name: 'Rainbow Trout', src: 'assets/images/ambient/rainbow-trout.png', naturalFacing: 'right' },
-      { name: 'Catfish', src: 'assets/images/ambient/catfish.png', naturalFacing: 'left' },
-      { name: 'Flounder', src: 'assets/images/ambient/flounder.png', naturalFacing: 'right' }
+      { name: 'Rainbow Trout', src: 'assets/fish/rainbow-trout.png', naturalFacing: 'right' },
+      { name: 'Channel Catfish', src: 'assets/fish/channel-catfish.png', naturalFacing: 'left' },
+      { name: 'Flounder', src: 'assets/fish/flounder.png', naturalFacing: 'right' },
+      { name: 'Largemouth Bass', src: 'assets/fish/largemouth-bass.png', naturalFacing: 'right' },
+      { name: 'Redfish', src: 'assets/fish/redfish.png', naturalFacing: 'right' },
+      { name: 'Mudfish', src: 'assets/fish/mudfish.png', naturalFacing: 'right' }
     ];
 
-    const MIN_FISH = 3;
-    const MAX_FISH = 7;
+    const MIN_FISH = 2;
+    const MAX_FISH = 8;
     const MIN_WIDTH = 90;
     const MAX_WIDTH = 210;
     const timers = new Set();
     let activeFish = 0;
-    let desiredFishCount = 4;
+    let desiredFishCount = 3;
     let spawnQueued = false;
 
     function randomBetween(min, max) {
@@ -616,7 +783,7 @@ body.puzzle-mode select {
 
     window.addEventListener('beforeunload', clearTimers);
     window.addEventListener('load', () => {
-      desiredFishCount = 4;
+      desiredFishCount = 3;
       spawnFish();
       scheduleNextFish(randomBetween(2400, 4800));
       schedule(maintainPopulation, 6000);

@@ -1,46 +1,28 @@
-# Angler's Jigsaw — v3.3.1
-
-Version 3.3.1 focuses on credible fish movement, smoother iPad puzzle-piece dragging, randomized tray ordering, and making the underwater themes visibly different instead of only changing the blue gradient.
-
-## v3.3.1 changes
-
-### Fish always swim nose-first
-- Rainbow Trout and Flounder assets naturally face right.
-- Catfish naturally faces left.
-- Each fish can still travel in either direction, but the code now flips the artwork only when needed so the fish's nose always points in the direction of travel.
-- The subtle breathing animation works with both normal and flipped fish.
-
-### iPad drag stability
-- Puzzle mode now locks document scrolling and Safari rubber-band/overscroll behavior while playing.
-- Active piece drags explicitly prevent `touchmove` from scrolling the page.
-- Pointer capture is requested during a drag when the browser supports it.
-- The bottom tray keeps horizontal touch scrolling, while the main play surface stays fixed.
-
-### Random tray order
-- Puzzle pieces receive a random tray order when a new puzzle is created.
-- The bottom tray no longer reveals the original puzzle's left-to-right / top-to-bottom sequence.
-- Pieces returned to the tray receive a fresh random position.
-
-### Visible underwater themes
-The previous build mainly changed color gradients. v3.3.1 adds an actual lightweight scene layer for each theme:
-- **Open Ocean** — water-light rays and a distant seabed silhouette
-- **Deep Abyss** — a drifting anglerfish silhouette with a gently pulsing lure
-- **Coral Reef** — low-contrast coral and reef shapes along the seabed
-- **Shipwreck** — a broken ship silhouette and a subtle treasure chest glint
-- **Kelp Lagoon** — tall kelp fronds rising through the water
-
-These are procedural SVG/CSS scene elements, so they stay lightweight, work offline, and do not require large background image files. They can later be replaced with richer artwork without changing the theme system.
-
-## Included ambient fish assets
-- `assets/images/ambient/rainbow-trout.png`
-- `assets/images/ambient/catfish.png`
-- `assets/images/ambient/flounder.png`
+# Angler’s Jigsaw v3.4.0 — changed files only
 
 ## Changed files
-- `index.html`
-- `js/app.js`
-- `sw.js`
-- `README.md`
-- `assets/images/ambient/rainbow-trout.png`
-- `assets/images/ambient/catfish.png`
-- `assets/images/ambient/flounder.png`
+- index.html
+- js/app.js
+- js/data.js
+- sw.js
+- assets/fish/rainbow-trout.png
+- assets/fish/channel-catfish.png
+- assets/fish/flounder.png
+- assets/fish/largemouth-bass.png
+- assets/fish/redfish.png
+- assets/fish/mudfish.png
+- assets/fish/anglerfish.png
+- assets/images/themes/coral-reef.png
+- assets/images/themes/sunken-pirate-ship.png
+
+## What changed
+- Replaced the old puzzle art set with the newer fish artwork so the puzzle selection now uses the updated fish images.
+- Added new playable fish species: Largemouth Bass, Redfish, Mudfish, and Angler Fish.
+- Updated ambient fish so they always swim in the direction of their nose. If a fish travels the opposite way, the script flips the artwork first.
+- Expanded the ambient background fish pool to include the newer fish artwork.
+- Added themed background art usage for Coral Reef, Deep Abyss, Shipwreck, and Kelp Lagoon scenes.
+- Updated the service worker cache list so the new fish and background assets are available offline.
+
+## Notes
+- This package includes only the files that changed.
+- Copy these files into the matching locations in your project, replacing the older versions.
