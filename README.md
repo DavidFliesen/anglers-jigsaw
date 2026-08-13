@@ -1,40 +1,37 @@
-# Angler's Jigsaw — v3.3.0
+# Angler's Jigsaw — v3.3.1
 
-Version 3.3.0 adds a more nautical presentation, auto-fullscreen puzzle start behavior, randomized piece scattering, richer ambient water life, and themed underwater backgrounds that change when a new puzzle begins.
+Version 3.3.1 focuses on credible fish movement, smoother iPad puzzle-piece dragging, randomized tray ordering, and making the underwater themes visibly different instead of only changing the blue gradient.
 
-## v3.3.0 changes
+## v3.3.1 changes
 
-### Auto-fullscreen when a puzzle starts
-- Starting a puzzle now attempts to enter fullscreen immediately from the player's tap/click.
-- The fullscreen button now works as a true toggle and updates its label to **Full Screen** or **Exit Full Screen**.
-- Extra layout passes still run after the screen change so the board has a better chance of fitting properly on iPad/Safari.
+### Fish always swim nose-first
+- Rainbow Trout and Flounder assets naturally face right.
+- Catfish naturally faces left.
+- Each fish can still travel in either direction, but the code now flips the artwork only when needed so the fish's nose always points in the direction of travel.
+- The subtle breathing animation works with both normal and flipped fish.
 
-### Randomized piece scattering
-- **Edges to Table** no longer places edge pieces near the side where they belong.
-- Edge pieces are now scattered more randomly around the outside of the puzzle area so the player has to sort and solve them.
-- **All to Table** now spreads pieces in a more random way instead of clustering them in near-solution positions.
-- The result is meant to feel more like a traditional jigsaw session where the player does the organizing work.
+### iPad drag stability
+- Puzzle mode now locks document scrolling and Safari rubber-band/overscroll behavior while playing.
+- Active piece drags explicitly prevent `touchmove` from scrolling the page.
+- Pointer capture is requested during a drag when the browser supports it.
+- The bottom tray keeps horizontal touch scrolling, while the main play surface stays fixed.
 
-### More bubbles, more fish, more life
-- Increased the number of animated bubbles in the background.
-- Ambient fish now use a broader size range, show up in greater overall numbers, and continue entering one at a time.
-- Fish continue to vary by size, direction, depth, and timing.
-- Added image-error handling for ambient fish so a missing asset does not leave a broken image on screen.
+### Random tray order
+- Puzzle pieces receive a random tray order when a new puzzle is created.
+- The bottom tray no longer reveals the original puzzle's left-to-right / top-to-bottom sequence.
+- Pieces returned to the tray receive a fresh random position.
 
-### Nautical GUI polish
-- Refined the header, toolbar, tray, and panel styling to lean more nautical with deeper sea tones and warmer brass/gold accents.
-- Added randomized underwater background themes for new puzzles.
+### Visible underwater themes
+The previous build mainly changed color gradients. v3.3.1 adds an actual lightweight scene layer for each theme:
+- **Open Ocean** — water-light rays and a distant seabed silhouette
+- **Deep Abyss** — a drifting anglerfish silhouette with a gently pulsing lure
+- **Coral Reef** — low-contrast coral and reef shapes along the seabed
+- **Shipwreck** — a broken ship silhouette and a subtle treasure chest glint
+- **Kelp Lagoon** — tall kelp fronds rising through the water
 
-### Random underwater backdrop themes
-Each new puzzle now picks one of several themed looks:
-- Open Ocean
-- Deep Abyss
-- Coral Reef
-- Shipwreck
-- Kelp Lagoon
+These are procedural SVG/CSS scene elements, so they stay lightweight, work offline, and do not require large background image files. They can later be replaced with richer artwork without changing the theme system.
 
-## Included asset files
-To avoid broken ambient-fish images, this changed-files package also includes:
+## Included ambient fish assets
 - `assets/images/ambient/rainbow-trout.png`
 - `assets/images/ambient/catfish.png`
 - `assets/images/ambient/flounder.png`

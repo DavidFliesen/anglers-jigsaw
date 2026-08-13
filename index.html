@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.2.4" />
+  <link rel="stylesheet" href="css/styles.css?v=3.3.1" />
 
   <style>
     .ambient-fish-layer {
@@ -29,19 +29,20 @@
       animation: ambient-fish-swim var(--swim-duration, 44s) linear forwards;
     }
 
-    .ambient-fish-layer .ambient-fish.reverse {
+    .ambient-fish-layer .ambient-fish.leftward {
       animation-name: ambient-fish-swim-reverse;
     }
 
     .ambient-fish-layer .ambient-fish-body {
+      --fish-face: 1;
       width: 100%;
       height: auto;
       animation: ambient-fish-breathe 5.2s ease-in-out infinite;
       transform-origin: 50% 55%;
     }
 
-    .ambient-fish-layer .ambient-fish.reverse .ambient-fish-body {
-      animation-name: ambient-fish-breathe-reverse;
+    .ambient-fish-layer .ambient-fish.flip .ambient-fish-body {
+      --fish-face: -1;
     }
 
     .ambient-fish-layer img {
@@ -75,13 +76,8 @@
     }
 
     @keyframes ambient-fish-breathe {
-      0%, 100% { transform: scale(1) rotate(-1.2deg); }
-      50% { transform: scale(1.02) rotate(1deg) translateY(-2px); }
-    }
-
-    @keyframes ambient-fish-breathe-reverse {
-      0%, 100% { transform: scaleX(-1) scale(1) rotate(-1deg); }
-      50% { transform: scaleX(-1) scale(1.02) rotate(1.2deg) translateY(-2px); }
+      0%, 100% { transform: scaleX(var(--fish-face)) scale(1) rotate(-1.2deg); }
+      50% { transform: scaleX(var(--fish-face)) scale(1.02) rotate(1deg) translateY(-2px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -169,11 +165,100 @@ body[data-sea-theme="kelp-lagoon"] {
     linear-gradient(180deg, rgba(10,45,94,.50), rgba(2,17,49,.72));
 }
 
+
+.sea-theme-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: .95;
+  transition: opacity 500ms ease;
+}
+
+.sea-theme-layer svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.theme-angler {
+  animation: theme-angler-drift 9s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+.angler-lure-glow {
+  animation: angler-lure-pulse 3.8s ease-in-out infinite;
+}
+
+.treasure-glint {
+  animation: treasure-glint 5.5s ease-in-out infinite;
+}
+
+@keyframes theme-angler-drift {
+  from { translate: -14px 8px; }
+  to { translate: 18px -10px; }
+}
+
+@keyframes angler-lure-pulse {
+  0%, 100% { opacity: .45; }
+  50% { opacity: .9; }
+}
+
+@keyframes treasure-glint {
+  0%, 70%, 100% { opacity: .35; }
+  82% { opacity: .65; }
+}
+
+html.puzzle-scroll-lock,
+html.puzzle-scroll-lock body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body.puzzle-mode {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+body.puzzle-mode .play-table,
+body.puzzle-mode .pieces-layer,
+body.puzzle-mode .piece {
+  touch-action: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body.puzzle-mode .tray-pieces {
+  touch-action: pan-x !important;
+}
+
+body.puzzle-mode button,
+body.puzzle-mode select {
+  touch-action: manipulation;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-angler,
+  .angler-lure-glow,
+  .treasure-glint {
+    animation: none !important;
+  }
+}
+
   </style>
 
 </head>
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
+  <div class="sea-theme-layer" id="seaThemeLayer" aria-hidden="true"></div>
   <div class="ambient-fish-layer" id="ambientFishLayer" aria-hidden="true"></div>
   <div class="toast hidden" id="toast" aria-live="polite"></div>
 
@@ -209,7 +294,7 @@ body[data-sea-theme="kelp-lagoon"] {
           <span>A</span><span>R</span><span>T</span><span class="ez">E</span><span class="ez">Z</span><span>I</span><span>Q</span>
         </div>
 
-        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.3.0</span></div>
+        <div class="version-line">Angler's Jigsaw • <span id="homeVersion">v3.3.1</span></div>
       </div>
     </section>
 
@@ -337,7 +422,7 @@ body[data-sea-theme="kelp-lagoon"] {
           </div>
 
           <div class="tray-pieces" id="trayPieces"></div>
-          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.3.0</span></div>
+          <div class="version-line tray-version">Angler's Jigsaw • <span id="playVersion">v3.3.1</span></div>
         </div>
       </div>
     </section>
@@ -393,8 +478,8 @@ body[data-sea-theme="kelp-lagoon"] {
     </section>
   </main>
 
-  <script src="js/data.js?v=3.2.4"></script>
-  <script src="js/app.js?v=3.2.4"></script>
+  <script src="js/data.js?v=3.3.1"></script>
+  <script src="js/app.js?v=3.3.1"></script>
 
 
 <script>
@@ -406,9 +491,9 @@ body[data-sea-theme="kelp-lagoon"] {
     if (!layer) return;
 
     const fishPool = [
-      { name: 'Rainbow Trout', src: 'assets/images/ambient/rainbow-trout.png' },
-      { name: 'Catfish', src: 'assets/images/ambient/catfish.png' },
-      { name: 'Flounder', src: 'assets/images/ambient/flounder.png' }
+      { name: 'Rainbow Trout', src: 'assets/images/ambient/rainbow-trout.png', naturalFacing: 'right' },
+      { name: 'Catfish', src: 'assets/images/ambient/catfish.png', naturalFacing: 'left' },
+      { name: 'Flounder', src: 'assets/images/ambient/flounder.png', naturalFacing: 'right' }
     ];
 
     const MIN_FISH = 3;
@@ -472,9 +557,10 @@ body[data-sea-theme="kelp-lagoon"] {
       if (document.hidden || activeFish >= MAX_FISH) return;
 
       const spec = fishPool[Math.floor(Math.random() * fishPool.length)];
-      const reverse = Math.random() > 0.5;
+      const travelDirection = Math.random() > 0.5 ? 'left' : 'right';
+      const needsFlip = spec.naturalFacing !== travelDirection;
       const fish = document.createElement('div');
-      fish.className = 'ambient-fish' + (reverse ? ' reverse' : '');
+      fish.className = 'ambient-fish ' + (travelDirection === 'left' ? 'leftward' : 'rightward') + (needsFlip ? ' flip' : '');
 
       const topBase = window.innerHeight * randomBetween(0.12, 0.76);
       const drift = randomBetween(-44, 44);
