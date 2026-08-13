@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.4.2';
+const APP_VERSION = 'v3.5.0';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -29,12 +29,11 @@ const els = {
   difficultyStrip: document.getElementById('difficultyStrip'),
   fishSelectGrid: document.getElementById('fishSelectGrid'),
   howStartBtn: document.getElementById('howStartBtn'),
-  playHomeBtn: document.getElementById('playHomeBtn'),
   puzzleTitle: document.getElementById('puzzleTitle'),
   puzzleInfo: document.getElementById('puzzleInfo'),
   pieceCounterChip: document.getElementById('pieceCounterChip'),
   previewBtn: document.getElementById('previewBtn'),
-  fullscreenBtn: document.getElementById('fullscreenBtn'),
+  fullscreenBtn: document.getElementById('globalFullscreenBtn'),
   edgesToTableBtn: document.getElementById('edgesToTableBtn'),
   allTableBtn: document.getElementById('allTableBtn'),
   newPuzzleBtn: document.getElementById('newPuzzleBtn'),
@@ -62,7 +61,8 @@ const els = {
   coolerCountChip: document.getElementById('coolerCountChip'),
   coolerPlayBtn: document.getElementById('coolerPlayBtn'),
   homeVersion: document.getElementById('homeVersion'),
-  playVersion: document.getElementById('playVersion')
+  playVersion: document.getElementById('playVersion'),
+  globalVersion: document.getElementById('globalVersion')
 };
 
 let cooler = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -71,7 +71,7 @@ let puzzleState = null;
 let currentScreen = 'home';
 let zCounter = 20;
 let detailFish = null;
-const puzzleThemes = ['open-ocean', 'deep-abyss', 'coral-reef', 'shipwreck', 'kelp-lagoon'];
+const puzzleThemes = ['open-ocean', 'deep-abyss', 'coral-reef', 'shipwreck'];
 
 const dragState = {
   active: false,
@@ -85,8 +85,9 @@ const dragState = {
 initialize();
 
 function initialize() {
-  els.homeVersion.textContent = APP_VERSION;
-  els.playVersion.textContent = APP_VERSION;
+  if (els.homeVersion) els.homeVersion.textContent = APP_VERSION;
+  if (els.playVersion) els.playVersion.textContent = APP_VERSION;
+  if (els.globalVersion) els.globalVersion.textContent = APP_VERSION;
   buildWaterBubbles();
   bindUI();
   document.addEventListener('fullscreenchange', updateFullscreenButton);
@@ -100,32 +101,51 @@ function initialize() {
 
 
 function bindUI() {
-  els.homeBtn.addEventListener('click', () => showScreen('home'));
-  els.coolerBtn.addEventListener('click', () => openCooler());
-  els.startFishingBtn.addEventListener('click', () => showScreen('select'));
-  els.howToPlayBtn.addEventListener('click', () => showScreen('how'));
-  els.homeCoolerBtn.addEventListener('click', () => openCooler());
-  els.howStartBtn.addEventListener('click', () => showScreen('select'));
-  els.playHomeBtn.addEventListener('click', confirmLeavePuzzle);
+  els.homeBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    if (currentScreen === 'puzzle') confirmLeavePuzzle();
+    else showScreen('home');
+  });
+  els.coolerBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    openCooler();
+  });
+  els.startFishingBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    showScreen('select');
+  });
+  els.howToPlayBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    showScreen('how');
+  });
+  els.homeCoolerBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    openCooler();
+  });
+  els.howStartBtn.addEventListener('click', () => {
+    ensureFullscreenForNavigation();
+    showScreen('select');
+  });
   els.previewBtn.addEventListener('click', togglePreview);
   els.fullscreenBtn.addEventListener('click', toggleFullscreen);
   els.edgesToTableBtn.addEventListener('click', edgesToTable);
   els.allTableBtn.addEventListener('click', allToTableAction);
-  els.newPuzzleBtn.addEventListener('click', () => showScreen('select'));
+  els.newPuzzleBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('select'); });
   els.trayFilter.addEventListener('change', renderTray);
   els.collapseTrayBtn.addEventListener('click', toggleTray);
   els.fishAgainBtn.addEventListener('click', () => {
     if (els.completeKicker.textContent === 'Fish Cooler Species' && detailFish) {
       startPuzzle(detailFish, currentDifficulty);
     } else {
+      ensureFullscreenForNavigation();
       showScreen('select');
     }
   });
-  els.openCoolerBtn.addEventListener('click', () => openCooler());
-  els.coolerPlayBtn.addEventListener('click', () => showScreen('select'));
+  els.openCoolerBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); openCooler(); });
+  els.coolerPlayBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('select'); });
 
   document.querySelectorAll('[data-back-home="true"]').forEach(btn => {
-    btn.addEventListener('click', () => showScreen('home'));
+    btn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('home'); });
   });
 
   window.addEventListener('resize', () => {
@@ -1051,6 +1071,13 @@ function toggleTray() {
 }
 
 
+function ensureFullscreenForNavigation() {
+  if (isFullscreenActive()) return;
+  requestFullscreenCompat(document.documentElement)
+    .then(() => updateFullscreenButton())
+    .catch(() => updateFullscreenButton());
+}
+
 async function toggleFullscreen() {
   try {
     if (!isFullscreenActive()) {
@@ -1166,15 +1193,6 @@ function renderSeaThemeScene(theme) {
           <circle cx="0" cy="7" r="12" fill="#d5aa49"/>
           <circle cx="-44" cy="-4" r="5" fill="#f3d67f"/>
           <circle cx="38" cy="13" r="6" fill="#e9c15d"/>
-        </g>
-      </svg>`,
-    'kelp-lagoon': `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <g transform="translate(0 900)" opacity=".32" fill="none" stroke-linecap="round">
-          <path d="M120 0 C80 -160 170 -240 118 -390 C88 -480 140 -600 185 -730" stroke="#0b513f" stroke-width="24"/>
-          <path d="M300 0 C360 -170 280 -270 340 -420 C380 -520 325 -640 390 -780" stroke="#116047" stroke-width="20"/>
-          <path d="M1260 0 C1190 -180 1280 -280 1220 -430 C1180 -530 1240 -650 1188 -790" stroke="#0c513f" stroke-width="26"/>
-          <path d="M1450 0 C1510 -180 1420 -280 1490 -470 C1530 -570 1470 -680 1515 -820" stroke="#135e44" stroke-width="20"/>
         </g>
       </svg>`
   };
