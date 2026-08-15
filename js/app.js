@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.5';
+const APP_VERSION = 'v3.5.6';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -358,6 +358,8 @@ function startPuzzle(fish, difficulty) {
 
   applyPuzzleTheme(puzzleState.theme);
   buildPieces();
+  updatePuzzleMeta();
+  els.trayCount.textContent = `${puzzleState.pieces.length} pieces`;
   showScreen('puzzle');
   schedulePuzzleLayout(true);
   setTimeout(() => schedulePuzzleLayout(false), 550);
@@ -495,13 +497,28 @@ function outwardTabInfo(edges) {
 function layoutPuzzle(initial = false) {
   if (!puzzleState) return;
 
-  const tableRect = els.playTable.getBoundingClientRect();
+  let tableRect = els.playTable.getBoundingClientRect();
   const oldMetrics = puzzleState.metrics;
 
-  // If Safari reports a tiny temporary flexbox height while changing screens,
-  // wait for the scheduled follow-up measurement rather than creating a board
-  // that is taller than the visible table and therefore clipped at the top.
-  if (tableRect.width < 260 || tableRect.height < 220) return;
+  // v3.5.6: fail safe for Safari/iPad and for any CSS regression that briefly
+  // collapses the flex/grid play area. A puzzle must never open with a 0px
+  // board. Give the table a stable fallback height, then measure again.
+  if (tableRect.width < 260 || tableRect.height < 220) {
+    const viewportH = window.visualViewport?.height || window.innerHeight || 768;
+    const headerH = els.appHeader?.getBoundingClientRect().height || 54;
+    const toolbarH = document.querySelector('.play-toolbar')?.getBoundingClientRect().height || 58;
+    const trayH = els.trayBar?.getBoundingClientRect().height || 132;
+    const footerH = document.getElementById('appFooter')?.getBoundingClientRect().height || 28;
+    const fallbackH = Math.max(320, Math.floor(viewportH - headerH - toolbarH - trayH - footerH - 34));
+    els.playTable.style.minHeight = `${fallbackH}px`;
+    els.playTable.style.height = `${fallbackH}px`;
+    tableRect = els.playTable.getBoundingClientRect();
+  }
+
+  if (tableRect.width < 260 || tableRect.height < 220) {
+    showToast('Puzzle board could not size correctly. Try rotating the screen once.');
+    return;
+  }
 
   const gutter = Math.max(30, Math.min(56, tableRect.width * 0.045));
   const maxW = Math.max(1, (tableRect.width - gutter * 2) * 0.94);
