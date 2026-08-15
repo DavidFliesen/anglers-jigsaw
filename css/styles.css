@@ -1251,7 +1251,7 @@ body.piece-drag-active .tray-pieces {
 
 
 /* ============================================================
-   v3.5.3 puzzle-background cleanup + iPad diagnostics
+   v3.5.4 viewport stabilization — no programmatic fullscreen
    ============================================================ */
 html,
 body,
@@ -1264,26 +1264,24 @@ body,
   overflow-anchor: none;
 }
 
+/* Safari owns the viewport again. Do not pin the body to 100dvh or fixed positioning. */
 body.puzzle-mode {
   position: static !important;
   inset: auto !important;
-  width: auto !important;
-  max-width: 100%;
-  min-height: 100dvh !important;
-  height: 100dvh !important;
-  overflow: hidden !important;
-}
-
-html.puzzle-scroll-lock,
-html.puzzle-scroll-lock body {
-  height: 100dvh !important;
-  overflow: hidden !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
 }
 
 .play-shell {
-  min-height: calc(100dvh - var(--header-h) - 10px) !important;
-  height: calc(100dvh - var(--header-h) - 10px) !important;
-  overflow: hidden;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+  padding-bottom: 8px;
 }
 
 .play-table,
@@ -1291,7 +1289,6 @@ html.puzzle-scroll-lock body {
 .pieces-layer,
 .piece,
 .tray-piece,
-.tray-pieces,
 .play-toolbar,
 .tray-bar {
   -webkit-user-select: none;
@@ -1299,8 +1296,36 @@ html.puzzle-scroll-lock body {
   -webkit-touch-callout: none;
 }
 
+/* Native browser scrolling is disabled only on actual drag targets. */
+.play-table,
+.pieces-layer,
+.piece,
 .tray-piece {
   touch-action: none !important;
+}
+
+/* The tray itself may still scroll horizontally when the finger starts in empty tray space. */
+.tray-pieces {
+  touch-action: pan-x !important;
+  overscroll-behavior-x: contain;
+}
+
+/* Header remains a stable three-column structure without fullscreen controls. */
+.app-header {
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.2fr) minmax(120px, 1fr) !important;
+  align-items: center;
+}
+
+.header-title {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  color: rgba(243, 251, 255, .92);
+  font-family: "Avenir Next Condensed", "Arial Narrow", "Trebuchet MS", sans-serif;
+  font-size: 1rem;
+  font-weight: 850;
+  letter-spacing: .035em;
+  text-align: center;
 }
 
 /* Keep the home hero exactly as requested: logo left, copy/actions right. */
@@ -1309,7 +1334,7 @@ html.puzzle-scroll-lock body {
   align-items: center;
 }
 
-/* Remove amateur-looking line / cactus shapes from underwater themes. */
+/* Only polished underwater elements remain. */
 .sea-theme-layer .theme-coral-lines,
 .sea-theme-layer .theme-coral-branches,
 .sea-theme-layer .theme-kelp-lagoon,
@@ -1319,14 +1344,15 @@ html.puzzle-scroll-lock body {
   display: none !important;
 }
 
-/* Theme elements should stay subtle and stay behind the gameplay. */
 .sea-theme-layer {
   opacity: .72;
 }
 
-@media (max-width: 900px) {
-  .play-shell {
-    min-height: calc(100dvh - var(--header-h) - 6px) !important;
-    height: calc(100dvh - var(--header-h) - 6px) !important;
+@media (max-width: 700px) {
+  .app-header {
+    grid-template-columns: 1fr 1.15fr 1fr !important;
+  }
+  .header-title {
+    font-size: .9rem;
   }
 }
