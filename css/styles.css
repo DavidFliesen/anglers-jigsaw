@@ -1409,3 +1409,108 @@ body.puzzle-mode {
   opacity: .34;
   filter: drop-shadow(0 0 26px rgba(255, 204, 92, .20));
 }
+
+
+/* ============================================================
+   v3.5.6 end-to-end board recovery / stable iPad layout
+   This final layer intentionally overrides earlier experimental viewport rules.
+   ============================================================ */
+:root {
+  --aj-header-h: 54px;
+  --aj-footer-h: 28px;
+}
+
+body.puzzle-mode {
+  width: 100% !important;
+  min-height: 100svh !important;
+  height: 100svh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: manipulation;
+}
+
+body.puzzle-mode .app-shell {
+  width: 100% !important;
+  height: calc(100svh - var(--aj-header-h) - var(--aj-footer-h)) !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+#screen-puzzle.active {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#screen-puzzle .play-shell {
+  display: grid !important;
+  grid-template-rows: auto minmax(320px, 1fr) auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+#screen-puzzle .play-toolbar {
+  grid-row: 1;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+#screen-puzzle .play-table {
+  grid-row: 2;
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 320px !important;
+  margin: 8px 14px 6px !important;
+  overflow: hidden !important;
+  contain: layout paint;
+}
+
+#screen-puzzle .tray-bar {
+  grid-row: 3;
+  flex: 0 0 auto !important;
+  min-height: 104px !important;
+  max-height: 160px !important;
+  margin: 0 12px 6px !important;
+  overflow: hidden !important;
+}
+
+#screen-puzzle .tray-pieces {
+  max-height: 96px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+#screen-puzzle .board-shell,
+#screen-puzzle .pieces-layer {
+  display: block !important;
+}
+
+/* Never let earlier generic panel/tray rules cover the board. */
+#screen-puzzle .play-table {
+  z-index: 2;
+}
+#screen-puzzle .tray-bar,
+#screen-puzzle .play-toolbar {
+  z-index: 5;
+}
+
+@media (max-height: 700px) {
+  #screen-puzzle .play-shell {
+    grid-template-rows: auto minmax(260px, 1fr) auto !important;
+  }
+  #screen-puzzle .play-table {
+    min-height: 260px !important;
+  }
+  #screen-puzzle .tray-bar {
+    min-height: 92px !important;
+    max-height: 130px !important;
+  }
+}
