@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.5.3" />
+  <link rel="stylesheet" href="css/styles.css?v=3.5.4" />
 
   <style>
     .ambient-fish-layer {
@@ -205,38 +205,6 @@ body[data-sea-theme="shipwreck"] {
   82% { opacity: .65; }
 }
 
-html.puzzle-scroll-lock,
-html.puzzle-scroll-lock body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden !important;
-  overscroll-behavior: none;
-}
-
-body.puzzle-mode {
-  min-height: 100dvh;
-  height: 100dvh;
-  overflow: hidden !important;
-  overscroll-behavior: none;
-  touch-action: none;
-}
-
-body.puzzle-mode .play-table,
-body.puzzle-mode .pieces-layer,
-body.puzzle-mode .piece {
-  touch-action: none !important;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-body.puzzle-mode .tray-pieces {
-  touch-action: pan-x !important;
-}
-
-body.puzzle-mode button,
-body.puzzle-mode select {
-  touch-action: manipulation;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .theme-angler,
@@ -389,8 +357,8 @@ body.puzzle-mode select {
 
   <header class="app-header" id="appHeader">
     <button class="header-btn" id="homeBtn">Home</button>
+    <div class="header-title" aria-label="Angler's Jigsaw">Angler's Jigsaw</div>
     <button class="header-btn" id="coolerBtn">Cooler</button>
-    <button class="header-btn" id="globalFullscreenBtn">Full Screen</button>
   </header>
 
   <main class="app-shell">
@@ -398,7 +366,7 @@ body.puzzle-mode select {
       <div class="home-shell">
         <div class="home-main home-main-refresh">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.5.0" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.5.4" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
 
           <div class="home-copy">
@@ -596,11 +564,11 @@ body.puzzle-mode select {
     <span class="footer-divider">•</span>
     <span>Angler's Jigsaw</span>
     <span class="footer-divider">•</span>
-    <span id="globalVersion">v3.5.2</span>
+    <span id="globalVersion">v3.5.4</span>
   </footer>
 
-  <script src="js/data.js?v=3.5.1"></script>
-  <script src="js/app.js?v=3.5.1"></script>
+  <script src="js/data.js?v=3.5.4"></script>
+  <script src="js/app.js?v=3.5.4"></script>
 
 
 <script>
