@@ -1356,3 +1356,56 @@ body.puzzle-mode {
     font-size: .9rem;
   }
 }
+
+
+/* ===== v3.5.5 brand consistency + restored theme assets ===== */
+.game-name-brand {
+  font-family: "Avenir Next Condensed", "Arial Narrow", "Trebuchet MS", sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em !important;
+  color: var(--aj-foam, #f2f7f8) !important;
+}
+
+.header-title.game-name-brand {
+  font-size: 1.08rem !important;
+  line-height: 1 !important;
+  text-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+.footer-game-name.game-name-brand {
+  font-size: .74rem !important;
+  line-height: 1 !important;
+  letter-spacing: -.01em !important;
+}
+
+.sea-theme-layer .theme-asset {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sea-theme-layer .theme-asset.coral-reef {
+  left: 50%;
+  bottom: -3%;
+  width: min(72vw, 980px);
+  transform: translateX(-50%);
+  opacity: .38;
+}
+
+.sea-theme-layer .theme-asset.pirate-ship {
+  left: 50%;
+  bottom: -2%;
+  width: min(74vw, 1040px);
+  transform: translateX(-50%);
+  opacity: .30;
+}
+
+.sea-theme-layer .theme-asset.anglerfish {
+  right: 4%;
+  top: 16%;
+  width: min(32vw, 480px);
+  opacity: .34;
+  filter: drop-shadow(0 0 26px rgba(255, 204, 92, .20));
+}
