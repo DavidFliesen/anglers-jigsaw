@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.3';
+const APP_VERSION = 'v3.5.4';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -33,7 +33,6 @@ const els = {
   puzzleInfo: document.getElementById('puzzleInfo'),
   pieceCounterChip: document.getElementById('pieceCounterChip'),
   previewBtn: document.getElementById('previewBtn'),
-  fullscreenBtn: document.getElementById('globalFullscreenBtn'),
   edgesToTableBtn: document.getElementById('edgesToTableBtn'),
   allTableBtn: document.getElementById('allTableBtn'),
   newPuzzleBtn: document.getElementById('newPuzzleBtn'),
@@ -79,7 +78,8 @@ const dragState = {
   offsetX: 0,
   offsetY: 0,
   pointerId: null,
-  origin: 'table'
+  origin: 'table',
+  captureEl: null
 };
 
 initialize();
@@ -91,103 +91,62 @@ function initialize() {
   buildWaterBubbles();
   bindUI();
   bindPuzzleViewportDiagnostics();
-  document.addEventListener('fullscreenchange', updateFullscreenButton);
-  document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
   renderPuzzleChoices();
   renderCooler();
   updateCoolerChip();
   showScreen('home');
-  updateFullscreenButton();
 }
 
 
 function bindPuzzleViewportDiagnostics() {
-  const keepAtTop = () => {
-    if (currentScreen !== 'puzzle') return;
-    if (window.scrollY !== 0 || document.documentElement.scrollTop !== 0 || document.body.scrollTop !== 0) {
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      window.scrollTo(0, 0);
-    }
-  };
-
-  window.addEventListener('scroll', keepAtTop, { passive: true });
-
+  // iPad/Safari: disable browser pinch/gesture handling only while the puzzle is active.
+  // Do not force scroll position or viewport height; those corrections were causing
+  // visible jumps when Safari changed its chrome/visual viewport during a drag.
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(type => {
     document.addEventListener(type, event => {
-      if (currentScreen === 'puzzle') {
-        event.preventDefault();
-      }
+      if (currentScreen === 'puzzle') event.preventDefault();
     }, { passive: false });
   });
-
-  document.addEventListener('touchmove', event => {
-    if (currentScreen !== 'puzzle') return;
-
-    const target = event.target;
-    const inTrayScroller = target.closest?.('#trayPieces');
-    const onPuzzlePiece = target.closest?.('.piece') || target.closest?.('.tray-piece');
-    const onPlayArea = target.closest?.('#playTable');
-
-    if (dragState.active || onPuzzlePiece || onPlayArea) {
-      event.preventDefault();
-      keepAtTop();
-      return;
-    }
-
-    if (!inTrayScroller) {
-      event.preventDefault();
-      keepAtTop();
-    }
-  }, { passive: false, capture: true });
 }
 
 function bindUI() {
   els.homeBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     if (currentScreen === 'puzzle') confirmLeavePuzzle();
     else showScreen('home');
   });
   els.coolerBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     openCooler();
   });
   els.startFishingBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     showScreen('select');
   });
   els.howToPlayBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     showScreen('how');
   });
   els.homeCoolerBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     openCooler();
   });
   els.howStartBtn.addEventListener('click', () => {
-    ensureFullscreenForNavigation();
     showScreen('select');
   });
   els.previewBtn.addEventListener('click', togglePreview);
-  els.fullscreenBtn.addEventListener('click', toggleFullscreen);
   els.edgesToTableBtn.addEventListener('click', edgesToTable);
   els.allTableBtn.addEventListener('click', allToTableAction);
-  els.newPuzzleBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('select'); });
+  els.newPuzzleBtn.addEventListener('click', () => { showScreen('select'); });
   els.trayFilter.addEventListener('change', renderTray);
   els.collapseTrayBtn.addEventListener('click', toggleTray);
   els.fishAgainBtn.addEventListener('click', () => {
     if (els.completeKicker.textContent === 'Fish Cooler Species' && detailFish) {
       startPuzzle(detailFish, currentDifficulty);
     } else {
-      ensureFullscreenForNavigation();
-      showScreen('select');
+        showScreen('select');
     }
   });
-  els.openCoolerBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); openCooler(); });
-  els.coolerPlayBtn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('select'); });
+  els.openCoolerBtn.addEventListener('click', () => { openCooler(); });
+  els.coolerPlayBtn.addEventListener('click', () => { showScreen('select'); });
 
   document.querySelectorAll('[data-back-home="true"]').forEach(btn => {
-    btn.addEventListener('click', () => { ensureFullscreenForNavigation(); showScreen('home'); });
+    btn.addEventListener('click', () => { showScreen('home'); });
   });
 
   window.addEventListener('resize', () => {
@@ -202,22 +161,12 @@ function bindUI() {
     }
   });
 
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-      if (currentScreen === 'puzzle' && puzzleState) {
-        schedulePuzzleLayout(false);
-      }
-    });
-  }
 
   // iPad/Safari: prevent page rubber-banding while a puzzle piece is being dragged.
   els.playTable.addEventListener('touchmove', event => {
     if (dragState.active) event.preventDefault();
   }, { passive: false });
 
-  document.addEventListener('touchmove', event => {
-    if (dragState.active) event.preventDefault();
-  }, { passive: false, capture: true });
 
   window.addEventListener('pointermove', onPointerMove, { passive: false });
   window.addEventListener('pointerup', onPointerUp, { passive: false });
@@ -252,15 +201,8 @@ function showScreen(name) {
   currentScreen = name;
   const playing = name === 'puzzle';
   els.body.classList.toggle('puzzle-mode', playing);
-  document.documentElement.classList.toggle('puzzle-scroll-lock', playing);
 
   if (playing && puzzleState) {
-    // The puzzle screen must always begin at the top of the page. Safari/iPad
-    // otherwise preserves the scroll position from the puzzle-selection screen,
-    // which can make the toolbar and top of the board appear cut off.
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    window.scrollTo(0, 0);
     schedulePuzzleLayout(false);
   } else {
     document.body.removeAttribute('data-sea-theme');
@@ -388,8 +330,6 @@ function showFishDetails(fish) {
 }
 
 async function startPuzzle(fish, difficulty) {
-  // Request fullscreen while still inside the user's tap/click gesture.
-  ensureFullscreenOnStart();
   clearPuzzle();
   const ratio = await loadImageRatio(fish.image).catch(() => 4 / 3);
 
@@ -410,9 +350,6 @@ async function startPuzzle(fish, difficulty) {
   applyPuzzleTheme(puzzleState.theme);
   buildPieces();
   showScreen('puzzle');
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-  window.scrollTo(0, 0);
   schedulePuzzleLayout(true);
   setTimeout(() => schedulePuzzleLayout(false), 550);
 }
@@ -881,6 +818,18 @@ function startDragFromTray(piece, event) {
   if (!puzzleState.metrics) return;
 
   event.preventDefault();
+  event.stopPropagation();
+
+  // Keep the original tray button alive for the duration of the pointer gesture.
+  // On iPad/Safari, removing the pointer-down element during the same gesture can
+  // hand scrolling back to the browser and make the whole screen jump.
+  const captureEl = event.currentTarget;
+  try { captureEl?.setPointerCapture?.(event.pointerId); } catch (_) {}
+  if (captureEl) {
+    captureEl.style.visibility = 'hidden';
+    captureEl.style.pointerEvents = 'none';
+  }
+
   const tableRect = els.playTable.getBoundingClientRect();
   piece.location = 'table';
   piece.locked = false;
@@ -889,8 +838,7 @@ function startDragFromTray(piece, event) {
   piece.y = event.clientY - tableRect.top - piece.size / 2;
   clampPieceToTable(piece);
   syncLoosePieces();
-  renderTray();
-  beginDrag(piece, event, piece.size / 2, piece.size / 2, 'tray');
+  beginDrag(piece, event, piece.size / 2, piece.size / 2, 'tray', captureEl);
 }
 
 function startDragFromTable(piece, event) {
@@ -898,27 +846,24 @@ function startDragFromTable(piece, event) {
   event.preventDefault();
   const tableRect = els.playTable.getBoundingClientRect();
   piece.z = ++zCounter;
-  beginDrag(piece, event, event.clientX - tableRect.left - piece.x, event.clientY - tableRect.top - piece.y, 'table');
+  beginDrag(piece, event, event.clientX - tableRect.left - piece.x, event.clientY - tableRect.top - piece.y, 'table', event.currentTarget);
 }
 
-function beginDrag(piece, event, offsetX, offsetY, origin) {
+function beginDrag(piece, event, offsetX, offsetY, origin, captureEl = null) {
   dragState.active = true;
   dragState.piece = piece;
   dragState.offsetX = offsetX;
   dragState.offsetY = offsetY;
   dragState.pointerId = event.pointerId;
   dragState.origin = origin;
+  dragState.captureEl = captureEl || event.currentTarget || piece.el;
   piece.el?.classList.add('dragging');
   document.body.classList.add('piece-drag-active');
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-  window.scrollTo(0, 0);
-  try {
-    piece.el?.setPointerCapture?.(event.pointerId);
-  } catch (_) {
-    // Safari can reject capture while the element is being reparented; touch-action
-    // and scroll locking still prevent the document from jumping.
-  }
+
+  // Capture on the element that actually received pointerdown. Keeping that
+  // element stable is more reliable on iPad Safari than capturing on a newly
+  // created/reparented puzzle piece.
+  try { dragState.captureEl?.setPointerCapture?.(event.pointerId); } catch (_) {}
 }
 
 function onPointerMove(event) {
@@ -950,6 +895,7 @@ function onPointerUp(event) {
   if (pointInRect(event.clientX, event.clientY, trayRect) && !piece.locked) {
     movePieceToTray(piece);
     cancelDrag();
+    renderTray();
     return;
   }
 
@@ -963,18 +909,24 @@ function onPointerUp(event) {
     syncLoosePieces();
   }
 
+  cancelDrag();
   renderTray();
   checkCompletion();
-  cancelDrag();
 }
 
 function cancelDrag() {
+  if (dragState.captureEl && dragState.pointerId !== null) {
+    try { dragState.captureEl.releasePointerCapture?.(dragState.pointerId); } catch (_) {}
+    dragState.captureEl.style.visibility = '';
+    dragState.captureEl.style.pointerEvents = '';
+  }
   dragState.active = false;
   dragState.piece = null;
   dragState.offsetX = 0;
   dragState.offsetY = 0;
   dragState.pointerId = null;
   dragState.origin = 'table';
+  dragState.captureEl = null;
   document.body.classList.remove('piece-drag-active');
 }
 
@@ -987,7 +939,6 @@ function movePieceToTray(piece) {
     piece.el.remove();
     piece.el = null;
   }
-  renderTray();
 }
 
 function lockPiece(piece) {
@@ -1127,163 +1078,3 @@ function toggleTray() {
 }
 
 
-function ensureFullscreenForNavigation() {
-  if (isFullscreenActive()) return;
-  requestFullscreenCompat(document.documentElement)
-    .then(() => updateFullscreenButton())
-    .catch(() => updateFullscreenButton());
-}
-
-async function toggleFullscreen() {
-  try {
-    if (!isFullscreenActive()) {
-      await requestFullscreenCompat(document.documentElement);
-    } else {
-      await exitFullscreenCompat();
-    }
-    updateFullscreenButton();
-    schedulePuzzleLayout(false);
-  } catch {
-    showToast('Full screen is not available here.');
-  }
-}
-
-function confirmLeavePuzzle() {
-  if (!puzzleState) {
-    showScreen('home');
-    return;
-  }
-  showScreen('home');
-  updateFullscreenButton();
-}
-
-
-function checkCompletion() {
-  if (!puzzleState) return;
-  const complete = puzzleState.pieces.every(piece => piece.locked);
-  if (!complete || puzzleState.completeShown) return;
-
-  puzzleState.completeShown = true;
-  cooler[puzzleState.fish.id] = true;
-  saveCooler();
-  renderCooler();
-
-  populateFishInfo(puzzleState.fish, false);
-  showScreen('complete');
-}
-
-
-function pickPuzzleTheme() {
-  return puzzleThemes[Math.floor(Math.random() * puzzleThemes.length)];
-}
-
-function applyPuzzleTheme(theme) {
-  const resolvedTheme = theme || 'open-ocean';
-  document.body.setAttribute('data-sea-theme', resolvedTheme);
-  renderSeaThemeScene(resolvedTheme);
-}
-
-function renderSeaThemeScene(theme) {
-  const layer = document.getElementById('seaThemeLayer');
-  if (!layer) return;
-
-  const scenes = {
-    'open-ocean': `
-      <div class="theme-scene theme-open-ocean" aria-hidden="true">
-        <div class="theme-ray ray-a"></div>
-        <div class="theme-ray ray-b"></div>
-      </div>`,
-    'deep-abyss': `
-      <div class="theme-scene theme-deep-abyss" aria-hidden="true">
-        <div class="abyss-glow"></div>
-        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g class="theme-angler" transform="translate(1180 430) scale(1.08)" opacity=".34">
-            <ellipse cx="0" cy="0" rx="125" ry="66" fill="#030711"/>
-            <path d="M-92 -5 C-165 -72 -195 -62 -225 -18 C-183 -5 -160 18 -110 32 Z" fill="#030711"/>
-            <path d="M70 -34 C126 -70 152 -25 143 10 C118 -1 94 3 70 18 Z" fill="#030711"/>
-            <circle cx="74" cy="-14" r="8" fill="#bdddf2" opacity=".55"/>
-            <path d="M42 -53 C72 -120 126 -134 151 -112" fill="none" stroke="#071019" stroke-width="8" stroke-linecap="round"/>
-            <circle class="angler-lure-glow" cx="158" cy="-112" r="105" fill="rgba(255,220,110,.18)"/>
-            <circle cx="158" cy="-112" r="10" fill="#fff0a0" opacity=".85"/>
-          </g>
-        </svg>
-      </div>`,
-    'coral-reef': `
-      <div class="theme-scene theme-coral-reef" aria-hidden="true">
-        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g transform="translate(0 665)" opacity=".28">
-            <path d="M0 150 C220 118 330 166 520 122 C700 80 840 152 1010 126 C1200 97 1360 147 1600 112 L1600 280 L0 280 Z" fill="#0c3d56"/>
-            <ellipse cx="280" cy="155" rx="110" ry="34" fill="#295864" opacity=".95"/>
-            <ellipse cx="520" cy="170" rx="76" ry="22" fill="#5a7c6b" opacity=".88"/>
-            <ellipse cx="760" cy="150" rx="132" ry="38" fill="#734c61" opacity=".82"/>
-            <ellipse cx="1030" cy="166" rx="96" ry="28" fill="#2b6870" opacity=".9"/>
-            <ellipse cx="1290" cy="152" rx="126" ry="34" fill="#8b5a54" opacity=".84"/>
-            <circle cx="220" cy="136" r="14" fill="#dcb46a" opacity=".82"/>
-            <circle cx="1160" cy="138" r="12" fill="#e8cf8f" opacity=".78"/>
-            <circle cx="1225" cy="152" r="8" fill="#f0dbad" opacity=".72"/>
-          </g>
-        </svg>
-      </div>`,
-    'shipwreck': `
-      <div class="theme-scene theme-shipwreck" aria-hidden="true">
-        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g transform="translate(250 620) rotate(-7)" opacity=".28" fill="#071a2a">
-            <path d="M0 115 L510 115 L445 200 L90 200 Z"/>
-            <path d="M110 115 V-55 H132 V115 Z"/>
-            <path d="M130 -44 L330 28 L130 55 Z"/>
-            <path d="M350 115 V15 H370 V115 Z"/>
-            <path d="M365 22 L480 62 L365 72 Z"/>
-            <path d="M0 115 L-42 78 L28 80 Z"/>
-          </g>
-          <g transform="translate(1180 780)" opacity=".22">
-            <rect x="-74" y="-22" width="148" height="64" rx="10" fill="#50371d"/>
-            <path d="M-74 -22 Q0 -82 74 -22 Z" fill="#684421"/>
-          </g>
-        </svg>
-      </div>`
-  };
-
-  layer.innerHTML = scenes[theme] || scenes['open-ocean'];
-}
-
-function isFullscreenActive() {
-  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-}
-
-async function requestFullscreenCompat(element) {
-  if (element.requestFullscreen) {
-    return element.requestFullscreen();
-  }
-  if (element.webkitRequestFullscreen) {
-    return Promise.resolve(element.webkitRequestFullscreen());
-  }
-  throw new Error('fullscreen unavailable');
-}
-
-async function exitFullscreenCompat() {
-  if (document.exitFullscreen) {
-    return document.exitFullscreen();
-  }
-  if (document.webkitExitFullscreen) {
-    return Promise.resolve(document.webkitExitFullscreen());
-  }
-  throw new Error('fullscreen unavailable');
-}
-
-function ensureFullscreenOnStart() {
-  if (isFullscreenActive()) {
-    updateFullscreenButton();
-    return;
-  }
-  requestFullscreenCompat(document.documentElement)
-    .then(() => {
-      updateFullscreenButton();
-      schedulePuzzleLayout(false);
-    })
-    .catch(() => updateFullscreenButton());
-}
-
-function updateFullscreenButton() {
-  if (!els.fullscreenBtn) return;
-  els.fullscreenBtn.textContent = isFullscreenActive() ? 'Exit Full Screen' : 'Full Screen';
-}
