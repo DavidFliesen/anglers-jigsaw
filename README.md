@@ -1,20 +1,18 @@
-# Angler's Jigsaw v3.5.1
-
-Changed-files-only corrective release for the v3.5 GUI redesign.
-
-## Fixed
-- Restored the correct puzzle-engine stylesheet that v3.5.0 accidentally replaced with an older stylesheet.
-- Loose puzzle pieces now render and position correctly on the table again.
-- The full puzzle image is hidden by default and appears only when Preview is turned on.
-- The board cut guide remains visible without revealing the completed image.
-- Removed stray themed scene graphics from Home, Puzzle Selection, How to Play, and Cooler screens.
-- Ambient swimming fish and bubbles remain active across screens.
-- Kept the v3.5 nautical GUI redesign, universal header, compact footer, and fullscreen architecture.
-- Puzzle mechanics were not intentionally changed in this release.
+# Angler's Jigsaw v3.5.2
 
 ## Changed files
-- `index.html`
-- `css/styles.css`
-- `js/app.js`
-- `sw.js`
-- `README.md`
+- index.html
+- css/styles.css
+- js/app.js
+- sw.js
+- README.md
+
+## Changes
+- Simplified How to Play into four short steps instead of six repetitive cards.
+- Increased How to Play readability with larger text, stronger hierarchy, and fewer words.
+- Reduced puzzle-board footprint slightly to add negative space around the board.
+- Added more breathing room between the play table and tackle tray.
+- Slightly reduced tray height and piece footprint to make the iPad layout feel less cramped.
+- Added stronger iPad/Safari scroll and rubber-band prevention while dragging puzzle pieces.
+- Locked puzzle-mode page scrolling so dragging a piece between the tray and board should no longer move the page vertically.
+- Version updated to v3.5.2.

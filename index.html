@@ -445,42 +445,35 @@ body.puzzle-mode select {
     </section>
 
     <section class="screen" id="screen-how">
-      <div class="panel how-panel">
-        <h2>How to Play</h2>
-
-        <div class="how-grid">
-          <article>
-            <h3>Large Play Area</h3>
-            <p>The tabletop is kept as open as possible so you can see pieces clearly, spread them out, and play in a way that feels natural.</p>
-          </article>
-
-          <article>
-            <h3>Start Your Way</h3>
-            <p>All pieces start in the bottom Tackle Tray. Use <strong>Edges to Table</strong> to scatter edge pieces first, or <strong>All to Table</strong> to push everything out and start exploring.</p>
-          </article>
-
-          <article>
-            <h3>Traditional Puzzle Feel</h3>
-            <p>Pieces use a classic ribbon-cut jigsaw style with deeper tabs and blanks so they feel like real puzzle pieces instead of simplified blocks.</p>
-          </article>
-
-          <article>
-            <h3>Snap Into Place</h3>
-            <p>When a piece is close enough to its correct spot on the puzzle, it snap-locks into place. Locked pieces stay put.</p>
-          </article>
-
-          <article>
-            <h3>Use the Tray</h3>
-            <p>You can drag a piece out of the tray or drag a loose piece back into the tray when you want to clear space and rethink your approach.</p>
-          </article>
-
-          <article>
-            <h3>Preview and Full Screen</h3>
-            <p>Turn on a preview when you want a quick reminder of the full image, or go full screen for the biggest playing area possible.</p>
-          </article>
+      <div class="panel how-panel how-simple">
+        <div class="how-intro">
+          <p class="eyebrow">Quick guide</p>
+          <h2>How to Play</h2>
+          <p>Pick a fish, choose your puzzle size, then solve it your way.</p>
         </div>
 
-        <div class="button-row">
+        <ol class="how-steps">
+          <li>
+            <span class="how-step-number">1</span>
+            <div><strong>Choose a puzzle</strong><p>Select a fish and difficulty.</p></div>
+          </li>
+          <li>
+            <span class="how-step-number">2</span>
+            <div><strong>Spread out the pieces</strong><p>Drag pieces from the tray, or use <strong>Edges to Table</strong> or <strong>All to Table</strong>.</p></div>
+          </li>
+          <li>
+            <span class="how-step-number">3</span>
+            <div><strong>Build the picture</strong><p>Move pieces wherever you want. Correct pieces snap and lock when they reach their spot.</p></div>
+          </li>
+          <li>
+            <span class="how-step-number">4</span>
+            <div><strong>Finish the catch</strong><p>Complete the puzzle to add the species to your Fish Cooler.</p></div>
+          </li>
+        </ol>
+
+        <div class="how-tip"><strong>Tip:</strong> Use <strong>Preview</strong> only when you want a quick look at the finished image.</div>
+
+        <div class="button-row how-actions">
           <button class="primary-btn" id="howStartBtn">Choose a Puzzle</button>
           <button class="secondary-btn" data-back-home="true">Back</button>
         </div>
@@ -605,7 +598,7 @@ body.puzzle-mode select {
     <span class="footer-divider">•</span>
     <span>Angler's Jigsaw</span>
     <span class="footer-divider">•</span>
-    <span id="globalVersion">v3.5.1</span>
+    <span id="globalVersion">v3.5.2</span>
   </footer>
 
   <script src="js/data.js?v=3.5.1"></script>
