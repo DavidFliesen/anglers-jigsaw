@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.6';
+const APP_VERSION = 'v3.5.7';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -70,6 +70,10 @@ let puzzleState = null;
 let currentScreen = 'home';
 let zCounter = 20;
 let detailFish = null;
+let lastLayoutW = 0;
+let lastLayoutH = 0;
+let resizeTimer = null;
+let pendingViewportRelayout = false;
 const puzzleThemes = ['open-ocean', 'deep-abyss', 'coral-reef', 'shipwreck'];
 
 const dragState = {
@@ -79,7 +83,8 @@ const dragState = {
   offsetY: 0,
   pointerId: null,
   origin: 'table',
-  captureEl: null
+  captureEl: null,
+  tableRect: null
 };
 
 initialize();
@@ -150,16 +155,16 @@ function bindUI() {
   });
 
   window.addEventListener('resize', () => {
-    if (currentScreen === 'puzzle' && puzzleState) {
-      schedulePuzzleLayout(false);
-    }
-  });
+    requestViewportRelayout(false);
+  }, { passive: true });
 
   window.addEventListener('orientationchange', () => {
-    if (currentScreen === 'puzzle' && puzzleState) {
-      schedulePuzzleLayout(false);
+    if (dragState.active) {
+      pendingViewportRelayout = true;
+      return;
     }
-  });
+    setTimeout(() => requestViewportRelayout(true), 180);
+  }, { passive: true });
 
 
   // iPad/Safari: prevent page rubber-banding while a puzzle piece is being dragged.
@@ -211,16 +216,48 @@ function showScreen(name) {
   }
 }
 
+function requestViewportRelayout(force = false) {
+  if (currentScreen !== 'puzzle' || !puzzleState) return;
+
+  const w = Math.round(window.innerWidth || document.documentElement.clientWidth || 0);
+  const h = Math.round(window.visualViewport?.height || window.innerHeight || 0);
+
+  // Safari/iPad frequently reports a resize when browser chrome changes height.
+  // Ignore those height-only changes so a normal touch/drag cannot rescale the board.
+  if (!force && w === lastLayoutW && Math.abs(h - lastLayoutH) < 120) return;
+
+  // Never rebuild board geometry while a piece is under the pointer.
+  if (dragState.active) {
+    pendingViewportRelayout = true;
+    return;
+  }
+
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (dragState.active || currentScreen !== 'puzzle' || !puzzleState) {
+      pendingViewportRelayout = true;
+      return;
+    }
+    lastLayoutW = w;
+    lastLayoutH = h;
+    pendingViewportRelayout = false;
+    schedulePuzzleLayout(false);
+  }, 150);
+}
+
 function schedulePuzzleLayout(initial = false) {
   if (!puzzleState || currentScreen !== 'puzzle') return;
+  if (dragState.active) {
+    pendingViewportRelayout = true;
+    return;
+  }
 
-  // iPad Safari may need more than one frame for the flex layout and browser
-  // chrome/visual viewport to settle. Re-measure a few times without disturbing
-  // gameplay state so the full board stays inside the visible play table.
-  const delays = [0, 80, 220, 420];
+  // Initial entry gets a few settling passes for iPad Safari. Ordinary resize
+  // events get one pass only, preventing repeated rescaling during gameplay.
+  const delays = initial ? [0, 100, 260] : [0];
   delays.forEach((delay, index) => {
     setTimeout(() => {
-      if (!puzzleState || currentScreen !== 'puzzle') return;
+      if (!puzzleState || currentScreen !== 'puzzle' || dragState.active) return;
       requestAnimationFrame(() => layoutPuzzle(initial && index === 0));
     }, delay);
   });
@@ -500,7 +537,7 @@ function layoutPuzzle(initial = false) {
   let tableRect = els.playTable.getBoundingClientRect();
   const oldMetrics = puzzleState.metrics;
 
-  // v3.5.6: fail safe for Safari/iPad and for any CSS regression that briefly
+  // Fail safe for Safari/iPad and for any CSS regression that briefly
   // collapses the flex/grid play area. A puzzle must never open with a 0px
   // board. Give the table a stable fallback height, then measure again.
   if (tableRect.width < 260 || tableRect.height < 220) {
@@ -567,6 +604,7 @@ function layoutPuzzle(initial = false) {
     piece.size = shape.size;
     piece.margin = shape.margin;
     piece.path = shape.path;
+    piece.dirty = true;
     piece.targetX = boardLeft + piece.col * metrics.cell - shape.margin;
     piece.targetY = boardTop + piece.row * metrics.cell - shape.margin;
     piece.imgX = draw.x - piece.col * metrics.cell + shape.margin;
@@ -586,6 +624,10 @@ function layoutPuzzle(initial = false) {
   syncLoosePieces();
   renderTray();
   updatePuzzleMeta();
+
+  lastLayoutW = Math.round(window.innerWidth || document.documentElement.clientWidth || 0);
+  lastLayoutH = Math.round(window.visualViewport?.height || window.innerHeight || 0);
+  pendingViewportRelayout = false;
 }
 
 function computeCoverRect(imageRatio, boardW, boardH) {
@@ -741,10 +783,14 @@ function createPieceElement(piece) {
 function ensurePieceElement(piece) {
   if (!piece.el) {
     createPieceElement(piece);
-  } else {
+    piece.dirty = false;
+  } else if (piece.dirty) {
+    // Rebuild the SVG only when layout geometry changes. Rebuilding every sync
+    // destroys/recreates the raster <image> and caused all pieces to flash.
     piece.el.innerHTML = pieceSvgMarkup(piece);
     piece.el.style.width = `${piece.size}px`;
     piece.el.style.height = `${piece.size}px`;
+    piece.dirty = false;
   }
 }
 
@@ -883,6 +929,9 @@ function beginDrag(piece, event, offsetX, offsetY, origin, captureEl = null) {
   dragState.pointerId = event.pointerId;
   dragState.origin = origin;
   dragState.captureEl = captureEl || event.currentTarget || piece.el;
+  // Cache the table's coordinate space once at drag start instead of forcing
+  // getBoundingClientRect() and a reflow on every pointermove.
+  dragState.tableRect = els.playTable.getBoundingClientRect();
   piece.el?.classList.add('dragging');
   document.body.classList.add('piece-drag-active');
 
@@ -897,7 +946,8 @@ function onPointerMove(event) {
   if (dragState.pointerId !== null && event.pointerId !== dragState.pointerId) return;
   event.preventDefault();
 
-  const tableRect = els.playTable.getBoundingClientRect();
+  const tableRect = dragState.tableRect;
+  if (!tableRect) return;
   const piece = dragState.piece;
   piece.x = event.clientX - tableRect.left - dragState.offsetX;
   piece.y = event.clientY - tableRect.top - dragState.offsetY;
@@ -953,7 +1003,13 @@ function cancelDrag() {
   dragState.pointerId = null;
   dragState.origin = 'table';
   dragState.captureEl = null;
+  dragState.tableRect = null;
   document.body.classList.remove('piece-drag-active');
+
+  if (pendingViewportRelayout && currentScreen === 'puzzle' && puzzleState) {
+    pendingViewportRelayout = false;
+    setTimeout(() => requestViewportRelayout(true), 0);
+  }
 }
 
 
