@@ -1,17 +1,18 @@
-# Angler's Jigsaw v3.5.5
+# Angler's Jigsaw v3.5.6
 
-Full code-review repair release.
+Critical board-layout recovery release.
 
-## Critical fixes
-- Restored `confirmLeavePuzzle()`, `checkCompletion()`, `pickPuzzleTheme()`, `applyPuzzleTheme()`, and `renderSeaThemeScene()` that were accidentally dropped from v3.5.4.
-- Fixed the fish-selection launch failure. Clicking a fish now starts the puzzle immediately instead of waiting for an image-load event.
-- All current puzzle artwork uses the standard 4:3 board ratio, so puzzle startup now uses that known ratio directly.
-- Fish-selection cards explicitly use `type="button"`.
-- Restored completion detection and Fish Cooler saving after the missing-function regression.
-- Restored theme selection using the approved anglerfish, coral reef, and sunken pirate ship assets.
+## What was wrong
+The v3.5.4/v3.5.5 viewport stabilization work removed the fixed/fullscreen behavior but left conflicting older CSS rules in place. The puzzle screen's flex container could collapse the play-table height to almost zero. Because `layoutPuzzle()` intentionally refused to render into a tiny table, the app opened with `0/0 locked`, an empty tray, and no visible board.
 
-## Branding consistency
-Every visible use of the game name now uses the same condensed, heavy Angler's Jigsaw title styling used on the opening screen, scaled appropriately for the header and footer.
+## What changed
+- replaced the puzzle page's conflicting flex/viewport rules with one final stable CSS grid
+- reserves explicit rows for toolbar, board, and tray
+- uses `100svh` on iPad/Safari for a stable small viewport without the Fullscreen API
+- added a JavaScript fail-safe that gives the board a usable height if Safari temporarily reports a collapsed table
+- updates puzzle title/count immediately before layout so a failed measurement can no longer masquerade as a 0-piece puzzle
+- retained the no-fullscreen approach and current drag mechanics
+- updated cache/version to v3.5.6
 
 ## Changed files
 - index.html
