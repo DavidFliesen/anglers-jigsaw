@@ -1248,3 +1248,85 @@ body.piece-drag-active .tray-pieces {
     margin-inline: 16px;
   }
 }
+
+
+/* ============================================================
+   v3.5.3 puzzle-background cleanup + iPad diagnostics
+   ============================================================ */
+html,
+body,
+.app-shell,
+.play-shell,
+.play-table,
+.tray-bar,
+.tray-pieces,
+.pieces-layer {
+  overflow-anchor: none;
+}
+
+body.puzzle-mode {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  max-width: 100%;
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+html.puzzle-scroll-lock,
+html.puzzle-scroll-lock body {
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.play-shell {
+  min-height: calc(100dvh - var(--header-h) - 10px) !important;
+  height: calc(100dvh - var(--header-h) - 10px) !important;
+  overflow: hidden;
+}
+
+.play-table,
+.board-shell,
+.pieces-layer,
+.piece,
+.tray-piece,
+.tray-pieces,
+.play-toolbar,
+.tray-bar {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.tray-piece {
+  touch-action: none !important;
+}
+
+/* Keep the home hero exactly as requested: logo left, copy/actions right. */
+.home-main-refresh {
+  display: grid !important;
+  align-items: center;
+}
+
+/* Remove amateur-looking line / cactus shapes from underwater themes. */
+.sea-theme-layer .theme-coral-lines,
+.sea-theme-layer .theme-coral-branches,
+.sea-theme-layer .theme-kelp-lagoon,
+.sea-theme-layer .kelp-silhouette,
+.sea-theme-layer .theme-ship-chest,
+.sea-theme-layer .theme-ship-glow {
+  display: none !important;
+}
+
+/* Theme elements should stay subtle and stay behind the gameplay. */
+.sea-theme-layer {
+  opacity: .72;
+}
+
+@media (max-width: 900px) {
+  .play-shell {
+    min-height: calc(100dvh - var(--header-h) - 6px) !important;
+    height: calc(100dvh - var(--header-h) - 6px) !important;
+  }
+}
