@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.4';
+const APP_VERSION = 'v3.5.5';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -262,6 +262,7 @@ function renderPuzzleChoices() {
   els.fishSelectGrid.innerHTML = '';
   Object.values(speciesData).forEach(fish => {
     const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'fish-select-card';
     card.innerHTML = `
       <img src="${fish.image}" alt="${fish.commonName}" />
@@ -329,14 +330,22 @@ function showFishDetails(fish) {
   showScreen('complete');
 }
 
-async function startPuzzle(fish, difficulty) {
-  clearPuzzle();
-  const ratio = await loadImageRatio(fish.image).catch(() => 4 / 3);
+function startPuzzle(fish, difficulty) {
+  if (!fish || !difficulty) {
+    showToast('Unable to start this puzzle.');
+    return;
+  }
 
+  clearPuzzle();
+
+  // All current puzzle artwork is authored at the standard 4:3 board ratio.
+  // Do not block navigation waiting for an image-load event: on iPad/Safari a
+  // stale or delayed cached image request can otherwise make a fish card look
+  // pressed without ever opening the puzzle screen.
   puzzleState = {
     fish,
     difficulty,
-    ratio,
+    ratio: 4 / 3,
     rows: difficulty.rows,
     cols: difficulty.cols,
     pieces: [],
@@ -1078,3 +1087,64 @@ function toggleTray() {
 }
 
 
+
+
+function confirmLeavePuzzle() {
+  if (!puzzleState) {
+    showScreen('home');
+    return;
+  }
+  showScreen('home');
+}
+
+function checkCompletion() {
+  if (!puzzleState) return;
+  const complete = puzzleState.pieces.every(piece => piece.locked);
+  if (!complete || puzzleState.completeShown) return;
+
+  puzzleState.completeShown = true;
+  cooler[puzzleState.fish.id] = true;
+  saveCooler();
+  renderCooler();
+
+  populateFishInfo(puzzleState.fish, false);
+  showScreen('complete');
+}
+
+function pickPuzzleTheme() {
+  return puzzleThemes[Math.floor(Math.random() * puzzleThemes.length)];
+}
+
+function applyPuzzleTheme(theme) {
+  const resolvedTheme = theme || 'open-ocean';
+  document.body.setAttribute('data-sea-theme', resolvedTheme);
+  renderSeaThemeScene(resolvedTheme);
+}
+
+function renderSeaThemeScene(theme) {
+  const layer = document.getElementById('seaThemeLayer');
+  if (!layer) return;
+
+  const scenes = {
+    'open-ocean': `
+      <div class="theme-scene theme-open-ocean" aria-hidden="true">
+        <div class="theme-ray ray-a"></div>
+        <div class="theme-ray ray-b"></div>
+      </div>`,
+    'deep-abyss': `
+      <div class="theme-scene theme-deep-abyss" aria-hidden="true">
+        <div class="abyss-glow"></div>
+        <img class="theme-asset anglerfish" src="assets/fish/anglerfish.png" alt="" />
+      </div>`,
+    'coral-reef': `
+      <div class="theme-scene theme-coral-reef" aria-hidden="true">
+        <img class="theme-asset coral-reef" src="assets/images/themes/coral-reef.png" alt="" />
+      </div>`,
+    'shipwreck': `
+      <div class="theme-scene theme-shipwreck" aria-hidden="true">
+        <img class="theme-asset pirate-ship" src="assets/images/themes/sunken-pirate-ship.png" alt="" />
+      </div>`
+  };
+
+  layer.innerHTML = scenes[theme] || scenes['open-ocean'];
+}
