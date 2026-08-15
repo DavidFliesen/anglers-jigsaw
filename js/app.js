@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.1';
+const APP_VERSION = 'v3.5.2';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -172,6 +172,10 @@ function bindUI() {
   els.playTable.addEventListener('touchmove', event => {
     if (dragState.active) event.preventDefault();
   }, { passive: false });
+
+  document.addEventListener('touchmove', event => {
+    if (dragState.active) event.preventDefault();
+  }, { passive: false, capture: true });
 
   window.addEventListener('pointermove', onPointerMove, { passive: false });
   window.addEventListener('pointerup', onPointerUp, { passive: false });
@@ -507,9 +511,9 @@ function layoutPuzzle(initial = false) {
   // that is taller than the visible table and therefore clipped at the top.
   if (tableRect.width < 260 || tableRect.height < 220) return;
 
-  const gutter = Math.max(18, Math.min(36, tableRect.width * 0.025));
-  const maxW = Math.max(1, tableRect.width - gutter * 2);
-  const maxH = Math.max(1, tableRect.height - gutter * 2);
+  const gutter = Math.max(30, Math.min(56, tableRect.width * 0.045));
+  const maxW = Math.max(1, (tableRect.width - gutter * 2) * 0.94);
+  const maxH = Math.max(1, (tableRect.height - gutter * 2) * 0.94);
   let boardW = maxW;
   let boardH = boardW * 3 / 4;
   if (boardH > maxH) {
@@ -859,6 +863,7 @@ function beginDrag(piece, event, offsetX, offsetY, origin) {
   dragState.pointerId = event.pointerId;
   dragState.origin = origin;
   piece.el?.classList.add('dragging');
+  document.body.classList.add('piece-drag-active');
   try {
     piece.el?.setPointerCapture?.(event.pointerId);
   } catch (_) {
@@ -921,7 +926,9 @@ function cancelDrag() {
   dragState.offsetY = 0;
   dragState.pointerId = null;
   dragState.origin = 'table';
+  document.body.classList.remove('piece-drag-active');
 }
+
 
 function movePieceToTray(piece) {
   piece.location = 'tray';
