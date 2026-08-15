@@ -1097,11 +1097,6 @@ body {
   overscroll-behavior: none;
 }
 
-body.puzzle-mode {
-  height: 100dvh;
-  overflow: hidden !important;
-}
-
 body.piece-drag-active {
   touch-action: none !important;
   overscroll-behavior: none !important;
@@ -1264,19 +1259,7 @@ body,
   overflow-anchor: none;
 }
 
-/* Safari owns the viewport again. Do not pin the body to 100dvh or fixed positioning. */
-body.puzzle-mode {
-  position: static !important;
-  inset: auto !important;
-  width: 100% !important;
-  min-height: 100% !important;
-  height: auto !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain;
-  touch-action: manipulation;
-}
-
+/* v3.5.7: obsolete v3.5.4 viewport override removed; final stable puzzle-mode rule below owns the viewport. */
 .play-shell {
   min-height: 0 !important;
   height: auto !important;
@@ -1412,7 +1395,7 @@ body.puzzle-mode {
 
 
 /* ============================================================
-   v3.5.6 end-to-end board recovery / stable iPad layout
+   v3.5.7 stable board layout + drag flicker/jump fixes
    This final layer intentionally overrides earlier experimental viewport rules.
    ============================================================ */
 :root {
