@@ -1,18 +1,17 @@
-# Angler's Jigsaw v3.5.4 — Viewport Stabilization
+# Angler's Jigsaw v3.5.5
 
-This release removes the programmatic fullscreen system to isolate and reduce iPad/Safari screen jumping during puzzle play.
+Full code-review repair release.
 
-## Changes
-- removed the Full Screen / Exit Full Screen control
-- removed all calls to the browser Fullscreen API
-- header is now **Home | Angler's Jigsaw | Cooler**
-- removed forced `100dvh` body sizing and fixed viewport behavior
-- removed repeated `window.scrollTo(0,0)` corrections during dragging
-- removed the `visualViewport` resize relayout hook that could fire while Safari browser chrome changed
-- limited touch suppression to the puzzle table and draggable pieces instead of the entire page
-- changed tray-to-board dragging so the original iPad pointer-down element remains alive until the drag ends
-- added stable pointer capture and release handling for tray pieces
-- keeps the puzzle board/tray mechanics and artwork unchanged
+## Critical fixes
+- Restored `confirmLeavePuzzle()`, `checkCompletion()`, `pickPuzzleTheme()`, `applyPuzzleTheme()`, and `renderSeaThemeScene()` that were accidentally dropped from v3.5.4.
+- Fixed the fish-selection launch failure. Clicking a fish now starts the puzzle immediately instead of waiting for an image-load event.
+- All current puzzle artwork uses the standard 4:3 board ratio, so puzzle startup now uses that known ratio directly.
+- Fish-selection cards explicitly use `type="button"`.
+- Restored completion detection and Fish Cooler saving after the missing-function regression.
+- Restored theme selection using the approved anglerfish, coral reef, and sunken pirate ship assets.
+
+## Branding consistency
+Every visible use of the game name now uses the same condensed, heavy Angler's Jigsaw title styling used on the opening screen, scaled appropriately for the header and footer.
 
 ## Changed files
 - index.html
