@@ -1,18 +1,17 @@
-# Angler's Jigsaw v3.5.6
+# Angler's Jigsaw v3.5.7
 
-Critical board-layout recovery release.
+Focused iPad drag stability and piece-rendering release.
 
-## What was wrong
-The v3.5.4/v3.5.5 viewport stabilization work removed the fixed/fullscreen behavior but left conflicting older CSS rules in place. The puzzle screen's flex container could collapse the play-table height to almost zero. Because `layoutPuzzle()` intentionally refused to render into a tiny table, the app opened with `0/0 locked`, an empty tray, and no visible board.
-
-## What changed
-- replaced the puzzle page's conflicting flex/viewport rules with one final stable CSS grid
-- reserves explicit rows for toolbar, board, and tray
-- uses `100svh` on iPad/Safari for a stable small viewport without the Fullscreen API
-- added a JavaScript fail-safe that gives the board a usable height if Safari temporarily reports a collapsed table
-- updates puzzle title/count immediately before layout so a failed measurement can no longer masquerade as a 0-piece puzzle
-- retained the no-fullscreen approach and current drag mechanics
-- updated cache/version to v3.5.6
+## Fixes applied
+- stops rebuilding every table piece SVG during ordinary syncs; SVG/raster content is rebuilt only when puzzle geometry changes
+- marks pieces dirty only when `layoutPuzzle()` recalculates their shape/size
+- prevents resize/orientation relayouts while a piece is being dragged
+- debounces genuine viewport resize handling and ignores small Safari URL-bar height changes
+- reduces non-initial puzzle relayouts from four passes to one
+- caches the play-table `getBoundingClientRect()` at drag start instead of forcing layout on every pointer move
+- queues any genuine orientation/viewport relayout until after the drag gesture ends
+- removes the contradictory older `body.puzzle-mode` viewport rules so the final stable puzzle layout is the single active rule
+- updates service-worker/cache-busting version to v3.5.7
 
 ## Changed files
 - index.html
