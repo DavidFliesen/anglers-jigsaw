@@ -1,4 +1,4 @@
-const APP_VERSION = 'v3.5.2';
+const APP_VERSION = 'v3.5.3';
 const STORAGE_KEY = 'anglers-jigsaw-cooler-v3';
 const difficulties = [
   { id: 'easy', label: 'Easy', pieces: 12, cols: 4, rows: 3 },
@@ -90,6 +90,7 @@ function initialize() {
   if (els.globalVersion) els.globalVersion.textContent = APP_VERSION;
   buildWaterBubbles();
   bindUI();
+  bindPuzzleViewportDiagnostics();
   document.addEventListener('fullscreenchange', updateFullscreenButton);
   document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
   renderPuzzleChoices();
@@ -99,6 +100,47 @@ function initialize() {
   updateFullscreenButton();
 }
 
+
+function bindPuzzleViewportDiagnostics() {
+  const keepAtTop = () => {
+    if (currentScreen !== 'puzzle') return;
+    if (window.scrollY !== 0 || document.documentElement.scrollTop !== 0 || document.body.scrollTop !== 0) {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+  };
+
+  window.addEventListener('scroll', keepAtTop, { passive: true });
+
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(type => {
+    document.addEventListener(type, event => {
+      if (currentScreen === 'puzzle') {
+        event.preventDefault();
+      }
+    }, { passive: false });
+  });
+
+  document.addEventListener('touchmove', event => {
+    if (currentScreen !== 'puzzle') return;
+
+    const target = event.target;
+    const inTrayScroller = target.closest?.('#trayPieces');
+    const onPuzzlePiece = target.closest?.('.piece') || target.closest?.('.tray-piece');
+    const onPlayArea = target.closest?.('#playTable');
+
+    if (dragState.active || onPuzzlePiece || onPlayArea) {
+      event.preventDefault();
+      keepAtTop();
+      return;
+    }
+
+    if (!inTrayScroller) {
+      event.preventDefault();
+      keepAtTop();
+    }
+  }, { passive: false, capture: true });
+}
 
 function bindUI() {
   els.homeBtn.addEventListener('click', () => {
@@ -220,6 +262,10 @@ function showScreen(name) {
     document.body.scrollTop = 0;
     window.scrollTo(0, 0);
     schedulePuzzleLayout(false);
+  } else {
+    document.body.removeAttribute('data-sea-theme');
+    const themeLayer = document.getElementById('seaThemeLayer');
+    if (themeLayer) themeLayer.innerHTML = '';
   }
 }
 
@@ -864,6 +910,9 @@ function beginDrag(piece, event, offsetX, offsetY, origin) {
   dragState.origin = origin;
   piece.el?.classList.add('dragging');
   document.body.classList.add('piece-drag-active');
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  window.scrollTo(0, 0);
   try {
     piece.el?.setPointerCapture?.(event.pointerId);
   } catch (_) {
@@ -1140,68 +1189,58 @@ function renderSeaThemeScene(theme) {
 
   const scenes = {
     'open-ocean': `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <linearGradient id="openRay" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#d7f6ff" stop-opacity=".22"/>
-            <stop offset="1" stop-color="#d7f6ff" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="M250 0 L520 900 L720 900 L470 0 Z" fill="url(#openRay)"/>
-        <path d="M880 0 L1040 900 L1180 900 L1030 0 Z" fill="url(#openRay)" opacity=".55"/>
-        <path d="M0 815 C240 770 390 840 620 800 C900 750 1140 830 1600 790 L1600 900 L0 900 Z" fill="#052746" opacity=".32"/>
-      </svg>`,
+      <div class="theme-scene theme-open-ocean" aria-hidden="true">
+        <div class="theme-ray ray-a"></div>
+        <div class="theme-ray ray-b"></div>
+      </div>`,
     'deep-abyss': `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <radialGradient id="lureGlow">
-            <stop offset="0" stop-color="#fff3ad" stop-opacity=".58"/>
-            <stop offset=".28" stop-color="#ffd86b" stop-opacity=".18"/>
-            <stop offset="1" stop-color="#ffd86b" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <g class="theme-angler" transform="translate(1160 430) scale(1.15)" opacity=".38">
-          <ellipse cx="0" cy="0" rx="125" ry="66" fill="#030711"/>
-          <path d="M-92 -5 C-165 -72 -195 -62 -225 -18 C-183 -5 -160 18 -110 32 Z" fill="#030711"/>
-          <path d="M70 -34 C126 -70 152 -25 143 10 C118 -1 94 3 70 18 Z" fill="#030711"/>
-          <circle cx="74" cy="-14" r="8" fill="#bdddf2" opacity=".55"/>
-          <path d="M42 -53 C72 -120 126 -134 151 -112" fill="none" stroke="#071019" stroke-width="8" stroke-linecap="round"/>
-          <circle class="angler-lure-glow" cx="158" cy="-112" r="105" fill="url(#lureGlow)"/>
-          <circle cx="158" cy="-112" r="10" fill="#fff0a0" opacity=".85"/>
-        </g>
-      </svg>`,
-    'coral-reef': `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <g transform="translate(0 655)" opacity=".34">
-          <path d="M0 170 C150 95 310 145 430 105 C560 60 705 145 855 95 C1050 35 1260 140 1600 68 L1600 245 L0 245 Z" fill="#073d51"/>
-          <g fill="none" stroke-linecap="round">
-            <path d="M140 160 V70 M140 105 L100 62 M140 120 L190 72 M190 72 V38" stroke="#dd785c" stroke-width="18"/>
-            <path d="M410 160 V62 M410 94 L370 50 M410 112 L460 66 M370 50 V25" stroke="#e3a66e" stroke-width="15"/>
-            <path d="M1180 160 V55 M1180 96 L1136 48 M1180 120 L1238 66 M1238 66 V34" stroke="#c85d72" stroke-width="20"/>
-            <path d="M1390 165 V84 M1390 104 L1355 68 M1390 126 L1435 88" stroke="#e7b66d" stroke-width="14"/>
+      <div class="theme-scene theme-deep-abyss" aria-hidden="true">
+        <div class="abyss-glow"></div>
+        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g class="theme-angler" transform="translate(1180 430) scale(1.08)" opacity=".34">
+            <ellipse cx="0" cy="0" rx="125" ry="66" fill="#030711"/>
+            <path d="M-92 -5 C-165 -72 -195 -62 -225 -18 C-183 -5 -160 18 -110 32 Z" fill="#030711"/>
+            <path d="M70 -34 C126 -70 152 -25 143 10 C118 -1 94 3 70 18 Z" fill="#030711"/>
+            <circle cx="74" cy="-14" r="8" fill="#bdddf2" opacity=".55"/>
+            <path d="M42 -53 C72 -120 126 -134 151 -112" fill="none" stroke="#071019" stroke-width="8" stroke-linecap="round"/>
+            <circle class="angler-lure-glow" cx="158" cy="-112" r="105" fill="rgba(255,220,110,.18)"/>
+            <circle cx="158" cy="-112" r="10" fill="#fff0a0" opacity=".85"/>
           </g>
-          <ellipse cx="700" cy="132" rx="115" ry="38" fill="#386052" opacity=".8"/>
-          <ellipse cx="930" cy="152" rx="92" ry="30" fill="#654a5d" opacity=".7"/>
-        </g>
-      </svg>`,
+        </svg>
+      </div>`,
+    'coral-reef': `
+      <div class="theme-scene theme-coral-reef" aria-hidden="true">
+        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g transform="translate(0 665)" opacity=".28">
+            <path d="M0 150 C220 118 330 166 520 122 C700 80 840 152 1010 126 C1200 97 1360 147 1600 112 L1600 280 L0 280 Z" fill="#0c3d56"/>
+            <ellipse cx="280" cy="155" rx="110" ry="34" fill="#295864" opacity=".95"/>
+            <ellipse cx="520" cy="170" rx="76" ry="22" fill="#5a7c6b" opacity=".88"/>
+            <ellipse cx="760" cy="150" rx="132" ry="38" fill="#734c61" opacity=".82"/>
+            <ellipse cx="1030" cy="166" rx="96" ry="28" fill="#2b6870" opacity=".9"/>
+            <ellipse cx="1290" cy="152" rx="126" ry="34" fill="#8b5a54" opacity=".84"/>
+            <circle cx="220" cy="136" r="14" fill="#dcb46a" opacity=".82"/>
+            <circle cx="1160" cy="138" r="12" fill="#e8cf8f" opacity=".78"/>
+            <circle cx="1225" cy="152" r="8" fill="#f0dbad" opacity=".72"/>
+          </g>
+        </svg>
+      </div>`,
     'shipwreck': `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <g transform="translate(260 610) rotate(-7)" opacity=".33" fill="#071a2a">
-          <path d="M0 115 L510 115 L445 200 L90 200 Z"/>
-          <path d="M110 115 V-55 H132 V115 Z"/>
-          <path d="M130 -44 L330 28 L130 55 Z"/>
-          <path d="M350 115 V15 H370 V115 Z"/>
-          <path d="M365 22 L480 62 L365 72 Z"/>
-          <path d="M0 115 L-42 78 L28 80 Z"/>
-        </g>
-        <g class="treasure-glint" transform="translate(1180 745)" opacity=".42">
-          <rect x="-90" y="-35" width="180" height="86" rx="12" fill="#4b321a"/>
-          <path d="M-90 -35 Q0 -110 90 -35 Z" fill="#5d3c1c"/>
-          <circle cx="0" cy="7" r="12" fill="#d5aa49"/>
-          <circle cx="-44" cy="-4" r="5" fill="#f3d67f"/>
-          <circle cx="38" cy="13" r="6" fill="#e9c15d"/>
-        </g>
-      </svg>`
+      <div class="theme-scene theme-shipwreck" aria-hidden="true">
+        <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g transform="translate(250 620) rotate(-7)" opacity=".28" fill="#071a2a">
+            <path d="M0 115 L510 115 L445 200 L90 200 Z"/>
+            <path d="M110 115 V-55 H132 V115 Z"/>
+            <path d="M130 -44 L330 28 L130 55 Z"/>
+            <path d="M350 115 V15 H370 V115 Z"/>
+            <path d="M365 22 L480 62 L365 72 Z"/>
+            <path d="M0 115 L-42 78 L28 80 Z"/>
+          </g>
+          <g transform="translate(1180 780)" opacity=".22">
+            <rect x="-74" y="-22" width="148" height="64" rx="10" fill="#50371d"/>
+            <path d="M-74 -22 Q0 -82 74 -22 Z" fill="#684421"/>
+          </g>
+        </svg>
+      </div>`
   };
 
   layer.innerHTML = scenes[theme] || scenes['open-ocean'];
