@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.8.1";
+const APP_VERSION = "v3.8.2";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // keep old key so catches survive the label change
 const difficulties = [
   {id:"easy",label:"Easy",pieces:12,cols:4,rows:3},
@@ -85,16 +85,27 @@ async function resolveFishAsset(fish, kind) {
   return promise;
 }
 
-async function setFishImage(element, fish, kind, allowFallback=true) {
+async function setFishImage(element, fish, kind) {
   const resolved = await resolveFishAsset(fish, kind);
   if (resolved) {
     element.src = resolved;
+    element.hidden = false;
     element.classList.remove("missing-fish-art");
     return resolved;
   }
+  element.removeAttribute("src");
+  element.hidden = true;
   element.classList.add("missing-fish-art");
-  if (allowFallback) element.src = fallbackFishDataUri(fish, kind === "puzzle");
   return null;
+}
+
+function installMissingArtNotice(card, fish) {
+  if (card.querySelector(".missing-art")) return;
+  card.classList.add("art-missing");
+  const notice = document.createElement("div");
+  notice.className = "missing-art";
+  notice.innerHTML = `<span><strong>${fish.commonName}</strong>Artwork file is not installed</span>`;
+  card.prepend(notice);
 }
 
 initialize();
@@ -133,9 +144,11 @@ function renderPuzzleChoices(){
   els.fishSelectGrid.innerHTML="";
   Object.values(speciesData).forEach(fish=>{
     const b=document.createElement("button");b.className="fish-select-card";
-    const img=document.createElement("img");img.alt=fish.commonName;setFishImage(img,fish,"puzzle",true);
+    const img=document.createElement("img");img.alt=fish.commonName;
     const body=document.createElement("div");body.className="fish-card-body";body.innerHTML=`<strong>${fish.commonName}</strong><span>${fish.habitat}</span>`;
-    b.append(img,body);b.onclick=()=>startPuzzle(fish,currentDifficulty);els.fishSelectGrid.appendChild(b)
+    b.append(img,body);
+    setFishImage(img,fish,"puzzle").then(src=>{if(!src)installMissingArtNotice(b,fish)});
+    b.onclick=()=>startPuzzle(fish,currentDifficulty);els.fishSelectGrid.appendChild(b)
   });
 }
 function openCaught(){renderCaught();showScreen("caught")}
@@ -145,7 +158,7 @@ function renderCaught(){
   if(!fish.length){els.caughtGrid.innerHTML=`<div class="caught-empty"><strong>No fish caught yet.</strong><p>Complete a puzzle to add your first species.</p></div>`;return}
   fish.forEach(f=>{
     const b=document.createElement("button");b.className="caught-card";
-    const img=document.createElement("img");img.alt=f.commonName;setFishImage(img,f,"puzzle",true);
+    const img=document.createElement("img");img.alt=f.commonName;setFishImage(img,f,"puzzle").then(src=>{if(!src)installMissingArtNotice(b,f)});
     const body=document.createElement("div");body.className="caught-card-body";body.innerHTML=`<strong>${f.commonName}</strong><span>${f.scientificName}</span><span>Tap for species information</span>`;
     b.append(img,body);b.onclick=()=>showFishDetails(f);els.caughtGrid.appendChild(b)
   });
@@ -153,16 +166,18 @@ function renderCaught(){
 function populateFishInfo(fish,fromCaught=false){
   detailFish=fish;els.completeKicker.textContent=fromCaught?"Fish Caught Species":"Puzzle Complete";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;
   els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;
-  setFishImage(els.completeImage,fish,"puzzle",true);
+  setFishImage(els.completeImage,fish,"puzzle");
   els.fishAgainBtn.textContent=fromCaught?"Play This Fish":"Choose Another Puzzle";els.openFishCaughtBtn.textContent=fromCaught?"Back to Fish Caught":"Fish Caught";
 }
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
 async function resolvedPuzzleImage(fish){
-  const resolved=await resolveFishAsset(fish,"puzzle");
-  return resolved || fallbackFishDataUri(fish,true);
+  return await resolveFishAsset(fish,"puzzle");
 }
 async function startPuzzle(fish,difficulty){
-  clearPuzzle(); const imageSrc=await resolvedPuzzleImage(fish);
+  if(!fish||!difficulty){showToast("Unable to start this puzzle.");return}
+  const imageSrc=await resolvedPuzzleImage(fish);
+  if(!imageSrc){showToast(`${fish.commonName} puzzle artwork is missing from the site.`);return}
+  clearPuzzle();
   puzzleState={fish,difficulty,imageSrc,ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,trayCollapsed:false,metrics:null,completeShown:false};
   buildPieces();updatePuzzleMeta();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)
 }
@@ -188,14 +203,15 @@ function schedulePuzzleLayout(initial=false){
   (initial?[0,100,260]:[0]).forEach((delay,index)=>setTimeout(()=>{if(!puzzleState||currentScreen!=="puzzle"||dragState.active)return;requestAnimationFrame(()=>layoutPuzzle(initial&&index===0))},delay))
 }
 function layoutPuzzle(initial=false){
-  if(!puzzleState)return;let rect=els.playTable.getBoundingClientRect(),old=puzzleState.metrics;if(rect.width<260||rect.height<220)return;
+  if(!puzzleState)return;let rect=els.playTable.getBoundingClientRect(),old=puzzleState.metrics;if(rect.width<260||rect.height<220){const vh=visualViewport?.height||innerHeight||768,toolbar=document.querySelector(".play-toolbar")?.getBoundingClientRect().height||58,tray=els.trayBar?.getBoundingClientRect().height||132,fallback=Math.max(320,Math.floor(vh-toolbar-tray-100));els.playTable.style.minHeight=`${fallback}px`;rect=els.playTable.getBoundingClientRect()}if(rect.width<260||rect.height<220){showToast("Puzzle board could not size correctly. Rotate the screen once and retry.");return;}
   const gutter=Math.max(26,Math.min(54,rect.width*.04)),maxW=(rect.width-gutter*2)*.94,maxH=(rect.height-gutter*2)*.94;let boardW=maxW,boardH=boardW*3/4;if(boardH>maxH){boardH=maxH;boardW=boardH*4/3}
   const cell=Math.floor(boardW/puzzleState.cols);boardW=cell*puzzleState.cols;boardH=cell*puzzleState.rows;const left=Math.round((rect.width-boardW)/2),top=Math.round((rect.height-boardH)/2);
   const m={tableW:rect.width,tableH:rect.height,boardW,boardH,boardLeft:left,boardTop:top,cell,margin:cell*.26,snapDistance:cell*.34};puzzleState.metrics=m;
   Object.assign(els.boardShell.style,{width:`${boardW}px`,height:`${boardH}px`,left:`${left}px`,top:`${top}px`});els.boardPreviewImage.src=puzzleState.imageSrc;
-  puzzleState.pieces.forEach(p=>{if(old&&!initial&&!p.locked&&p.location==="table"){p.x=p.x/old.tableW*m.tableW;p.y=p.y/old.tableH*m.tableH}const sh=buildPieceShape(cell,m.margin,p.edges);p.size=sh.size;p.margin=sh.margin;p.path=sh.path;p.dirty=true;p.targetX=left+p.col*cell-sh.margin;p.targetY=top+p.row*cell-sh.margin;p.imgX=sh.margin-p.col*cell;p.imgY=sh.margin-p.row*cell;p.imgW=boardW;p.imgH=boardH;if(p.locked){p.x=p.targetX;p.y=p.targetY}else if(p.location==="table")clampPieceToTable(p)});
+  const draw=computeCoverRect(puzzleState.ratio,boardW,boardH);puzzleState.pieces.forEach(p=>{if(old&&!initial&&!p.locked&&p.location==="table"){p.x=p.x/old.tableW*m.tableW;p.y=p.y/old.tableH*m.tableH}const sh=buildPieceShape(cell,m.margin,p.edges);p.size=sh.size;p.margin=sh.margin;p.path=sh.path;p.dirty=true;p.targetX=left+p.col*cell-sh.margin;p.targetY=top+p.row*cell-sh.margin;p.imgX=draw.x-p.col*cell+sh.margin;p.imgY=draw.y-p.row*cell+sh.margin;p.imgW=draw.w;p.imgH=draw.h;if(p.locked){p.x=p.targetX;p.y=p.targetY}else if(p.location==="table")clampPieceToTable(p)});
   renderBoardCutlines();syncLoosePieces();renderTray();updatePuzzleMeta();lastLayoutW=Math.round(innerWidth||0);lastLayoutH=Math.round(visualViewport?.height||innerHeight||0);pendingViewportRelayout=false
 }
+function computeCoverRect(imageRatio,boardW,boardH){const boardRatio=boardW/boardH;if(imageRatio>boardRatio){const h=boardH,w=h*imageRatio;return{w,h,x:(boardW-w)/2,y:0}}const w=boardW,h=w/imageRatio;return{w,h,x:0,y:(boardH-h)/2}}
 function ribbonProfile(s){return{neck:s*.075,r:s*.125,depth:s*.235,shoulder:s*.025,k:.5522847498}}
 function buildPieceShape(s,m,e){const x0=m,y0=m,x1=m+s,y1=m+s,p=ribbonProfile(s);let d=`M ${x0} ${y0}`;d+=edgeSegment({x:x0,y:y0},{x:x1,y:y0},{x:0,y:-1},e.top,s,p);d+=edgeSegment({x:x1,y:y0},{x:x1,y:y1},{x:1,y:0},e.right,s,p);d+=edgeSegment({x:x1,y:y1},{x:x0,y:y1},{x:0,y:1},e.bottom,s,p);d+=edgeSegment({x:x0,y:y1},{x:x0,y:y0},{x:-1,y:0},e.left,s,p);return{path:d+" Z",size:s+m*2,margin:m}}
 function edgeSegment(a,b,n,edge,s,p){
@@ -203,21 +219,46 @@ function edgeSegment(a,b,n,edge,s,p){
   const A={x:mx-tx*p.neck,y:my-ty*p.neck},B={x:mx+tx*p.neck,y:my+ty*p.neck},cx=mx+nx*(p.depth-p.r),cy=my+ny*(p.depth-p.r),CA={x:cx-tx*p.r,y:cy-ty*p.r},CB={x:cx+tx*p.r,y:cy+ty*p.r},F={x:cx+nx*p.r,y:cy+ny*p.r};
   return` L ${A.x} ${A.y} C ${A.x+nx*p.shoulder} ${A.y+ny*p.shoulder}, ${CA.x-nx*p.shoulder} ${CA.y-ny*p.shoulder}, ${CA.x} ${CA.y} C ${CA.x+nx*p.k*p.r} ${CA.y+ny*p.k*p.r}, ${F.x-tx*p.k*p.r} ${F.y-ty*p.k*p.r}, ${F.x} ${F.y} C ${F.x+tx*p.k*p.r} ${F.y+ty*p.k*p.r}, ${CB.x+nx*p.k*p.r} ${CB.y+ny*p.k*p.r}, ${CB.x} ${CB.y} C ${CB.x-nx*p.shoulder} ${CB.y-ny*p.shoulder}, ${B.x+nx*p.shoulder} ${B.y+ny*p.shoulder}, ${B.x} ${B.y} L ${b.x} ${b.y}`
 }
-function pieceSvgMarkup(p){const id=`${p.id}-clip`;return`<svg viewBox="0 0 ${p.size} ${p.size}" width="${p.size}" height="${p.size}"><defs><clipPath id="${id}"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${id})"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="none"/></g><path class="piece-hit" d="${p.path}"/></svg>`}
+function pieceSvgMarkup(p){const id=`${p.id}-clip`;return`<svg viewBox="0 0 ${p.size} ${p.size}" width="${p.size}" height="${p.size}"><defs><clipPath id="${id}"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${id})"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g><path class="piece-hit" d="${p.path}"/></svg>`}
 function ensurePieceElement(p){if(!p.el){const el=document.createElement("div");el.className="piece";el.dataset.id=p.id;el.addEventListener("pointerdown",e=>startDragFromTable(p,e));p.el=el;els.piecesLayer.appendChild(el);p.dirty=true}if(p.dirty){p.el.innerHTML=pieceSvgMarkup(p);p.el.style.width=`${p.size}px`;p.el.style.height=`${p.size}px`;p.dirty=false}}
 function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);p.el.classList.toggle("locked",p.locked);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`})}
-function renderBoardCutlines(){const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(1.4,cell*.028),col="rgba(223,238,248,.38)";els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);let out=`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`;for(let c=1;c<puzzleState.cols;c++)out+=`<line x1="${c*cell}" y1="0" x2="${c*cell}" y2="${boardH}" stroke="${col}" stroke-width="${stroke}"/>`;for(let r=1;r<puzzleState.rows;r++)out+=`<line x1="0" y1="${r*cell}" x2="${boardW}" y2="${r*cell}" stroke="${col}" stroke-width="${stroke}"/>`;els.boardCutlines.innerHTML=out}
-function renderTray(){if(!puzzleState)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&matchesFilter(p,els.trayFilter.value)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length){els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>'}else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=Math.max(58,puzzleState.metrics.cell*.72);b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="none"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
+function renderBoardCutlines(){
+  if(!puzzleState)return;
+  const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(2.2,cell*.045),col="rgba(27,39,54,.70)";
+  els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);
+  const out=[`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`];
+  for(let row=0;row<puzzleState.rows;row++)for(let boundary=0;boundary<puzzleState.cols-1;boundary++){
+    const edge=puzzleState.verticalCuts[row][boundary],x=(boundary+1)*cell,y0=row*cell,y1=(row+1)*cell;
+    out.push(`<path d="${sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round"/>`)
+  }
+  for(let boundary=0;boundary<puzzleState.rows-1;boundary++)for(let colIndex=0;colIndex<puzzleState.cols;colIndex++){
+    const edge=puzzleState.horizontalCuts[boundary][colIndex],y=(boundary+1)*cell,x0=colIndex*cell,x1=(colIndex+1)*cell;
+    out.push(`<path d="${sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round"/>`)
+  }
+  els.boardCutlines.innerHTML=out.join("")
+}
+function sharedCutPath(a,b,n,edge,s){return`M ${a.x} ${a.y}`+edgeSegment(a,b,n,edge,s,ribbonProfile(s))}
+function renderTray(){if(!puzzleState)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&matchesFilter(p,els.trayFilter.value)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length){els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>'}else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=Math.max(58,puzzleState.metrics.cell*.72);b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
 function matchesFilter(p,v){if(v==="all")return true;if(v==="edges")return p.isEdge;if(v==="corners")return p.isCorner;if(v===`out-${p.tabs.count}`)return true;if(p.tabs.count===1&&v===`out-${p.tabs.directions[0]}`)return true;return false}
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=puzzleState.fish.commonName;els.puzzleInfo.textContent=`${puzzleState.difficulty.label} • ${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;els.allTableBtn.textContent=tray?"All to Table":"Recall Singles"}
 function startDragFromTray(p,e){if(!puzzleState||!puzzleState.metrics)return;e.preventDefault();e.stopPropagation();const cap=e.currentTarget;try{cap.setPointerCapture(e.pointerId)}catch{}cap.style.visibility="hidden";cap.style.pointerEvents="none";p.location="table";p.locked=false;p.z=++zCounter;p.x=e.clientX-els.playTable.getBoundingClientRect().left-p.size/2;p.y=e.clientY-els.playTable.getBoundingClientRect().top-p.size/2;ensurePieceElement(p);startDrag(p,e,"tray",cap)}
 function startDragFromTable(p,e){if(!puzzleState||p.locked)return;e.preventDefault();e.stopPropagation();startDrag(p,e,"table",e.currentTarget)}
 function startDrag(p,e,origin,cap){const rect=els.playTable.getBoundingClientRect();dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin=origin;dragState.captureEl=cap;dragState.tableRect=rect;p.z=++zCounter;ensurePieceElement(p);p.el.classList.add("dragging");const px=e.clientX-rect.left,py=e.clientY-rect.top;dragState.offsetX=px-p.x;dragState.offsetY=py-p.y;try{cap?.setPointerCapture?.(e.pointerId)}catch{}}
 function onPointerMove(e){if(!dragState.active||e.pointerId!==dragState.pointerId||!puzzleState)return;e.preventDefault();const p=dragState.piece,r=dragState.tableRect;p.x=e.clientX-r.left-dragState.offsetX;p.y=e.clientY-r.top-dragState.offsetY;clampPieceToTable(p);p.el.style.transform=`translate(${p.x}px,${p.y}px)`}
-function onPointerUp(e){if(!dragState.active||e.pointerId!==dragState.pointerId)return;e.preventDefault();finishDrag()}
+function onPointerUp(e){
+  if(!dragState.active||e.pointerId!==dragState.pointerId)return;e.preventDefault();
+  const p=dragState.piece,trayRect=els.trayBar.getBoundingClientRect();
+  if(p&&!p.locked&&pointInRect(e.clientX,e.clientY,trayRect)){
+    const cap=dragState.captureEl;if(cap){cap.style.visibility="";cap.style.pointerEvents=""}
+    movePieceToTray(p);resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();if(pendingViewportRelayout)requestViewportRelayout(true);return
+  }
+  finishDrag()
+}
 function finishDrag(){if(!dragState.active)return;const p=dragState.piece;if(puzzleState&&p){const dx=p.x-p.targetX,dy=p.y-p.targetY;if(Math.hypot(dx,dy)<=puzzleState.metrics.snapDistance){p.locked=true;p.x=p.targetX;p.y=p.targetY;showToast("Snap!")}clampPieceToTable(p)}const cap=dragState.captureEl;if(cap){cap.style.visibility="";cap.style.pointerEvents=""}resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();checkComplete();if(pendingViewportRelayout)requestViewportRelayout(true)}
 function cancelDrag(){if(!dragState.active)return;const cap=dragState.captureEl;if(cap){cap.style.visibility="";cap.style.pointerEvents=""}resetDrag();if(puzzleState){syncLoosePieces();renderTray()}if(pendingViewportRelayout)requestViewportRelayout(true)}
 function resetDrag(){dragState.active=false;dragState.piece=null;dragState.pointerId=null;dragState.captureEl=null;dragState.tableRect=null}
+function pointInRect(x,y,r){return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
+function movePieceToTray(p){p.location="tray";p.locked=false;p.trayOrder=Math.random();if(p.el){p.el.remove();p.el=null}}
 function clampPieceToTable(p){if(!puzzleState?.metrics)return;const {tableW,tableH}=puzzleState.metrics;p.x=Math.max(-p.size*.25,Math.min(tableW-p.size*.75,p.x));p.y=Math.max(-p.size*.25,Math.min(tableH-p.size*.75,p.y))}
 function edgesToTable(){const list=puzzleState?.pieces.filter(p=>p.location==="tray"&&p.isEdge)||[];if(!list.length){showToast("No edge pieces left in the tray.");return}list.forEach(scatterPiece);syncLoosePieces();renderTray()}
 function allToTableAction(){if(!puzzleState)return;const tray=puzzleState.pieces.filter(p=>p.location==="tray");if(tray.length){tray.forEach(scatterPiece)}else puzzleState.pieces.filter(p=>p.location==="table"&&!p.locked).forEach(p=>{p.location="tray";p.trayOrder=Math.random()});syncLoosePieces();renderTray()}
