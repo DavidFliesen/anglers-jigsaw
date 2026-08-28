@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.8.0";
+const APP_VERSION = "v3.8.1";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // keep old key so catches survive the label change
 const difficulties = [
   {id:"easy",label:"Easy",pieces:12,cols:4,rows:3},
@@ -26,6 +26,76 @@ let caught = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 let currentDifficulty = difficulties[1], puzzleState=null, currentScreen="home", zCounter=20, detailFish=null;
 let lastLayoutW=0,lastLayoutH=0,resizeTimer=null,pendingViewportRelayout=false;
 const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null};
+
+
+const fishAssetCache = new Map();
+
+function fishAssetCandidates(fish, kind) {
+  const stem = fish.fileStem || `${String(fish.number).padStart(2,"0")}_${fish.id.replaceAll("-","_")}`;
+  const bare = stem.replace(/^\d+_/, "");
+  const isSwim = kind === "swim";
+  const suffix = isSwim ? "_large" : "_puzzle";
+  const folder = isSwim ? "fish" : "puzzles";
+  const legacyFolder = isSwim ? "transparent" : "puzzles";
+  const explicit = isSwim ? fish.swimImage : fish.puzzleImage;
+  const candidates = [
+    explicit,
+    `assets/${folder}/${stem}${suffix}.png`,
+    `assets/${folder}/${bare}${suffix}.png`,
+    `assets/images/fish/${legacyFolder}/${stem}${suffix}.png`,
+    `assets/images/fish/${legacyFolder}/${bare}${suffix}.png`,
+    `assets/images/fish/${legacyFolder}/${stem}${suffix}.PNG`,
+    `assets/images/fish/${legacyFolder}/${bare}${suffix}.PNG`
+  ];
+  if (!isSwim) {
+    candidates.push(
+      `assets/puzzles/${fish.id}.png`,
+      `assets/puzzles/${bare}.png`,
+      `assets/images/fish/puzzles/${fish.id}.png`
+    );
+  } else {
+    candidates.push(
+      `assets/fish/${fish.id}.png`,
+      `assets/images/fish/transparent/${fish.id}.png`
+    );
+  }
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+function testImageUrl(url) {
+  return new Promise(resolve => {
+    const image = new Image();
+    image.onload = () => resolve(url);
+    image.onerror = () => resolve(null);
+    image.src = url;
+  });
+}
+
+async function resolveFishAsset(fish, kind) {
+  const key = `${fish.id}:${kind}`;
+  if (fishAssetCache.has(key)) return fishAssetCache.get(key);
+  const promise = (async () => {
+    for (const candidate of fishAssetCandidates(fish, kind)) {
+      const loaded = await testImageUrl(candidate);
+      if (loaded) return loaded;
+    }
+    return null;
+  })();
+  fishAssetCache.set(key, promise);
+  return promise;
+}
+
+async function setFishImage(element, fish, kind, allowFallback=true) {
+  const resolved = await resolveFishAsset(fish, kind);
+  if (resolved) {
+    element.src = resolved;
+    element.classList.remove("missing-fish-art");
+    return resolved;
+  }
+  element.classList.add("missing-fish-art");
+  if (allowFallback) element.src = fallbackFishDataUri(fish, kind === "puzzle");
+  return null;
+}
 
 initialize();
 
@@ -61,24 +131,35 @@ function renderPuzzleChoices(){
   els.difficultyStrip.innerHTML="";
   difficulties.forEach(level=>{const b=document.createElement("button");b.className="difficulty-choice"+(level.id===currentDifficulty.id?" selected":"");b.innerHTML=`<strong>${level.pieces}</strong><span>${level.label} • ${level.cols} × ${level.rows}</span>`;b.onclick=()=>{currentDifficulty=level;renderPuzzleChoices()};els.difficultyStrip.appendChild(b)});
   els.fishSelectGrid.innerHTML="";
-  Object.values(speciesData).forEach(fish=>{const b=document.createElement("button");b.className="fish-select-card";const img=document.createElement("img");img.alt=fish.commonName;img.src=fish.puzzleImage;img.onerror=()=>{img.onerror=null;img.src=fallbackFishDataUri(fish,true)};const body=document.createElement("div");body.className="fish-card-body";body.innerHTML=`<strong>${fish.commonName}</strong><span>${fish.habitat}</span>`;b.append(img,body);b.onclick=()=>startPuzzle(fish,currentDifficulty);els.fishSelectGrid.appendChild(b)});
+  Object.values(speciesData).forEach(fish=>{
+    const b=document.createElement("button");b.className="fish-select-card";
+    const img=document.createElement("img");img.alt=fish.commonName;setFishImage(img,fish,"puzzle",true);
+    const body=document.createElement("div");body.className="fish-card-body";body.innerHTML=`<strong>${fish.commonName}</strong><span>${fish.habitat}</span>`;
+    b.append(img,body);b.onclick=()=>startPuzzle(fish,currentDifficulty);els.fishSelectGrid.appendChild(b)
+  });
 }
 function openCaught(){renderCaught();showScreen("caught")}
 function renderCaught(){
   els.caughtGrid.innerHTML=""; const fish=Object.values(speciesData).filter(f=>caught[f.id]);
   els.caughtCountChip.textContent=`${fish.length} discovered`;
   if(!fish.length){els.caughtGrid.innerHTML=`<div class="caught-empty"><strong>No fish caught yet.</strong><p>Complete a puzzle to add your first species.</p></div>`;return}
-  fish.forEach(f=>{const b=document.createElement("button");b.className="caught-card";const img=document.createElement("img");img.alt=f.commonName;img.src=f.puzzleImage;img.onerror=()=>{img.onerror=null;img.src=fallbackFishDataUri(f,true)};const body=document.createElement("div");body.className="caught-card-body";body.innerHTML=`<strong>${f.commonName}</strong><span>${f.scientificName}</span><span>Tap for species information</span>`;b.append(img,body);b.onclick=()=>showFishDetails(f);els.caughtGrid.appendChild(b)});
+  fish.forEach(f=>{
+    const b=document.createElement("button");b.className="caught-card";
+    const img=document.createElement("img");img.alt=f.commonName;setFishImage(img,f,"puzzle",true);
+    const body=document.createElement("div");body.className="caught-card-body";body.innerHTML=`<strong>${f.commonName}</strong><span>${f.scientificName}</span><span>Tap for species information</span>`;
+    b.append(img,body);b.onclick=()=>showFishDetails(f);els.caughtGrid.appendChild(b)
+  });
 }
 function populateFishInfo(fish,fromCaught=false){
   detailFish=fish;els.completeKicker.textContent=fromCaught?"Fish Caught Species":"Puzzle Complete";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;
   els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;
-  els.completeImage.src=fish.puzzleImage;els.completeImage.onerror=()=>{els.completeImage.onerror=null;els.completeImage.src=fallbackFishDataUri(fish,true)};
+  setFishImage(els.completeImage,fish,"puzzle",true);
   els.fishAgainBtn.textContent=fromCaught?"Play This Fish":"Choose Another Puzzle";els.openFishCaughtBtn.textContent=fromCaught?"Back to Fish Caught":"Fish Caught";
 }
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
 async function resolvedPuzzleImage(fish){
-  return new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(fish.puzzleImage);i.onerror=()=>resolve(fallbackFishDataUri(fish,true));i.src=fish.puzzleImage});
+  const resolved=await resolveFishAsset(fish,"puzzle");
+  return resolved || fallbackFishDataUri(fish,true);
 }
 async function startPuzzle(fish,difficulty){
   clearPuzzle(); const imageSrc=await resolvedPuzzleImage(fish);
@@ -147,5 +228,29 @@ function checkComplete(){if(!puzzleState||puzzleState.completeShown)return;if(pu
 function confirmLeavePuzzle(){if(!puzzleState){showScreen("home");return}if(confirm("Leave this puzzle? Your unfinished layout will not be saved.")){clearPuzzle();showScreen("home")}}
 function buildWaterBubbles(){const host=$("waterBubbles");for(let i=0;i<22;i++){const b=document.createElement("div");b.className="bubble";const s=5+Math.random()*18;b.style.width=b.style.height=s+"px";b.style.left=Math.random()*100+"%";b.style.setProperty("--drift",Math.random()*56-28+"px");b.style.animationDuration=10+Math.random()*18+"s";b.style.animationDelay=-Math.random()*26+"s";host.appendChild(b)}}
 function spawnAmbientLoop(){
-  const host=$("ambientFishLayer"),fish=Object.values(speciesData);function spawn(){if(document.hidden){setTimeout(spawn,3000);return}const f=fish[Math.floor(Math.random()*fish.length)],box=document.createElement("div"),img=document.createElement("img"),left=Math.random()<.5,w=95+Math.random()*120,y=innerHeight*(.15+Math.random()*.62);box.className="ambient-fish"+(left?" left":"");box.style.width=w+"px";box.style.setProperty("--y0",y+"px");box.style.setProperty("--y1",y+(Math.random()*70-35)+"px");box.style.setProperty("--dur",32+Math.random()*18+"s");img.alt="";img.src=f.swimImage;img.onerror=()=>{img.onerror=null;img.src=fallbackFishDataUri(f,false)};box.appendChild(img);host.appendChild(box);setTimeout(()=>box.remove(),55000);setTimeout(spawn,2500+Math.random()*4500)}setTimeout(spawn,900)
+  const host=$("ambientFishLayer"), fish=Object.values(speciesData);
+  async function spawn(){
+    if(document.hidden){setTimeout(spawn,2500);return}
+    if(host.childElementCount>=8){setTimeout(spawn,2200);return}
+    const f=fish[Math.floor(Math.random()*fish.length)];
+    const src=await resolveFishAsset(f,"swim");
+    if(!src){setTimeout(spawn,900);return}
+    const box=document.createElement("div"),img=document.createElement("img");
+    const travelDirection=Math.random()<.5?"left":"right";
+    const sourceFacing=(f.facing||"right").toLowerCase();
+    const flip=sourceFacing===travelDirection?1:-1;
+    const w=95+Math.random()*120,y=innerHeight*(.12+Math.random()*.68);
+    box.className=`ambient-fish swim-${travelDirection}`;
+    box.style.width=w+"px";
+    box.style.zIndex=String(Math.round(w));
+    box.style.setProperty("--y0",y+"px");
+    box.style.setProperty("--y1",y+(Math.random()*70-35)+"px");
+    box.style.setProperty("--dur",32+Math.random()*18+"s");
+    img.alt="";img.src=src;img.style.setProperty("--fish-flip",String(flip));
+    box.appendChild(img);host.appendChild(box);
+    box.addEventListener("animationend",()=>box.remove(),{once:true});
+    setTimeout(()=>{if(box.isConnected)box.remove()},55000);
+    setTimeout(spawn,2500+Math.random()*4500)
+  }
+  setTimeout(spawn,900)
 }
