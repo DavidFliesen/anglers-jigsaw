@@ -4,8 +4,8 @@
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#031736",
-  "theme_color": "#0a2f69",
-  "description": "A fishing-inspired jigsaw puzzle PWA with a large tabletop, traditional ribbon-cut style puzzle pieces, tray sorting, and a Fish Cooler collection.",
+  "theme_color": "#082b3e",
+  "description": "A fishing-inspired jigsaw puzzle PWA with free tabletop play, traditional jigsaw pieces, sorting tools, and a Fish Caught species collection.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",

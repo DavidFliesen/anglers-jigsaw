@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#082b3e" />
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="css/styles.css?v=3.8.1" />
+  <link rel="stylesheet" href="css/styles.css?v=3.8.2" />
 </head>
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
@@ -23,39 +23,8 @@
     <section class="screen active" id="screen-home">
       <div class="home-shell">
         <div class="home-main">
-          <div class="home-art" aria-hidden="true">
-            <svg viewBox="0 0 600 600" role="img">
-              <defs>
-                <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#217da1"/>
-                  <stop offset="1" stop-color="#071d31"/>
-                </linearGradient>
-                <linearGradient id="gFish" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#658f56"/>
-                  <stop offset=".55" stop-color="#9cb76c"/>
-                  <stop offset="1" stop-color="#d8c67a"/>
-                </linearGradient>
-              </defs>
-              <rect width="600" height="600" rx="40" fill="url(#gWater)"/>
-              <circle cx="455" cy="145" r="78" fill="#eef7ff" opacity=".12"/>
-              <path d="M112 315 C183 225, 342 220, 430 288 C461 312, 486 310, 530 275
-                       C520 329, 522 364, 540 414 C489 371, 463 370, 426 394
-                       C315 466, 170 428, 112 350 Z" fill="url(#gFish)"/>
-              <path d="M112 315 C75 278, 51 259, 36 242 C46 303, 45 354, 30 412 C62 388, 89 371, 121 355 Z" fill="#78965e"/>
-              <ellipse cx="387" cy="300" rx="58" ry="25" fill="#30443d" opacity=".55"/>
-              <circle cx="414" cy="279" r="8" fill="#101820"/>
-              <path d="M428 298 C453 292, 465 294, 482 302" fill="none" stroke="#101820" stroke-width="6" stroke-linecap="round"/>
-              <g fill="none" stroke="#f3d688" stroke-width="9" stroke-linecap="round">
-                <path d="M440 270 C484 222, 514 214, 544 233"/>
-                <path d="M544 233 C526 245, 526 262, 547 269"/>
-              </g>
-              <g stroke="#f1f5f5" stroke-width="4" opacity=".7">
-                <path d="M230 258 v70 c0 18 14 32 32 32 h68"/>
-                <path d="M330 360 v-66 c0-18 14-32 32-32 h52"/>
-                <circle cx="230" cy="294" r="16" fill="#0b506b"/>
-                <circle cx="330" cy="326" r="16" fill="#0b506b"/>
-              </g>
-            </svg>
+          <div class="home-art-wrap">
+            <img src="assets/images/logo.png?v=3.8.2" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
@@ -185,11 +154,11 @@
 
   <footer class="app-footer">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.8.1</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.8.2</span>
   </footer>
 
-  <script src="js/data.js?v=3.8.1"></script>
-  <script src="js/app.js?v=3.8.1"></script>
+  <script src="js/data.js?v=3.8.2"></script>
+  <script src="js/app.js?v=3.8.2"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>

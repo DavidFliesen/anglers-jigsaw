@@ -1,23 +1,24 @@
-Angler's Jigsaw v3.8.1 code-review repair
+Angler's Jigsaw v3.8.2 recovery — code review findings
 
-Code review findings fixed:
-1. Image URLs were single-path hard coded. The loader now probes canonical short paths plus the previous nested asset paths and case variants.
-2. v3.8.0 only packaged species 11-15. This repair includes available real assets for species 6-15 and can still locate species 1-5 at their previous nested locations.
-3. Ambient fish used a fixed 55-second removal timer even when the CSS animation ended sooner. When animation ended, the element snapped back to left:0 and remained visible, causing the vertical stack. Fish now remove themselves on animationend, with a timeout only as a safety net.
-4. Horizontal flipping previously assumed every source image faced right. The code now compares source facing against travel direction and flips only when required.
-5. Larger ambient fish receive a higher depth z-index inside the background layer, while the entire ambient layer remains below app UI.
-6. PWA cache/version bumped to v3.8.1 so Safari/GitHub Pages does not keep serving the faulty scripts.
-7. Puzzle drag/layout mechanics were not rewritten.
+1. v3.8.0/v3.8.1 replaced the stable home artwork with a hand-built generic SVG. v3.8.2 restores assets/images/logo.png.
+2. The current deployed repository contains canonical species files for 11–15, plus legacy Largemouth assets, but does not contain all canonical species 2–10 files. The code can only show real artwork that actually exists. v3.8.2 never substitutes fake fish drawings; missing art is labeled and its puzzle cannot start.
+3. v3.8.1 drew the puzzle frame as a rectangular grid. v3.8.2 restores board cutlines generated from the exact same deep circular tab/blank profile used by puzzle pieces.
+4. Puzzle-piece image clipping is restored to the stable cover-fitting model and xMidYMid slice behavior.
+5. Dragging a loose table piece back into the Tackle Tray is restored.
+6. v3.5.7 iPad protections remain: no SVG rebuild on ordinary syncs; geometry dirties only on layout; no relayout during an active drag; Safari URL-bar-only height changes ignored; resize debounced; table rectangle cached at drag start.
+7. Service-worker cache bumped to v3.8.2.
 
-Changed PWA files:
-- index.html
-- css/styles.css
-- js/app.js
-- js/data.js
-- sw.js
+Recovered image files included because they are available in the active workspace and absent from the deployed repository:
+- species 6 Bluegill: swim + puzzle
+- species 7 Black Crappie: puzzle only
+- species 9 Yellow Perch: swim + puzzle
+- species 10 Walleye: swim + puzzle
 
-Required image assets bundled:
-- species 6-15 transparent/swimming and puzzle assets available in the current build workspace
-
-Species 1-5:
-- code probes both assets/fish + assets/puzzles and the previous assets/images/fish/transparent + assets/images/fish/puzzles locations, so the original first-batch artwork does not need to be renamed if it is still in the repository.
+Still not recoverable from the current GitHub repository/workspace:
+- species 2 Smallmouth Bass: swim + puzzle
+- species 3 Spotted Bass: swim + puzzle
+- species 4 Striped Bass: swim + puzzle
+- species 5 White Bass: swim + puzzle
+- species 7 Black Crappie: swim
+- species 8 White Crappie: swim + puzzle
+These exact PNGs need to be restored from the earlier generated-image batch/ZIP rather than replaced with fake artwork.
