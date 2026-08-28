@@ -1,21 +1,23 @@
-# Angler's Jigsaw v3.5.7
+Angler’s Jigsaw v3.8.0 — Changed Files Package
 
-Focused iPad drag stability and piece-rendering release.
+Included in this ZIP:
+- 10 new image assets for species 11–15
+- updated PWA files needed to use those fish in puzzle selection, Fish Caught, and ambient animated fish backgrounds
 
-## Fixes applied
-- stops rebuilding every table piece SVG during ordinary syncs; SVG/raster content is rebuilt only when puzzle geometry changes
-- marks pieces dirty only when `layoutPuzzle()` recalculates their shape/size
-- prevents resize/orientation relayouts while a piece is being dragged
-- debounces genuine viewport resize handling and ignores small Safari URL-bar height changes
-- reduces non-initial puzzle relayouts from four passes to one
-- caches the play-table `getBoundingClientRect()` at drag start instead of forcing layout on every pointer move
-- queues any genuine orientation/viewport relayout until after the drag gesture ends
-- removes the contradictory older `body.puzzle-mode` viewport rules so the final stable puzzle layout is the single active rule
-- updates service-worker/cache-busting version to v3.5.7
-
-## Changed files
+Changed PWA files:
 - index.html
-- css/styles.css
 - js/app.js
+- js/data.js
 - sw.js
-- README.md
+
+New image files:
+- assets/fish/11_sauger_large.png
+- assets/puzzles/11_sauger_puzzle.png
+- assets/fish/12_northern_pike_large.png
+- assets/puzzles/12_northern_pike_puzzle.png
+- assets/fish/13_muskellunge_large.png
+- assets/puzzles/13_muskellunge_puzzle.png
+- assets/fish/14_chain_pickerel_large.png
+- assets/puzzles/14_chain_pickerel_puzzle.png
+- assets/fish/15_bowfin_large.png
+- assets/puzzles/15_bowfin_puzzle.png

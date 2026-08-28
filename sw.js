@@ -1,65 +1,9 @@
-const CACHE_NAME = 'anglers-jigsaw-v3-5-7';
-
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './css/styles.css',
-  './js/app.js',
-  './js/data.js',
-  './assets/images/logo.png',
-  './assets/icons/icon-192.png',
-  './assets/icons/icon-512.png',
-  './assets/fish/swordfish.png',
-  './assets/puzzles/channel-catfish.png',
-  './assets/puzzles/rainbow-trout.png',
-  './assets/puzzles/flounder.png',
-  './assets/puzzles/largemouth-bass.png',
-  './assets/puzzles/redfish.png',
-  './assets/puzzles/mudfish.png',
-  './assets/puzzles/angler-fish.png',
-  './assets/puzzles/swordfish.png'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  const url = new URL(request.url);
-
-  const networkFirst =
-    request.mode === 'navigate' ||
-    url.pathname.endsWith('/index.html') ||
-    url.pathname.endsWith('/css/styles.css') ||
-    url.pathname.endsWith('/js/app.js') ||
-    url.pathname.endsWith('/js/data.js');
-
-  if (networkFirst) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
+const CACHE_NAME = "anglers-jigsaw-v3-8-0";
+const SHELL = ["./","./index.html","./manifest.json","./css/styles.css","./js/app.js","./js/data.js"];
+self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
+self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener("fetch",e=>{
+  const r=e.request,u=new URL(r.url),networkFirst=r.mode==="navigate"||["/index.html","/css/styles.css","/js/app.js","/js/data.js"].some(p=>u.pathname.endsWith(p));
+  if(networkFirst){e.respondWith(fetch(r).then(res=>{const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(r,copy));return res}).catch(()=>caches.match(r)));return}
+  e.respondWith(caches.match(r).then(c=>c||fetch(r)));
 });
