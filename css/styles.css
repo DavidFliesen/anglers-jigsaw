@@ -28,7 +28,7 @@ button,select{font:inherit}button{cursor:pointer}img{display:block;max-width:100
 .panel{max-width:1320px;margin:auto;padding:24px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(rgba(6,35,49,.86),rgba(4,24,35,.94));box-shadow:0 18px 38px rgba(0,0,0,.15)}
 .home-shell{min-height:calc(100svh - 96px);display:grid;place-items:center;padding:18px}
 .home-main{width:min(1080px,100%);display:grid;grid-template-columns:minmax(300px,500px) minmax(300px,430px);gap:clamp(28px,6vw,70px);align-items:center}
-.home-art svg{width:100%;filter:drop-shadow(0 22px 30px rgba(0,0,0,.22))}
+.home-art-wrap{display:grid;place-items:center}.home-logo{width:100%;max-height:540px;object-fit:contain;filter:drop-shadow(0 22px 30px rgba(0,0,0,.22))}
 .home-kicker{color:var(--sand);font-size:.76rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
 .home-title{font-size:clamp(3rem,6vw,5rem);line-height:.94;margin:8px 0}.home-tagline{color:var(--mist);font-size:1.08rem;margin:0 0 24px}
 .home-actions{display:grid;gap:10px}.home-action{position:relative;text-align:left;min-height:62px;padding:12px 44px 12px 16px;border:1px solid var(--line);border-radius:12px;color:var(--foam);background:linear-gradient(rgba(7,38,52,.82),rgba(4,27,39,.9));box-shadow:inset 3px 0 0 var(--sand)}
@@ -58,6 +58,12 @@ button,select{font:inherit}button{cursor:pointer}img{display:block;max-width:100
 .toast{position:fixed;left:50%;bottom:42px;transform:translateX(-50%);z-index:100;padding:9px 14px;border-radius:999px;background:#031b27;border:1px solid var(--line);box-shadow:0 12px 24px rgba(0,0,0,.25)}
 body.puzzle-mode{width:100%;height:100svh;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
 body.puzzle-mode .app-shell{height:calc(100svh - var(--header-h) - var(--footer-h));min-height:0;padding:0;overflow:hidden}
-@media(max-width:840px){.home-main{grid-template-columns:1fr}.home-art{max-width:430px;margin:auto}.home-copy{text-align:center}.difficulty-strip{grid-template-columns:repeat(2,1fr)}.play-toolbar{align-items:flex-start}.complete-grid{flex-direction:column}.complete-grid>img{width:100%}}
+@media(max-width:840px){.home-main{grid-template-columns:1fr}.home-art-wrap{max-width:430px;margin:auto}.home-copy{text-align:center}.difficulty-strip{grid-template-columns:repeat(2,1fr)}.play-toolbar{align-items:flex-start}.complete-grid{flex-direction:column}.complete-grid>img{width:100%}}
 @media(max-width:620px){.screen{padding:14px}.panel{padding:18px}.app-header{gap:5px;padding:6px}.header-btn{font-size:.78rem;padding:5px}.header-title{font-size:.9rem}.play-toolbar{flex-direction:column}.play-toolbar-actions{justify-content:flex-start}.play-shell{grid-template-rows:auto minmax(260px,1fr) auto}.play-table{min-height:260px}.tray-header{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.bubble,.ambient-fish{animation:none!important}.ambient-fish-layer{display:none}}
+
+
+/* v3.8.2 recovery: never substitute fake fish artwork for a missing file. */
+.fish-select-card.art-missing,.caught-card.art-missing{opacity:.72}
+.fish-select-card .missing-art,.caught-card .missing-art{aspect-ratio:4/3;display:grid;place-items:center;padding:18px;text-align:center;background:linear-gradient(180deg,#0a3245,#061f2d);color:var(--mist);font-size:.84rem;font-weight:700}
+.fish-select-card .missing-art strong,.caught-card .missing-art strong{display:block;color:var(--foam);margin-bottom:5px}
