@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.7";
+const APP_VERSION = "v3.10.8";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -37,6 +37,7 @@ const FULLSCREEN_DEFAULT_MIGRATION_KEY=`${ARTEZIQ_STORAGE_PREFIX}fullscreen-defa
 let detailFromCaught=false;
 let tapStageSideCounter=0;
 let boardActionBusy=false;
+let pendingBoardAction=null;
 let lastToolbarPointerActionAt=0;
 let currentEnvironmentTheme=null;
 const ENVIRONMENT_THEMES=["deep-ocean","pirate-ship","coral-reef"];
@@ -162,7 +163,11 @@ function bindUI(){
   bindPress(els.howStartBtn,openNextLevel);
   bindPress(els.howToPlayBtn,()=>showScreen("how"));
   bindPress(els.caughtReturnGameBtn,continueFishing);
-  els.playToolbar?.addEventListener("pointerup",handlePuzzleToolbarPointerUp);
+  // v3.10.8: puzzle controls fire on POINTER DOWN, not pointerup.
+  // iPadOS/Safari can cancel or swallow pointerup after fullscreen/system gestures.
+  // Acting at pointerdown makes one physical press equal one game action.
+  els.playToolbar?.addEventListener("pointerdown",handlePuzzleToolbarPointerDown,{passive:false});
+  // Keep click only for keyboard/accessibility activation (detail === 0).
   els.playToolbar?.addEventListener("click",handlePuzzleToolbarClick);
   bindPress(els.fishAgainBtn,replayDetailFish);
   bindPress(els.nextFishBtn,continueFishing);
@@ -222,18 +227,23 @@ function invokePuzzleToolbarAction(button,event){
     schedulePuzzleLayout(false);
   }
 }
-function handlePuzzleToolbarPointerUp(event){
+function handlePuzzleToolbarPointerDown(event){
   if(event.button!==undefined&&event.button!==0)return;
+  if(event.isPrimary===false)return;
   const button=event.target.closest("[data-puzzle-action]");
-  if(!button||!els.playToolbar?.contains(button))return;
+  if(!button||button.disabled||!els.playToolbar?.contains(button))return;
   lastToolbarPointerActionAt=performance.now();
+  button.classList.add("aj-pressed");
+  setTimeout(()=>button.classList.remove("aj-pressed"),140);
   invokePuzzleToolbarAction(button,event);
 }
 function handlePuzzleToolbarClick(event){
-  // Pointer devices are handled on pointerup because iPad Safari can suppress
-  // a synthetic click after a complex puzzle gesture. Keep click for keyboard.
-  if(performance.now()-lastToolbarPointerActionAt<450)return;
+  // Pointer/touch actions have already fired on pointerdown. A real pointer
+  // click has detail > 0, so ignore it to prevent duplicate actions. Keyboard
+  // activation produces detail === 0 and remains fully supported.
+  if(event.detail!==0)return;
   const button=event.target.closest("[data-puzzle-action]");
+  if(!button||button.disabled||!els.playToolbar?.contains(button))return;
   invokePuzzleToolbarAction(button,event);
 }
 
@@ -300,14 +310,28 @@ function updateToolLabels(){els.allModeBtn?.classList.toggle("selected",trayMode
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=`Level ${puzzleState.fish.number}`;els.puzzleInfo.textContent=`${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;updateToolLabels()}
 function setTrayMode(mode){trayMode=mode;if(!puzzleState?.metrics){updateToolLabels();schedulePuzzleLayout(false);return}renderTray();updateToolLabels()}
 function runBoardAction(mode){
-  if(!puzzleState||boardActionBusy)return;
-  if(!puzzleState.metrics){showToast("Board is still loading.");schedulePuzzleLayout(false);return;}
+  if(!puzzleState)return;
   boardActionMode=mode;
   updateToolLabels();
+  // Never discard a deliberate press. If a previous PUSH/PULL is still
+  // rendering, remember the newest requested action and run it immediately
+  // afterward instead of forcing the player to press again.
+  if(boardActionBusy){pendingBoardAction=mode;return}
+  if(!puzzleState.metrics){
+    pendingBoardAction=mode;
+    showToast("Board is still loading.");
+    schedulePuzzleLayout(false);
+    setTimeout(()=>{
+      if(!boardActionBusy&&pendingBoardAction&&puzzleState?.metrics){
+        const next=pendingBoardAction;pendingBoardAction=null;runBoardAction(next);
+      }
+    },100);
+    return;
+  }
+  pendingBoardAction=null;
   boardActionBusy=true;
   els.pushModeBtn?.classList.toggle("working",mode==="push");
   els.pullModeBtn?.classList.toggle("working",mode==="pull");
-  // Let iPad paint the selected control before moving/rendering up to 72 pieces.
   requestAnimationFrame(()=>{
     try{
       if(mode==="push")pushVisibleToBoard();
@@ -316,6 +340,10 @@ function runBoardAction(mode){
       boardActionBusy=false;
       els.pushModeBtn?.classList.remove("working");
       els.pullModeBtn?.classList.remove("working");
+      if(pendingBoardAction){
+        const next=pendingBoardAction;pendingBoardAction=null;
+        setTimeout(()=>runBoardAction(next),0);
+      }
     }
   });
 }
