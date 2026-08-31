@@ -1,3 +1,13 @@
+# Angler's Jigsaw v3.10.7
+
+## v3.10.7 navigation update
+
+- Fish Caught now has **Continue Fishing** at the top of the collection panel.
+- The former bottom Continue Fishing button was removed to avoid duplicate navigation.
+- Every species page now shows **Continue Fishing** immediately to the right of **Fish Caught**.
+- Continue Fishing returns to an unfinished active puzzle when one exists; otherwise it opens the next level/piece-count selection.
+- Puzzle mechanics, themes, audio, tray behavior, and progression are unchanged from v3.10.6.
+
 # Angler's Jigsaw v3.10.6
 
 ## Changes

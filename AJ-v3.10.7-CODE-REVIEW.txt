@@ -1,0 +1,28 @@
+Angler's Jigsaw v3.10.7 — Navigation update
+
+Scope intentionally limited to navigation.
+
+Changes:
+1. Fish Caught has Continue Fishing at the top of the collection panel.
+2. The former bottom Continue Fishing button on Fish Caught was removed to avoid duplicate navigation.
+3. Every species page displays Continue Fishing immediately to the right of Fish Caught.
+4. Continue Fishing behavior is context-aware:
+   - if an unfinished puzzle is active, it returns to that puzzle;
+   - otherwise it opens the next available level/piece-count selection.
+5. The species-page Continue Fishing button remains visible whether the page was reached after a catch or from Fish Caught.
+6. Service-worker cache and visible version updated to v3.10.7.
+
+Unchanged:
+- puzzle geometry/rendering
+- magnetic snapping
+- Tackle Tray behavior
+- themes
+- audio/UI kit
+- progression ordering
+- fish assets
+
+Validation:
+- app.js syntax: pass
+- data.js syntax: pass
+- DOM reference audit: pass
+- no duplicate bottom Continue Fishing control remains on Fish Caught
