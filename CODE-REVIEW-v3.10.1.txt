@@ -1,0 +1,34 @@
+Angler's Jigsaw v3.10.1 — Update Review
+
+Scope
+- Fullscreen startup behavior
+- Fixed-size Tackle Tray across all puzzle difficulties
+
+Fullscreen
+- ARTEZIQ UI kit remains unmodified.
+- Uses the existing aj_ localStorage prefix.
+- v3.10.1 performs a one-time migration that defaults aj_fslock to ON.
+- UIKIT.applyFSLock() is called on launch and remains called at puzzle start.
+- If the browser blocks true fullscreen until a user gesture, the app retries on the first pointer interaction.
+- No keydown listener was added.
+- User changes to Fullscreen Lock are respected after the one-time migration.
+
+Tackle Tray
+- Removed difficulty-dependent thumbnail sizing.
+- Tray thumbnail size is fixed at 58px for 12, 48, 108 and 192-piece games.
+- Tray height is fixed at 116px.
+- Horizontal tray scrolling remains enabled; vertical overflow is disabled.
+- Actual puzzle piece dimensions on the play table remain based on board geometry and are not changed.
+
+Regression protection
+- Puzzle geometry functions unchanged.
+- Magnetic snapping unchanged.
+- Drag layer / first-drag fix unchanged.
+- ARTEZIQ audio module unchanged.
+- ARTEZIQ UI module unchanged.
+- Fish and puzzle artwork unchanged.
+
+Validation
+- js/app.js passes node --check.
+- Complete ZIP passes unzip integrity test.
+- Service worker cache bumped to anglers-jigsaw-v3-10-1.
