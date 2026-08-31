@@ -1,14 +1,23 @@
-# Angler's Jigsaw v3.9.1
+# Angler's Jigsaw v3.9.2
 
-Progression and magnetic-puzzle release.
+Focused board-space and gameplay-toolbar release.
 
-- Fish are now encountered sequentially by level instead of chosen from a catalog.
-- Before every level, the player chooses 12, 48, 108, or 192 pieces.
-- Correct neighboring pieces magnetically snap together anywhere on the table and move as groups.
-- A correctly assembled group can snap as a group into its board position.
-- Puzzle controls are simplified to ALL/EDGE, To Board, Pull Loose, and Trace.
-- Pull Loose returns only pieces not connected to another piece and not locked to the board.
-- Fish Caught lists all levels, shows transparent fish cutouts for caught species, and locked placeholders for future levels.
-- Species detail/completion views use transparent fish cutouts instead of scenic puzzle artwork.
-- Reset All Fish clears caught/progression data and returns the player to Level 1.
-- Existing v3.9.0 artwork and 15-species library are retained.
+## Changes
+- hides the normal app header during active puzzle play
+- consolidates Home, level/piece status, ALL/EDGES, PULL/PUSH, Trace, locked count, and Fish Caught into one gameplay row
+- ALL/EDGES is a two-option segmented control with the active choice highlighted
+- PULL/PUSH is a two-option segmented control; selecting PUSH sends the currently filtered tray pieces to the board, while PULL returns loose unconnected pieces
+- expands the play table to use nearly all available vertical space
+- removes most empty water above and below the 4:3 puzzle board
+- reduces puzzle-outline visibility by roughly half
+- adds Return to Game on Home and Fish Caught whenever an unfinished puzzle exists
+- entering Home or Fish Caught no longer destroys an unfinished puzzle
+- preserves magnetic connected-piece groups and the v3.5.7 iPad drag-stability protections
+
+## Changed files
+- index.html
+- css/styles.css
+- js/app.js
+- manifest.json
+- sw.js
+- README.md
