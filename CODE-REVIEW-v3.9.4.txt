@@ -1,0 +1,18 @@
+Angler's Jigsaw v3.9.4 — Total Code Review
+
+HIGH-PRIORITY FINDINGS
+1. js/app.js contained duplicate declarations for requestViewportRelayout, schedulePuzzleLayout, layoutPuzzle, computeCoverRect, pieceSvgMarkup, ensurePieceElement, syncLoosePieces, and renderBoardCutlines. JavaScript used the last declaration silently. These duplicates came from successive patching and made behavior difficult to reason about. Removed.
+2. Gameplay controls used direct onclick assignments mixed with global pointer handlers. Replaced with a single bindPress() path and explicit type=button markup for defensive behavior.
+3. PUSH/PULL behavior was revalidated against piece state. PUSH now explicitly resets each pushed piece as an independent group. PULL identifies all unlocked table pieces, counts their group membership, and returns only singleton groups.
+4. Trace opacity was 0.34. Reduced to 0.17 as requested.
+5. Fish Caught Return to Game was placed at the bottom of a potentially long collection. Moved to the heading/top control area and remains conditional on an active puzzle.
+
+OTHER REVIEW ITEMS
+- All JavaScript element IDs resolve to real HTML IDs.
+- No duplicate HTML IDs.
+- Numerical species progression remains explicitly sorted by fish.number.
+- Existing catch localStorage key is retained for compatibility.
+- Magnetic grouping and board-locking logic preserved.
+- iPad resize/orientation protections preserved.
+- Service worker cache version bumped to v3.9.4.
+- 15 swimming assets and 15 puzzle assets retained unchanged.

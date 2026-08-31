@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.9.3" />
+  <link rel="stylesheet" href="css/styles.css?v=3.9.4" />
 </head>
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
@@ -15,9 +15,9 @@
   <div class="toast hidden" id="toast" aria-live="polite"></div>
 
   <header class="app-header">
-    <button class="header-btn" id="homeBtn">Home</button>
+    <button type="button" class="header-btn" id="homeBtn">Home</button>
     <div class="header-title game-name-brand">Angler's Jigsaw</div>
-    <button class="header-btn" id="fishCaughtBtn">Fish Caught</button>
+    <button type="button" class="header-btn" id="fishCaughtBtn">Fish Caught</button>
   </header>
 
   <main class="app-shell">
@@ -25,17 +25,17 @@
       <div class="home-shell">
         <div class="home-main">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.9.3" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.9.4" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
             <h1 class="home-title game-name-brand">Angler's Jigsaw</h1>
             <p class="home-tagline">Piece together the catch.</p>
             <div class="home-actions">
-              <button class="home-action return-game-action hidden" id="homeReturnGameBtn"><strong>Return to Game</strong><span>Continue your puzzle where you left off</span></button>
-              <button class="home-action" id="startFishingBtn"><strong>Start Fishing</strong><span>Start the next level and choose a puzzle size</span></button>
-              <button class="home-action" id="howToPlayBtn"><strong>How to Play</strong><span>Learn the board, tray, and controls</span></button>
-              <button class="home-action" id="homeFishCaughtBtn"><strong>Fish Caught</strong><span>See the species you have completed</span></button>
+              <button type="button" class="home-action return-game-action hidden" id="homeReturnGameBtn"><strong>Return to Game</strong><span>Continue your puzzle where you left off</span></button>
+              <button type="button" class="home-action" id="startFishingBtn"><strong>Start Fishing</strong><span>Start the next level and choose a puzzle size</span></button>
+              <button type="button" class="home-action" id="howToPlayBtn"><strong>How to Play</strong><span>Learn the board, tray, and controls</span></button>
+              <button type="button" class="home-action" id="homeFishCaughtBtn"><strong>Fish Caught</strong><span>See the species you have completed</span></button>
             </div>
           </div>
         </div>
@@ -49,8 +49,8 @@
         </div>
         <div class="difficulty-strip" id="difficultyStrip"></div>
         <div class="button-row">
-          <button class="primary-btn" id="startLevelBtn">Start Level</button>
-          <button class="secondary-btn" data-back-home="true">Back</button>
+          <button type="button" class="primary-btn" id="startLevelBtn">Start Level</button>
+          <button type="button" class="secondary-btn" data-back-home="true">Back</button>
         </div>
       </div>
     </section>
@@ -66,8 +66,8 @@
           <li><strong>Finish the fish.</strong> A correctly assembled piece or group snaps into its board position. Complete the puzzle to identify the species and unlock the next level.</li>
         </ol>
         <div class="button-row">
-          <button class="primary-btn" id="howStartBtn">Continue Fishing</button>
-          <button class="secondary-btn" data-back-home="true">Back</button>
+          <button type="button" class="primary-btn" id="howStartBtn">Continue Fishing</button>
+          <button type="button" class="secondary-btn" data-back-home="true">Back</button>
         </div>
       </div>
     </section>
@@ -75,19 +75,19 @@
     <section class="screen puzzle-screen" id="screen-puzzle">
       <div class="play-shell">
         <div class="play-toolbar single-row-toolbar">
-          <button class="tool-btn nav-tool" id="puzzleHomeBtn">Home</button>
+          <button type="button" class="tool-btn nav-tool" id="puzzleHomeBtn">Home</button>
           <div class="play-status inline-status"><strong id="puzzleTitle">Level 1</strong><span id="puzzleInfo">48 pieces • 8 × 6</span></div>
           <div class="segmented-control" id="trayModeControl" aria-label="Tray pieces">
-            <button class="segment-btn selected" id="allModeBtn">ALL</button>
-            <button class="segment-btn" id="edgesModeBtn">EDGES</button>
+            <button type="button" class="segment-btn selected" id="allModeBtn">ALL</button>
+            <button type="button" class="segment-btn" id="edgesModeBtn">EDGES</button>
           </div>
           <div class="segmented-control" id="boardActionControl" aria-label="Board piece movement">
-            <button class="segment-btn" id="pullModeBtn">PULL</button>
-            <button class="segment-btn selected" id="pushModeBtn">PUSH</button>
+            <button type="button" class="segment-btn" id="pullModeBtn">PULL</button>
+            <button type="button" class="segment-btn selected" id="pushModeBtn">PUSH</button>
           </div>
-          <button class="tool-btn" id="previewBtn">Trace</button>
+          <button type="button" class="tool-btn" id="previewBtn">Trace</button>
           <div class="piece-count" id="pieceCounterChip">0/0 locked</div>
-          <button class="tool-btn nav-tool" id="puzzleFishCaughtBtn">Fish Caught</button>
+          <button type="button" class="tool-btn nav-tool" id="puzzleFishCaughtBtn">Fish Caught</button>
         </div>
         <div class="play-table" id="playTable">
           <div class="board-shell" id="boardShell">
@@ -124,9 +124,9 @@
             <h3>Reference</h3><p id="completeSource"></p>
           </details>
           <div class="button-row species-actions">
-            <button class="secondary-btn" id="fishAgainBtn">Replay</button>
-            <button class="secondary-btn" id="openFishCaughtBtn">Fish Caught</button>
-            <button class="primary-btn" id="nextFishBtn">Next Fish</button>
+            <button type="button" class="secondary-btn" id="fishAgainBtn">Replay</button>
+            <button type="button" class="secondary-btn" id="openFishCaughtBtn">Fish Caught</button>
+            <button type="button" class="primary-btn" id="nextFishBtn">Next Fish</button>
           </div>
         </div>
       </div>
@@ -136,14 +136,16 @@
       <div class="panel caught-panel">
         <div class="screen-heading">
           <div><p class="eyebrow">Species Collection</p><h2>Fish Caught</h2><p>Catch a fish by completing its level. Tap a caught species to study it.</p></div>
-          <div class="piece-count" id="caughtCountChip">0 caught</div>
+          <div class="caught-heading-actions">
+            <button type="button" class="primary-btn compact-return hidden" id="caughtReturnGameBtn">Return to Game</button>
+            <div class="piece-count" id="caughtCountChip">0 caught</div>
+          </div>
         </div>
         <div class="caught-list" id="caughtGrid"></div>
         <div class="button-row caught-actions">
-          <button class="primary-btn hidden" id="caughtReturnGameBtn">Return to Game</button>
-          <button class="primary-btn" id="caughtPlayBtn">Continue Fishing</button>
-          <button class="secondary-btn" data-back-home="true">Back</button>
-          <button class="danger-btn" id="resetFishBtn">Reset All Fish</button>
+          <button type="button" class="primary-btn" id="caughtPlayBtn">Continue Fishing</button>
+          <button type="button" class="secondary-btn" data-back-home="true">Back</button>
+          <button type="button" class="danger-btn" id="resetFishBtn">Reset All Fish</button>
         </div>
       </div>
     </section>
@@ -151,11 +153,11 @@
 
   <footer class="app-footer">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.9.3</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.9.4</span>
   </footer>
 
-  <script src="js/data.js?v=3.9.3"></script>
-  <script src="js/app.js?v=3.9.3"></script>
+  <script src="js/data.js?v=3.9.4"></script>
+  <script src="js/app.js?v=3.9.4"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>
