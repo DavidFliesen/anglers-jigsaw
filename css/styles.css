@@ -120,3 +120,25 @@ body.puzzle-mode #screen-puzzle{position:relative;isolation:isolate}
 .drag-ghost{position:fixed;left:0;top:0;pointer-events:none;will-change:transform;filter:drop-shadow(0 8px 14px rgba(0,0,0,.32));opacity:.94}
 .drag-ghost svg{display:block;overflow:visible;width:100%;height:100%}
 .tray-piece.drag-source-active{opacity:.25}
+
+
+/* v3.10.0 — ARTEZIQ shared UI kit integration.
+   The kit files stay unmodified; these are app-specific theme/layout overrides. */
+:root{
+  --ui-accent:#4daea5;
+  --ui-accent-lo:#2f817c;
+  --ui-panel:#082b3e;
+  --ui-text:#f2f7f8;
+}
+
+/* Reserve the true top-right corner for the shared fullscreen/sound/settings stack. */
+body:not(.puzzle-mode) .app-header{padding-right:78px}
+body.puzzle-mode .single-row-toolbar{padding-right:76px}
+
+/* iOS immersive fallback hides only app chrome, never puzzle controls. */
+body.immersive:not(.puzzle-mode) .app-shell{min-height:100svh;padding-bottom:0}
+body.immersive.puzzle-mode .app-shell,
+body.immersive.puzzle-mode .puzzle-screen{height:100svh}
+
+/* Keep shared UI above every game/drag layer. */
+.ui-corner,.ui-overlay{isolation:isolate}
