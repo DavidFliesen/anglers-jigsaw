@@ -159,3 +159,16 @@ body.immersive.puzzle-mode .puzzle-screen{height:100svh}
    an actual thumbnail gesture as a piece drag rather than a tray pan. */
 .tray-piece{touch-action:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 .tray-piece svg{pointer-events:none}
+
+
+/* v3.10.4 — iPad system-gesture safety and resilient tray interaction.
+   The bottom-center edge belongs to iPadOS (Siri/home/app switching), so the
+   playable tray is intentionally lifted away from that native gesture zone. */
+:root{--aj-system-gesture-safe:max(30px,env(safe-area-inset-bottom,0px))}
+body.puzzle-mode .play-shell{position:relative;padding-bottom:var(--aj-system-gesture-safe)}
+body.puzzle-mode{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+body.puzzle-mode .tray-bar{margin-bottom:0}
+body.puzzle-mode .tray-pieces{padding-bottom:7px}
+body.puzzle-mode .tray-piece{position:relative;z-index:2}
+/* Never place game controls inside the OS-owned bottom safety strip. */
+body.puzzle-mode .play-shell::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--aj-system-gesture-safe);pointer-events:none;background:linear-gradient(180deg,rgba(4,20,30,0),rgba(4,20,30,.38))}
