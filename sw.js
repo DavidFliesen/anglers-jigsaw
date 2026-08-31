@@ -1,4 +1,4 @@
-const CACHE_NAME = "anglers-jigsaw-v3-10-1";
+const CACHE_NAME = "anglers-jigsaw-v3-10-2";
 const SHELL = [
   "./","./index.html","./manifest.json","./css/styles.css","./js/app.js","./js/data.js",
   "./arteziq-audio.js","./arteziq-ui.js","./arteziq-ui.css",

@@ -1,0 +1,17 @@
+Angler's Jigsaw v3.10.2 — Tray Drag Review
+
+Observed regression
+- v3.10.1 normalized the tray and also added a global capture-phase fullscreen retry on the first pointerdown.
+- Tray drag begins on pointerdown. A fullscreen/viewport change on that same pointer can cancel the gesture on iPad/Safari.
+- The tray drag cached the play-table bounding rectangle at pointerdown, which could be stale after fullscreen/immersive layout settled.
+
+Repair
+1. Removed armFullscreenOnFirstGesture and its global pointerdown listener.
+2. Fullscreen remains enabled through UIKIT initialization and startPuzzle(), which runs from the explicit piece-count tap.
+3. Tray drag no longer calls setPointerCapture().
+4. Window pointermove/pointerup listeners remain the single drag lifecycle owner.
+5. While a tray piece is in transit, getBoundingClientRect() is refreshed before table hit-testing.
+6. The table rectangle is refreshed at activation/handoff.
+7. Tray piece touch-action is explicitly none; empty tray space remains pan-x.
+
+No changes to puzzle rendering, geometry, magnetic snapping, board placement, progression, audio modules, UI modules, or artwork.

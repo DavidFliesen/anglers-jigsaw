@@ -1,23 +1,22 @@
-# Angler's Jigsaw v3.10.1
+# Angler's Jigsaw v3.10.2
 
-## Focus of this release
+## Focus
+Tray-to-table drag regression repair built directly on v3.10.1.
 
-This is a layout/fullscreen-only update built on the working v3.10.0 puzzle engine. Puzzle geometry, magnetic snapping, drag behavior, progression, audio files, and the ARTEZIQ shared UI/audio modules are unchanged.
+## Root cause
+The v3.10.1 fullscreen startup retry installed a capture-phase document `pointerdown` listener. On iPad/Safari, a fullscreen/viewport transition beginning on the same pointer used to drag a tray piece can cancel or invalidate that drag. The tray drag also cached the play-table rectangle at pointerdown, so any fullscreen/immersive layout change could leave the table hit-test stale.
 
-### Fullscreen startup
-- Fullscreen Lock now defaults ON once for the v3.10.1 migration using the existing `aj_` storage prefix.
-- The existing UI kit is still used as-is.
-- The app calls `UIKIT.applyFSLock()` on launch and when a puzzle starts.
-- Browsers that block true fullscreen without a user gesture retry on the first pointer interaction.
-- iOS fallback behavior remains the UI kit's `body.immersive` mode.
-- No keydown-based fullscreen or audio-unlock behavior was added.
+## Fixes
+- Removed the global first-pointer fullscreen retry.
+- Fullscreen Lock still defaults ON and `UIKIT.applyFSLock()` still runs at startup and from `startPuzzle()`; the piece-count tap is the safe user gesture for true fullscreen.
+- Tray thumbnails no longer use pointer capture. Window-level pointer listeners own the cross-layer drag.
+- The play-table rectangle is refreshed continuously until the tray piece actually enters the table.
+- The table rectangle is refreshed again at the exact tray-to-table handoff.
+- Tray thumbnails explicitly use `touch-action:none` while empty tray space retains horizontal scrolling.
+- Fixed 58px tray thumbnails and 116px tray height remain unchanged.
 
-### Tackle Tray normalization
-- Every difficulty now uses the same 58px tray thumbnail size.
-- The Tackle Tray has a fixed 116px height at 12, 48, 108, and 192 pieces.
-- This matches the compact tray behavior of the prior 108-piece layout.
-- Actual puzzle piece size on the play table is unchanged; only tray thumbnails are normalized.
-- Tray scrolling remains horizontal.
+## Unchanged
+Puzzle geometry, magnetic snapping, board sizing, audio/UI modules, fish artwork, progression, Push/Pull, Trace, and tray sizing.
 
 ## Changed files
 - `index.html`
@@ -25,11 +24,4 @@ This is a layout/fullscreen-only update built on the working v3.10.0 puzzle engi
 - `js/app.js`
 - `sw.js`
 - `README.md`
-
-## Not changed
-- `arteziq-audio.js`
-- `arteziq-ui.js`
-- `arteziq-ui.css`
-- fish/puzzle artwork
-- puzzle geometry / magnetic snapping
-- audio files
+- `CODE-REVIEW-v3.10.2.txt`
