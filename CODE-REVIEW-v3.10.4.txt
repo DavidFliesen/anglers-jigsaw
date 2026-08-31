@@ -1,0 +1,17 @@
+Angler's Jigsaw v3.10.4 — iPad interaction review
+
+Observed failure
+- iPadOS owns the bottom-center screen edge for system gestures and Siri. A PWA cannot reliably suppress those native gestures.
+- The Tackle Tray sat close enough to that zone that repeated taps/drags could invoke Siri/app switching.
+- When the OS interrupted a pointer stream, Safari could occasionally return without the matching pointerup/pointercancel, leaving dragState active and making later taps appear broken.
+- v3.10.2 intentionally avoided tray pointer capture. That made taps safe but made fast drags less reliable after the finger left a 58px tray thumbnail.
+
+Structural repair
+1. Reserve a minimum 30px bottom safe strip using `env(safe-area-inset-bottom)` where available.
+2. Make tap the primary tray control and stage tapped pieces only in left/right lanes beside the puzzle.
+3. Arm pointer capture only after movement passes the tap/drag threshold.
+4. Recover stale drag state on focus, pageshow, visibility interruption, and a new pointerdown with a different pointer id.
+5. Preserve the existing v3.10.3 renderer, board geometry, magnetics, audio module, UI kit, and tray thumbnail size.
+
+Why this is safer
+The game no longer requires a long bottom-to-center gesture to be playable. The native bottom edge is treated as off-limits rather than trying to defeat iPadOS.
