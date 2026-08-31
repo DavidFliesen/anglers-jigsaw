@@ -1,0 +1,16 @@
+Angler's Jigsaw v3.9.7 — Rendering Recovery Review
+
+Finding:
+- v3.9.1 is the last confirmed version with visible puzzle-piece artwork and visible jigsaw cutlines.
+- v3.9.2 changed board sizing, board outline visibility and Trace opacity in the same release.
+- v3.9.4-v3.9.6 then attempted additional renderer changes instead of returning to the known-good subsystem.
+
+Recovery strategy:
+- Restore v3.9.1 requestViewportRelayout(), schedulePuzzleLayout(), layoutPuzzle(), normalizeLooseGroups(), computeCoverRect(), pieceSvgMarkup(), ensurePieceElement(), syncLoosePieces(), renderBoardCutlines(), and renderTray() exactly as the known-good renderer.
+- Restore the v3.9.1 board border, cutline visibility, and Trace opacity for this verification release.
+- Remove the extra .board-cutlines opacity multiplier introduced later.
+- Keep v3.9.4 numerical progression, single-row toolbar, Push/Pull controls, Return to Game placement, and magnetic grouping logic.
+- Keep the requested direct-start behavior: tapping 12/48/108/192 immediately starts the level.
+
+Important:
+Do not reduce outline or Trace opacity again until v3.9.7 is confirmed working in-browser. Any later visual adjustment should be isolated to one CSS value per release.

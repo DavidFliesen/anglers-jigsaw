@@ -1,15 +1,18 @@
-# Angler's Jigsaw v3.9.6
+# Angler's Jigsaw v3.9.7
 
-## iPad puzzle texture rendering repair
+Rendering recovery release.
 
-This release replaces the fragile inline-SVG `<image>` rendering used inside every puzzle piece. iPad/Safari was rendering the SVG shapes but not painting the external PNG inside them, leaving the board and tray visually blank.
+This version intentionally restores the entire last-known-good v3.9.1 puzzle rendering subsystem after v3.9.2-v3.9.6 regressions made pieces and cutlines disappear.
 
-Puzzle pieces now use the scenic puzzle PNG as a CSS background and use a Safari-compatible SVG mask only for the jigsaw silhouette. The existing deep circular piece geometry, drag engine, magnetic grouping, board snapping, and level progression are unchanged.
+It retains newer progression/navigation controls while restoring the known-good board sizing, SVG piece rendering, tray thumbnails, image cover calculations, board cutlines, board border, and Trace visibility.
 
-### Changed files
-- `index.html`
-- `css/styles.css`
-- `js/app.js`
-- `manifest.json`
-- `sw.js`
-- `README.md`
+Piece-count choices now start the level immediately.
+
+Changed files:
+- index.html
+- css/styles.css
+- js/app.js
+- manifest.json
+- sw.js
+- README.md
+- CODE-REVIEW-v3.9.7.txt
