@@ -1,17 +1,15 @@
-# Angler's Jigsaw v3.9.5
+# Angler's Jigsaw v3.9.6
 
-Focused interaction repair.
+## iPad puzzle texture rendering repair
 
-## Fixes
-- Restores puzzle art painting inside inline SVG pieces on iPad/Safari by supplying both modern `href` and Safari-compatible `xlink:href` image references.
-- Keeps the existing jigsaw geometry and magnetic group logic unchanged.
-- Piece-count choices now start the current level immediately.
-- Removes the redundant Start Level button.
-- Bumps application/service-worker version to v3.9.5.
+This release replaces the fragile inline-SVG `<image>` rendering used inside every puzzle piece. iPad/Safari was rendering the SVG shapes but not painting the external PNG inside them, leaving the board and tray visually blank.
 
-## Changed files
-- index.html
-- js/app.js
-- manifest.json
-- sw.js
-- README.md
+Puzzle pieces now use the scenic puzzle PNG as a CSS background and use a Safari-compatible SVG mask only for the jigsaw silhouette. The existing deep circular piece geometry, drag engine, magnetic grouping, board snapping, and level progression are unchanged.
+
+### Changed files
+- `index.html`
+- `css/styles.css`
+- `js/app.js`
+- `manifest.json`
+- `sw.js`
+- `README.md`
