@@ -200,3 +200,33 @@ body{background:#031a35}
 .tray-scrollbar::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:10px;margin-top:-2.5px;border:0;border-radius:999px;background:#65c8b9;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 .tray-scrollbar::-moz-range-track{height:5px;border-radius:999px;background:rgba(255,255,255,.12)}
 .tray-scrollbar::-moz-range-thumb{width:24px;height:10px;border:0;border-radius:999px;background:#65c8b9}
+
+
+/* v3.10.8 — iPad-stable puzzle toolbar interaction layer */
+.single-row-toolbar{
+  position:relative!important;
+  z-index:200!important;
+  isolation:isolate!important;
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.single-row-toolbar [data-puzzle-action]{
+  position:relative;
+  z-index:1;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.single-row-toolbar [data-puzzle-action].aj-pressed{
+  transform:translateY(1px) scale(.985);
+  filter:brightness(1.12);
+}
+/* Board/tray/drag layers can never cover the toolbar. */
+.play-table{z-index:10!important;}
+.tray-bar{z-index:40!important;}
+.puzzle-drag-layer{z-index:50!important;pointer-events:none!important;}
