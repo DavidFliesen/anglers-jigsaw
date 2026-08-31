@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.2";
+const APP_VERSION = "v3.10.3";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -27,11 +27,12 @@ let caught = safeJson(STORAGE_KEY,{});
 let progress = safeJson(PROGRESS_KEY,{nextLevel:1});
 let currentDifficulty=difficulties[1], puzzleState=null, currentScreen="home", zCounter=20, detailFish=null, trayMode="all", boardActionMode="push", puzzleStarting=false;
 let lastLayoutW=0,lastLayoutH=0,resizeTimer=null,pendingViewportRelayout=false;
-const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map(),ghost:null,enteredTable:false};
+const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map(),ghost:null,enteredTable:false,startClientX:0,startClientY:0,moved:false};
 const fishAssetCache=new Map();
 
 const ARTEZIQ_STORAGE_PREFIX="aj_";
 const TRAY_THUMB_SIZE=58;
+const TAP_MOVE_THRESHOLD=14;
 const FULLSCREEN_DEFAULT_MIGRATION_KEY=`${ARTEZIQ_STORAGE_PREFIX}fullscreen-default-v3101`;
 let detailFromCaught=false;
 
@@ -222,10 +223,10 @@ function normalizeLooseGroups(){if(!puzzleState?.metrics)return;const groups=new
 function computeCoverRect(imageRatio,boardW,boardH){const boardRatio=boardW/boardH;if(imageRatio>boardRatio){const h=boardH,w=h*imageRatio;return{w,h,x:(boardW-w)/2,y:0}}const w=boardW,h=w/imageRatio;return{w,h,x:0,y:(boardH-h)/2}}
 function pieceSvgMarkup(p){const id=`${p.id}-clip`;return`<svg viewBox="0 0 ${p.size} ${p.size}" width="${p.size}" height="${p.size}"><defs><clipPath id="${id}"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${id})"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g><path class="piece-hit" d="${p.path}"/></svg>`}
 function ensurePieceElement(p){if(!p.el){const el=document.createElement("div");el.className="piece";el.dataset.id=p.id;el.addEventListener("pointerdown",e=>startDragFromTable(p,e));p.el=el;els.piecesLayer.appendChild(el);p.dirty=true}if(p.dirty){p.el.innerHTML=pieceSvgMarkup(p);p.el.style.width=`${p.size}px`;p.el.style.height=`${p.size}px`;p.dirty=false}}
-function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);p.el.classList.toggle("locked",p.locked);p.el.classList.toggle("connected",!p.locked&&groupMembers(p).length>1);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`})}
+function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);const members=groupMembers(p);p.el.classList.toggle("locked",p.locked);p.el.classList.toggle("connected",!p.locked&&members.length>1);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`;p.el.title=p.locked?"Locked to puzzle":members.length>1?"Connected pieces move together":"Tap to return to Tackle Tray, or drag to move"})}
 function renderBoardCutlines(){if(!puzzleState)return;const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(2.2,cell*.045),col="rgba(27,39,54,.70)";els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);const out=[`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`];for(let row=0;row<puzzleState.rows;row++)for(let boundary=0;boundary<puzzleState.cols-1;boundary++){const edge=puzzleState.verticalCuts[row][boundary],x=(boundary+1)*cell,y0=row*cell,y1=(row+1)*cell;out.push(`<path d="${sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}for(let boundary=0;boundary<puzzleState.rows-1;boundary++)for(let colIndex=0;colIndex<puzzleState.cols;colIndex++){const edge=puzzleState.horizontalCuts[boundary][colIndex],y=(boundary+1)*cell,x0=colIndex*cell,x1=(colIndex+1)*cell;out.push(`<path d="${sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}els.boardCutlines.innerHTML=out.join("")}
 function groupMembers(p){return puzzleState?puzzleState.pieces.filter(q=>q.location==="table"&&q.groupId===p.groupId):[]}
-function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=TRAY_THUMB_SIZE;b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
+function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="tray-piece";b.setAttribute("aria-label","Puzzle piece. Tap to place it beside the puzzle, or drag it onto the table.");b.title="Tap to place beside the puzzle, or drag to move";const thumb=TRAY_THUMB_SIZE;b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
 function updateToolLabels(){els.allModeBtn?.classList.toggle("selected",trayMode==="all");els.edgesModeBtn?.classList.toggle("selected",trayMode==="edges");els.pushModeBtn?.classList.toggle("selected",boardActionMode==="push");els.pullModeBtn?.classList.toggle("selected",boardActionMode==="pull");els.trayModeNote.textContent=trayMode==="edges"?"Showing edge pieces":"Showing all pieces";els.previewBtn.classList.toggle("selected",Boolean(puzzleState?.previewOn))}
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=`Level ${puzzleState.fish.number}`;els.puzzleInfo.textContent=`${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;updateToolLabels()}
 function setTrayMode(mode){trayMode=mode;if(!puzzleState?.metrics){updateToolLabels();schedulePuzzleLayout(false);return}renderTray();updateToolLabels()}
@@ -256,13 +257,11 @@ function startDragFromTray(p,e){
   if(!puzzleState?.metrics||dragState.active)return;
   e.preventDefault();e.stopPropagation();
   const cap=e.currentTarget;
-  dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin="tray";dragState.captureEl=cap;dragState.tableRect=els.playTable.getBoundingClientRect();dragState.group=[p];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.offsetX=p.size/2;dragState.offsetY=p.size/2;
+  dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin="tray";dragState.captureEl=cap;dragState.tableRect=els.playTable.getBoundingClientRect();dragState.group=[p];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.offsetX=p.size/2;dragState.offsetY=p.size/2;dragState.startClientX=e.clientX;dragState.startClientY=e.clientY;dragState.moved=false;
   cap.classList.add("drag-source-active");
-  // Do not capture the pointer on tray thumbnails. iPad/Safari can cancel a
-  // captured pointer when leaving a horizontally scrollable tray or when the
-  // fullscreen viewport settles. Window-level pointer listeners already keep
-  // this drag continuous across the tray/table boundary.
-  createDragGhost(p,e);
+  // Do not capture the pointer on tray thumbnails. A simple tap is now a
+  // first-class control on iPad; the drag ghost is created only after the
+  // finger actually moves far enough to be a drag.
 }
 function activateTrayPieceOnTable(e){
   const p=dragState.piece;if(!p)return;
@@ -277,13 +276,21 @@ function activateTrayPieceOnTable(e){
   ensurePieceElement(p);p.el.classList.add("dragging");removeDragGhost();
 }
 function startDragFromTable(p,e){if(!puzzleState||p.locked||dragState.active)return;e.preventDefault();e.stopPropagation();startDrag(p,e,"table",e.currentTarget)}
-function startDrag(p,e,origin,cap){const rect=els.playTable.getBoundingClientRect(),group=groupMembers(p);dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin=origin;dragState.captureEl=cap;dragState.tableRect=rect;dragState.group=group.length?group:[p];dragState.enteredTable=true;dragState.startPositions=new Map(dragState.group.map(q=>[q.id,{x:q.x,y:q.y}]));dragState.group.forEach(q=>{q.z=++zCounter;ensurePieceElement(q);q.el.classList.add("dragging")});const px=e.clientX-rect.left,py=e.clientY-rect.top;dragState.offsetX=px-p.x;dragState.offsetY=py-p.y;try{cap?.setPointerCapture?.(e.pointerId)}catch{}}
+function startDrag(p,e,origin,cap){const rect=els.playTable.getBoundingClientRect(),group=groupMembers(p);dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin=origin;dragState.captureEl=cap;dragState.tableRect=rect;dragState.group=group.length?group:[p];dragState.enteredTable=true;dragState.startPositions=new Map(dragState.group.map(q=>[q.id,{x:q.x,y:q.y}]));dragState.startClientX=e.clientX;dragState.startClientY=e.clientY;dragState.moved=false;dragState.group.forEach(q=>{q.z=++zCounter;ensurePieceElement(q);q.el.classList.add("dragging")});const px=e.clientX-rect.left,py=e.clientY-rect.top;dragState.offsetX=px-p.x;dragState.offsetY=py-p.y;try{cap?.setPointerCapture?.(e.pointerId)}catch{}}
 function boundedGroupDelta(group,dx,dy){const m=puzzleState.metrics,size=group[0]?.size||0,minX=Math.min(...group.map(p=>p.x)),maxX=Math.max(...group.map(p=>p.x+p.size)),minY=Math.min(...group.map(p=>p.y)),maxY=Math.max(...group.map(p=>p.y+p.size)),pad=size*.25;if(minX+dx<-pad)dx=-pad-minX;if(maxX+dx>m.tableW+pad)dx=m.tableW+pad-maxX;if(minY+dy<-pad)dy=-pad-minY;if(maxY+dy>m.tableH+pad)dy=m.tableH+pad-maxY;return{dx,dy}}
+function notePointerMovement(e){
+  if(dragState.moved)return true;
+  if(Math.hypot(e.clientX-dragState.startClientX,e.clientY-dragState.startClientY)>=TAP_MOVE_THRESHOLD)dragState.moved=true;
+  return dragState.moved;
+}
 function onPointerMove(e){
   if(!dragState.active||e.pointerId!==dragState.pointerId||!puzzleState)return;
   e.preventDefault();
+  const moved=notePointerMovement(e);
   if(dragState.origin==="tray"&&!dragState.enteredTable){
-    positionDragGhost(e.clientX,e.clientY,dragState.piece.size);
+    if(!moved)return;
+    if(!dragState.ghost)createDragGhost(dragState.piece,e);
+    else positionDragGhost(e.clientX,e.clientY,dragState.piece.size);
     // The table can move when fullscreen/immersive mode settles. Use the live
     // rectangle until the piece actually crosses onto the play area.
     const liveRect=els.playTable.getBoundingClientRect();
@@ -291,13 +298,30 @@ function onPointerMove(e){
     if(pointInRect(e.clientX,e.clientY,liveRect))activateTrayPieceOnTable(e);
     return;
   }
+  if(!moved)return;
   const p=dragState.piece,r=dragState.tableRect,desiredX=e.clientX-r.left-dragState.offsetX,desiredY=e.clientY-r.top-dragState.offsetY;let {dx,dy}=boundedGroupDelta(dragState.group,desiredX-p.x,desiredY-p.y);dragState.group.forEach(q=>{q.x+=dx;q.y+=dy;if(q.el)q.el.style.transform=`translate(${q.x}px,${q.y}px)`});
 }
 function onPointerUp(e){
   if(!dragState.active||e.pointerId!==dragState.pointerId)return;
   e.preventDefault();
-  if(dragState.origin==="tray"&&!dragState.enteredTable){resetDrag();return;}
-  const p=dragState.piece,trayRect=els.trayBar.getBoundingClientRect();
+  const p=dragState.piece,isTap=!dragState.moved;
+  if(dragState.origin==="tray"&&!dragState.enteredTable){
+    resetDrag();
+    if(isTap&&p)tapTrayPieceToOuterArea(p);
+    return;
+  }
+  if(dragState.origin==="table"&&isTap){
+    const group=[...dragState.group];
+    if(p&&!p.locked&&group.length===1){
+      movePieceToTray(p);resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();audioSfx("shuffle");showToast("Piece returned to tray");
+    }else{
+      group.forEach(q=>{const start=dragState.startPositions.get(q.id);if(start){q.x=start.x;q.y=start.y}});
+      resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();
+      if(group.length>1)showToast("Connected pieces stay together on the table.");
+    }
+    return;
+  }
+  const trayRect=els.trayBar.getBoundingClientRect();
   if(p&&!p.locked&&pointInRect(e.clientX,e.clientY,trayRect)){
     if(dragState.group.length>1){showToast("Connected pieces stay together on the table.")}
     else{movePieceToTray(p);resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();return}
@@ -310,9 +334,44 @@ function adjacentPieces(p){return puzzleState.pieces.filter(q=>q.location==="tab
 function trySnapGroupToNeighbor(group){const cell=puzzleState.metrics.cell,threshold=puzzleState.metrics.magnetDistance;let best=null;for(const p of group){for(const n of adjacentPieces(p)){const ex=n.x+(p.col-n.col)*cell,ey=n.y+(p.row-n.row)*cell,d=Math.hypot(p.x-ex,p.y-ey);if(d<=threshold&&(!best||d<best.d))best={p,n,ex,ey,d}}}if(!best)return null;moveGroupBy(group,best.ex-best.p.x,best.ey-best.p.y);const targetId=best.n.groupId;group.forEach(p=>p.groupId=targetId);const merged=puzzleState.pieces.filter(p=>p.location==="table"&&p.groupId===targetId);if(best.n.locked){merged.forEach(p=>{p.locked=true;p.x=p.targetX;p.y=p.targetY})}showToast(`${merged.length} pieces connected`);return merged}
 function moveGroupBy(group,dx,dy){group.forEach(p=>{p.x+=dx;p.y+=dy})}
 function cancelDrag(){if(!dragState.active)return;if(dragState.origin==="tray"){if(dragState.enteredTable&&dragState.piece?.location==="table")movePieceToTray(dragState.piece)}else{dragState.group.forEach(p=>{const start=dragState.startPositions.get(p.id);if(start){p.x=start.x;p.y=start.y}})}resetDrag();if(puzzleState){syncLoosePieces();renderTray();updatePuzzleMeta()}if(pendingViewportRelayout)requestViewportRelayout(true)}
-function resetDrag(){releaseDragCapture();removeDragGhost();dragState.active=false;dragState.piece=null;dragState.pointerId=null;dragState.captureEl=null;dragState.tableRect=null;dragState.group=[];dragState.startPositions=new Map();dragState.enteredTable=false}
+function resetDrag(){releaseDragCapture();removeDragGhost();dragState.active=false;dragState.piece=null;dragState.pointerId=null;dragState.captureEl=null;dragState.tableRect=null;dragState.group=[];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.startClientX=0;dragState.startClientY=0;dragState.moved=false}
 function pointInRect(x,y,r){return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
 function movePieceToTray(p){p.location="tray";p.locked=false;p.groupId=p.id;p.trayOrder=Math.random();if(p.el){p.el.remove();p.el=null}}
+function randomBetween(min,max){return max<=min?min:min+Math.random()*(max-min)}
+function tapTrayPieceToOuterArea(p){
+  if(!puzzleState?.metrics||p.location!=="tray")return false;
+  p.location="table";p.locked=false;p.groupId=p.id;p.z=++zCounter;
+  placePieceOutsideBoard(p);
+  syncLoosePieces();renderTray();updatePuzzleMeta();audioSfx("place");
+  return true;
+}
+function placePieceOutsideBoard(p){
+  const m=puzzleState.metrics,gap=Math.max(4,m.cell*.04),maxX=Math.max(0,m.tableW-p.size),maxY=Math.max(0,m.tableH-p.size);
+  const regions=[];
+  const add=(x1,y1,x2,y2)=>{x1=Math.max(0,x1);y1=Math.max(0,y1);x2=Math.min(maxX,x2);y2=Math.min(maxY,y2);if(x2>=x1&&y2>=y1)regions.push({x1,y1,x2,y2,area:Math.max(1,(x2-x1+1)*(y2-y1+1))})};
+  add(0,0,m.boardLeft-p.size-gap,maxY);
+  add(m.boardLeft+m.boardW+gap,0,maxX,maxY);
+  add(0,0,maxX,m.boardTop-p.size-gap);
+  add(0,m.boardTop+m.boardH+gap,maxX,maxY);
+  if(regions.length){
+    const total=regions.reduce((sum,r)=>sum+r.area,0);let pick=Math.random()*total,region=regions[0];
+    for(const r of regions){pick-=r.area;if(pick<=0){region=r;break}}
+    p.x=randomBetween(region.x1,region.x2);p.y=randomBetween(region.y1,region.y2);return;
+  }
+  // On a very large 12-piece board, a whole piece may not fit entirely in an
+  // outside strip. Put its center in the widest outside margin instead, which
+  // keeps the piece usable without dropping it into the solve area.
+  const margins=[
+    {side:"left",size:m.boardLeft},{side:"right",size:m.tableW-(m.boardLeft+m.boardW)},
+    {side:"top",size:m.boardTop},{side:"bottom",size:m.tableH-(m.boardTop+m.boardH)}
+  ].sort((a,b)=>b.size-a.size);
+  const side=margins[0]?.side||"left";
+  if(side==="left"){p.x=-p.size*.20;p.y=randomBetween(0,maxY)}
+  else if(side==="right"){p.x=m.tableW-p.size*.80;p.y=randomBetween(0,maxY)}
+  else if(side==="top"){p.x=randomBetween(0,maxX);p.y=-p.size*.20}
+  else{p.x=randomBetween(0,maxX);p.y=m.tableH-p.size*.80}
+  clampPieceToTable(p);
+}
 function clampPieceToTable(p){if(!puzzleState?.metrics)return;const {tableW,tableH}=puzzleState.metrics;p.x=Math.max(-p.size*.25,Math.min(tableW-p.size*.75,p.x));p.y=Math.max(-p.size*.25,Math.min(tableH-p.size*.75,p.y))}
 function pushVisibleToBoard(){
   if(!puzzleState)return;
