@@ -1,0 +1,16 @@
+Angler's Jigsaw v3.10.8 — Toolbar Reliability Review
+
+Observed architecture in v3.10.7:
+- Gameplay controls used delegated pointerup plus a click fallback.
+- Clicks within 450 ms of a pointer action were deliberately ignored to prevent duplicates.
+- iPadOS can cancel or fail to return pointerup after fullscreen/system/drag transitions.
+- Therefore a physical tap could produce no action, requiring repeated presses.
+- PUSH/PULL also returned immediately while boardActionBusy was true, silently discarding a press.
+
+v3.10.8 corrections:
+1. Single delegated pointerdown handler for every gameplay toolbar action.
+2. Click handler is keyboard/accessibility only (event.detail === 0).
+3. PUSH/PULL queue the newest request if the board is busy rather than dropping it.
+4. Toolbar has explicit z-index 200 and pointer-events/touch-action rules.
+5. Play table, tray and drag layers remain beneath the toolbar.
+6. No changes to the ARTEZIQ UI/audio modules.
