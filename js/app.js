@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.9.2";
+const APP_VERSION = "v3.9.3";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -43,7 +43,24 @@ async function setFishImage(element,fish,kind){const resolved=await resolveFishA
 
 initialize();
 function initialize(){els.globalVersion.textContent=APP_VERSION;normalizeProgress();bindUI();buildWaterBubbles();renderLevelSelect();renderCaught();showScreen("home");spawnAmbientLoop()}
-function normalizeProgress(){const caughtNumbers=speciesList().filter(f=>caught[f.id]).map(f=>f.number);let sequential=1;while(caughtNumbers.includes(sequential))sequential++;if(!Number.isFinite(progress.nextLevel)||progress.nextLevel<sequential)progress.nextLevel=sequential;saveProgress()}
+function normalizeProgress(){
+  const ordered=speciesList();
+  const caughtNumbers=ordered.filter(f=>caught[f.id]).map(f=>f.number);
+  let sequential=1;
+  while(caughtNumbers.includes(sequential))sequential++;
+
+  // v3.9.3 repair: progression is strictly numerical. Earlier builds could
+  // leave nextLevel ahead of the first missing fish, and could record a later
+  // species as caught out of sequence. Keep only the contiguous completed run
+  // (1..N), then make the next level exactly N+1.
+  let caughtChanged=false;
+  ordered.forEach(f=>{
+    if(f.number>=sequential&&caught[f.id]){delete caught[f.id];caughtChanged=true}
+  });
+  progress.nextLevel=sequential;
+  if(caughtChanged)saveCaught();
+  saveProgress();
+}
 function bindUI(){
   els.homeBtn.onclick=()=>showScreen("home");
   els.fishCaughtBtn.onclick=openCaught;els.homeFishCaughtBtn.onclick=openCaught;els.openFishCaughtBtn.onclick=openCaught;
