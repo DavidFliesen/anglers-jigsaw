@@ -1,27 +1,15 @@
-# Angler's Jigsaw v3.10.2
+# Angler's Jigsaw v3.10.3
 
-## Focus
-Tray-to-table drag regression repair built directly on v3.10.1.
+## Touch-control update
 
-## Root cause
-The v3.10.1 fullscreen startup retry installed a capture-phase document `pointerdown` listener. On iPad/Safari, a fullscreen/viewport transition beginning on the same pointer used to drag a tray piece can cancel or invalidate that drag. The tray drag also cached the play-table rectangle at pointerdown, so any fullscreen/immersive layout change could leave the table hit-test stale.
+v3.10.3 adds tap controls as an iPad-friendly alternative to dragging pieces from the Tackle Tray.
 
-## Fixes
-- Removed the global first-pointer fullscreen retry.
-- Fullscreen Lock still defaults ON and `UIKIT.applyFSLock()` still runs at startup and from `startPuzzle()`; the piece-count tap is the safe user gesture for true fullscreen.
-- Tray thumbnails no longer use pointer capture. Window-level pointer listeners own the cross-layer drag.
-- The play-table rectangle is refreshed continuously until the tray piece actually enters the table.
-- The table rectangle is refreshed again at the exact tray-to-table handoff.
-- Tray thumbnails explicitly use `touch-action:none` while empty tray space retains horizontal scrolling.
-- Fixed 58px tray thumbnails and 116px tray height remain unchanged.
+- Tap a Tackle Tray piece: places it randomly in the play area outside the central puzzle-board footprint.
+- Drag a Tackle Tray piece: existing drag-to-table behavior remains available.
+- Tap a loose, unconnected table piece: returns it to the Tackle Tray.
+- Tap a magnetically connected group: it stays on the table.
+- Tap a board-locked piece: it stays locked.
+- A 14-pixel movement threshold separates taps from intentional drags and ignores normal finger jitter.
+- The drag ghost now appears only after movement becomes a real drag.
 
-## Unchanged
-Puzzle geometry, magnetic snapping, board sizing, audio/UI modules, fish artwork, progression, Push/Pull, Trace, and tray sizing.
-
-## Changed files
-- `index.html`
-- `css/styles.css`
-- `js/app.js`
-- `sw.js`
-- `README.md`
-- `CODE-REVIEW-v3.10.2.txt`
+Puzzle rendering, magnetics, progression, normalized tray sizing, audio, fullscreen/UI kit integration, and board sizing are unchanged from v3.10.2.

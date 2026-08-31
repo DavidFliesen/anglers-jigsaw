@@ -1,0 +1,30 @@
+Angler's Jigsaw v3.10.3 touch-control review
+
+PURPOSE
+Reduce reliance on long iPad drag gestures, which can conflict with iPadOS app-switch gestures near screen edges.
+
+IMPLEMENTATION
+1. Tray tap
+   A pointer press/release with less than 14 px of travel is treated as a tap. The piece moves from the tray to a random outside region around the central puzzle board.
+
+2. Tray drag
+   Movement of 14 px or more enters the existing drag path. The drag ghost is not created until that threshold is crossed. Existing live play-table hit testing is retained.
+
+3. Table tap
+   A loose table piece whose magnetic group contains only itself returns to the tray on tap. Connected groups and locked board pieces are protected.
+
+4. Table drag
+   Existing connected-group drag and magnetic snap behavior remains unchanged once the 14 px movement threshold is crossed.
+
+5. Outside placement
+   Full-piece placement prefers left/right/top/bottom regions that are entirely outside the central board footprint. For very large pieces where no full strip can contain the piece, the center is placed in the widest outside margin while keeping the piece visible.
+
+UNCHANGED
+- puzzle geometry and SVG renderer
+- board cutlines and trace behavior
+- magnetic neighbor snapping
+- board locking
+- 58 px normalized tray thumbnails
+- audio/UI kit modules
+- fullscreen settings
+- numerical fish progression
