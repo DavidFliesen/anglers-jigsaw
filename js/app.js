@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.0";
+const APP_VERSION = "v3.10.1";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -31,6 +31,8 @@ const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,orig
 const fishAssetCache=new Map();
 
 const ARTEZIQ_STORAGE_PREFIX="aj_";
+const TRAY_THUMB_SIZE=58;
+const FULLSCREEN_DEFAULT_MIGRATION_KEY=`${ARTEZIQ_STORAGE_PREFIX}fullscreen-default-v3101`;
 let detailFromCaught=false;
 
 function audioSfx(name){try{window.AUDIO?.sfx?.(name)}catch{}}
@@ -53,7 +55,33 @@ function initArteziqKits(){
     window.AUDIO?.music?.("menu");
     window.AUDIO?.bindVisibility?.(()=>musicKeyForScreen(currentScreen));
   }catch(error){console.warn("ARTEZIQ audio integration unavailable",error)}
-  try{window.UIKIT?.init?.({prefix:ARTEZIQ_STORAGE_PREFIX,extraSettingsHTML:""})}catch(error){console.warn("ARTEZIQ UI integration unavailable",error)}
+  try{
+    // v3.10.1: fullscreen lock defaults ON once for this migration. After that,
+    // the user's setting is respected. A true browser fullscreen request may
+    // require a user gesture, so apply immediately and retry on the first tap.
+    try{
+      if(localStorage.getItem(FULLSCREEN_DEFAULT_MIGRATION_KEY)!=="1"){
+        localStorage.setItem(`${ARTEZIQ_STORAGE_PREFIX}fslock`,"1");
+        localStorage.setItem(FULLSCREEN_DEFAULT_MIGRATION_KEY,"1");
+      }
+    }catch{}
+    window.UIKIT?.init?.({prefix:ARTEZIQ_STORAGE_PREFIX,extraSettingsHTML:""});
+    window.UIKIT?.applyFSLock?.();
+    armFullscreenOnFirstGesture();
+  }catch(error){console.warn("ARTEZIQ UI integration unavailable",error)}
+}
+
+function fullscreenActive(){
+  return Boolean(document.fullscreenElement||document.webkitFullscreenElement||document.body.classList.contains("immersive"));
+}
+function armFullscreenOnFirstGesture(){
+  if(!window.UIKIT?.isFsLockOn?.()||fullscreenActive())return;
+  const attempt=()=>{
+    if(!window.UIKIT?.isFsLockOn?.()){document.removeEventListener("pointerdown",attempt,true);return}
+    try{window.UIKIT?.applyFSLock?.()}catch{}
+    if(fullscreenActive())document.removeEventListener("pointerdown",attempt,true);
+  };
+  document.addEventListener("pointerdown",attempt,{capture:true,passive:true});
 }
 
 function safeJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return structuredClone(fallback)}}
@@ -210,7 +238,7 @@ function ensurePieceElement(p){if(!p.el){const el=document.createElement("div");
 function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);p.el.classList.toggle("locked",p.locked);p.el.classList.toggle("connected",!p.locked&&groupMembers(p).length>1);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`})}
 function renderBoardCutlines(){if(!puzzleState)return;const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(2.2,cell*.045),col="rgba(27,39,54,.70)";els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);const out=[`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`];for(let row=0;row<puzzleState.rows;row++)for(let boundary=0;boundary<puzzleState.cols-1;boundary++){const edge=puzzleState.verticalCuts[row][boundary],x=(boundary+1)*cell,y0=row*cell,y1=(row+1)*cell;out.push(`<path d="${sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}for(let boundary=0;boundary<puzzleState.rows-1;boundary++)for(let colIndex=0;colIndex<puzzleState.cols;colIndex++){const edge=puzzleState.horizontalCuts[boundary][colIndex],y=(boundary+1)*cell,x0=colIndex*cell,x1=(colIndex+1)*cell;out.push(`<path d="${sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}els.boardCutlines.innerHTML=out.join("")}
 function groupMembers(p){return puzzleState?puzzleState.pieces.filter(q=>q.location==="table"&&q.groupId===p.groupId):[]}
-function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=Math.max(58,puzzleState.metrics.cell*.72);b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
+function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=TRAY_THUMB_SIZE;b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
 function updateToolLabels(){els.allModeBtn?.classList.toggle("selected",trayMode==="all");els.edgesModeBtn?.classList.toggle("selected",trayMode==="edges");els.pushModeBtn?.classList.toggle("selected",boardActionMode==="push");els.pullModeBtn?.classList.toggle("selected",boardActionMode==="pull");els.trayModeNote.textContent=trayMode==="edges"?"Showing edge pieces":"Showing all pieces";els.previewBtn.classList.toggle("selected",Boolean(puzzleState?.previewOn))}
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=`Level ${puzzleState.fish.number}`;els.puzzleInfo.textContent=`${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;updateToolLabels()}
 function setTrayMode(mode){trayMode=mode;if(!puzzleState?.metrics){updateToolLabels();schedulePuzzleLayout(false);return}renderTray();updateToolLabels()}
