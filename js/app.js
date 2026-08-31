@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.3";
+const APP_VERSION = "v3.10.4";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -27,7 +27,7 @@ let caught = safeJson(STORAGE_KEY,{});
 let progress = safeJson(PROGRESS_KEY,{nextLevel:1});
 let currentDifficulty=difficulties[1], puzzleState=null, currentScreen="home", zCounter=20, detailFish=null, trayMode="all", boardActionMode="push", puzzleStarting=false;
 let lastLayoutW=0,lastLayoutH=0,resizeTimer=null,pendingViewportRelayout=false;
-const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map(),ghost:null,enteredTable:false,startClientX:0,startClientY:0,moved:false};
+const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map(),ghost:null,enteredTable:false,startClientX:0,startClientY:0,moved:false,captureArmed:false};
 const fishAssetCache=new Map();
 
 const ARTEZIQ_STORAGE_PREFIX="aj_";
@@ -35,6 +35,7 @@ const TRAY_THUMB_SIZE=58;
 const TAP_MOVE_THRESHOLD=14;
 const FULLSCREEN_DEFAULT_MIGRATION_KEY=`${ARTEZIQ_STORAGE_PREFIX}fullscreen-default-v3101`;
 let detailFromCaught=false;
+let tapStageSideCounter=0;
 
 function audioSfx(name){try{window.AUDIO?.sfx?.(name)}catch{}}
 function gameplayMusicKey(fish){return ((Number(fish?.number)||1)%2===0)?"deep":"freshwater"}
@@ -138,12 +139,29 @@ function bindUI(){
   window.addEventListener("resize",()=>requestViewportRelayout(false),{passive:true});
   window.addEventListener("orientationchange",()=>{if(dragState.active){pendingViewportRelayout=true;return}setTimeout(()=>requestViewportRelayout(true),180)},{passive:true});
   els.playTable?.addEventListener("touchmove",event=>{if(dragState.active)event.preventDefault()},{passive:false});
+  // Recover from an iPadOS/Siri/system-gesture interruption before a new
+  // puzzle gesture begins. Some system overlays do not reliably deliver the
+  // original pointerup/pointercancel event back to Safari.
+  document.addEventListener("pointerdown",recoverStaleDragBeforeNewPointer,true);
   window.addEventListener("pointermove",onPointerMove,{passive:false});
   window.addEventListener("pointerup",onPointerUp,{passive:false});
   window.addEventListener("pointercancel",cancelDrag,{passive:false});
-  window.addEventListener("blur",()=>{if(dragState.active)cancelDrag()});
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&dragState.active)cancelDrag()});
+  window.addEventListener("blur",recoverInteractionState);
+  window.addEventListener("focus",recoverInteractionState);
+  window.addEventListener("pageshow",recoverInteractionState);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)recoverInteractionState()});
   ["gesturestart","gesturechange","gestureend"].forEach(type=>document.addEventListener(type,event=>{if(currentScreen==="puzzle")event.preventDefault()},{passive:false}));
+}
+
+function recoverStaleDragBeforeNewPointer(){
+  // A second pointerdown cannot belong to the same unfinished gesture. If a
+  // system overlay swallowed the prior pointerup/pointercancel, clear that
+  // stale state before the new gesture reaches its target.
+  if(dragState.active)cancelDrag();
+}
+function recoverInteractionState(){
+  if(dragState.active)cancelDrag();
+  document.body.classList.remove("aj-system-interrupted");
 }
 
 function handlePuzzleToolbarClick(event){
@@ -259,9 +277,9 @@ function startDragFromTray(p,e){
   const cap=e.currentTarget;
   dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin="tray";dragState.captureEl=cap;dragState.tableRect=els.playTable.getBoundingClientRect();dragState.group=[p];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.offsetX=p.size/2;dragState.offsetY=p.size/2;dragState.startClientX=e.clientX;dragState.startClientY=e.clientY;dragState.moved=false;
   cap.classList.add("drag-source-active");
-  // Do not capture the pointer on tray thumbnails. A simple tap is now a
-  // first-class control on iPad; the drag ghost is created only after the
-  // finger actually moves far enough to be a drag.
+  // Do not capture on pointerdown. A tap is a first-class control. If the
+  // finger moves far enough to become a drag, we arm pointer capture then so
+  // Safari continues delivering movement after the finger leaves the tray.
 }
 function activateTrayPieceOnTable(e){
   const p=dragState.piece;if(!p)return;
@@ -289,6 +307,12 @@ function onPointerMove(e){
   const moved=notePointerMovement(e);
   if(dragState.origin==="tray"&&!dragState.enteredTable){
     if(!moved)return;
+    // Capture only after this is definitely a drag. This keeps taps simple,
+    // while making tray-to-table drags reliable even when the finger moves
+    // quickly off the small 58px thumbnail.
+    if(!dragState.captureArmed&&dragState.captureEl){
+      try{dragState.captureEl.setPointerCapture?.(dragState.pointerId);dragState.captureArmed=true}catch{}
+    }
     if(!dragState.ghost)createDragGhost(dragState.piece,e);
     else positionDragGhost(e.clientX,e.clientY,dragState.piece.size);
     // The table can move when fullscreen/immersive mode settles. Use the live
@@ -334,43 +358,43 @@ function adjacentPieces(p){return puzzleState.pieces.filter(q=>q.location==="tab
 function trySnapGroupToNeighbor(group){const cell=puzzleState.metrics.cell,threshold=puzzleState.metrics.magnetDistance;let best=null;for(const p of group){for(const n of adjacentPieces(p)){const ex=n.x+(p.col-n.col)*cell,ey=n.y+(p.row-n.row)*cell,d=Math.hypot(p.x-ex,p.y-ey);if(d<=threshold&&(!best||d<best.d))best={p,n,ex,ey,d}}}if(!best)return null;moveGroupBy(group,best.ex-best.p.x,best.ey-best.p.y);const targetId=best.n.groupId;group.forEach(p=>p.groupId=targetId);const merged=puzzleState.pieces.filter(p=>p.location==="table"&&p.groupId===targetId);if(best.n.locked){merged.forEach(p=>{p.locked=true;p.x=p.targetX;p.y=p.targetY})}showToast(`${merged.length} pieces connected`);return merged}
 function moveGroupBy(group,dx,dy){group.forEach(p=>{p.x+=dx;p.y+=dy})}
 function cancelDrag(){if(!dragState.active)return;if(dragState.origin==="tray"){if(dragState.enteredTable&&dragState.piece?.location==="table")movePieceToTray(dragState.piece)}else{dragState.group.forEach(p=>{const start=dragState.startPositions.get(p.id);if(start){p.x=start.x;p.y=start.y}})}resetDrag();if(puzzleState){syncLoosePieces();renderTray();updatePuzzleMeta()}if(pendingViewportRelayout)requestViewportRelayout(true)}
-function resetDrag(){releaseDragCapture();removeDragGhost();dragState.active=false;dragState.piece=null;dragState.pointerId=null;dragState.captureEl=null;dragState.tableRect=null;dragState.group=[];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.startClientX=0;dragState.startClientY=0;dragState.moved=false}
+function resetDrag(){releaseDragCapture();removeDragGhost();dragState.active=false;dragState.piece=null;dragState.pointerId=null;dragState.captureEl=null;dragState.tableRect=null;dragState.group=[];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.startClientX=0;dragState.startClientY=0;dragState.moved=false;dragState.captureArmed=false}
 function pointInRect(x,y,r){return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
 function movePieceToTray(p){p.location="tray";p.locked=false;p.groupId=p.id;p.trayOrder=Math.random();if(p.el){p.el.remove();p.el=null}}
 function randomBetween(min,max){return max<=min?min:min+Math.random()*(max-min)}
 function tapTrayPieceToOuterArea(p){
   if(!puzzleState?.metrics||p.location!=="tray")return false;
   p.location="table";p.locked=false;p.groupId=p.id;p.z=++zCounter;
-  placePieceOutsideBoard(p);
+  placePieceInSideStagingArea(p);
   syncLoosePieces();renderTray();updatePuzzleMeta();audioSfx("place");
+  showToast("Piece staged beside the puzzle");
   return true;
 }
-function placePieceOutsideBoard(p){
-  const m=puzzleState.metrics,gap=Math.max(4,m.cell*.04),maxX=Math.max(0,m.tableW-p.size),maxY=Math.max(0,m.tableH-p.size);
-  const regions=[];
-  const add=(x1,y1,x2,y2)=>{x1=Math.max(0,x1);y1=Math.max(0,y1);x2=Math.min(maxX,x2);y2=Math.min(maxY,y2);if(x2>=x1&&y2>=y1)regions.push({x1,y1,x2,y2,area:Math.max(1,(x2-x1+1)*(y2-y1+1))})};
-  add(0,0,m.boardLeft-p.size-gap,maxY);
-  add(m.boardLeft+m.boardW+gap,0,maxX,maxY);
-  add(0,0,maxX,m.boardTop-p.size-gap);
-  add(0,m.boardTop+m.boardH+gap,maxX,maxY);
-  if(regions.length){
-    const total=regions.reduce((sum,r)=>sum+r.area,0);let pick=Math.random()*total,region=regions[0];
-    for(const r of regions){pick-=r.area;if(pick<=0){region=r;break}}
-    p.x=randomBetween(region.x1,region.x2);p.y=randomBetween(region.y1,region.y2);return;
+function overlapsLoosePiece(x,y,p,size){
+  const pad=Math.max(4,size*.08);
+  return puzzleState.pieces.some(q=>q!==p&&q.location==="table"&&!q.locked&&x<q.x+q.size-pad&&x+size-pad>q.x&&y<q.y+q.size-pad&&y+size-pad>q.y);
+}
+function placePieceInSideStagingArea(p){
+  const m=puzzleState.metrics,gap=Math.max(6,m.cell*.05),maxY=Math.max(0,m.tableH-p.size);
+  const leftWidth=Math.max(0,m.boardLeft-gap),rightStart=m.boardLeft+m.boardW+gap,rightWidth=Math.max(0,m.tableW-rightStart);
+  // Alternate sides so repeated taps distribute pieces instead of piling them
+  // into one place. Prefer a side that can fully contain the current piece.
+  let side=(tapStageSideCounter++%2===0)?"left":"right";
+  const fitsLeft=leftWidth>=p.size+gap,fitsRight=rightWidth>=p.size+gap;
+  if(side==="left"&&!fitsLeft&&fitsRight)side="right";
+  if(side==="right"&&!fitsRight&&fitsLeft)side="left";
+  const yMin=Math.max(6,m.tableH*.02),yMax=Math.max(yMin,maxY-Math.max(6,m.tableH*.02));
+  let x=0,y=yMin;
+  for(let attempt=0;attempt<18;attempt++){
+    if(side==="left"){
+      x=fitsLeft?randomBetween(gap,Math.max(gap,m.boardLeft-p.size-gap)):Math.max(-p.size*.18,m.boardLeft-p.size-gap);
+    }else{
+      x=fitsRight?randomBetween(Math.min(m.tableW-p.size,rightStart),Math.max(Math.min(m.tableW-p.size,rightStart),m.tableW-p.size-gap)):Math.min(m.tableW-p.size,m.boardLeft+m.boardW+gap);
+    }
+    y=randomBetween(yMin,yMax);
+    if(!overlapsLoosePiece(x,y,p,p.size))break;
   }
-  // On a very large 12-piece board, a whole piece may not fit entirely in an
-  // outside strip. Put its center in the widest outside margin instead, which
-  // keeps the piece usable without dropping it into the solve area.
-  const margins=[
-    {side:"left",size:m.boardLeft},{side:"right",size:m.tableW-(m.boardLeft+m.boardW)},
-    {side:"top",size:m.boardTop},{side:"bottom",size:m.tableH-(m.boardTop+m.boardH)}
-  ].sort((a,b)=>b.size-a.size);
-  const side=margins[0]?.side||"left";
-  if(side==="left"){p.x=-p.size*.20;p.y=randomBetween(0,maxY)}
-  else if(side==="right"){p.x=m.tableW-p.size*.80;p.y=randomBetween(0,maxY)}
-  else if(side==="top"){p.x=randomBetween(0,maxX);p.y=-p.size*.20}
-  else{p.x=randomBetween(0,maxX);p.y=m.tableH-p.size*.80}
-  clampPieceToTable(p);
+  p.x=x;p.y=y;clampPieceToTable(p);
 }
 function clampPieceToTable(p){if(!puzzleState?.metrics)return;const {tableW,tableH}=puzzleState.metrics;p.x=Math.max(-p.size*.25,Math.min(tableW-p.size*.75,p.x));p.y=Math.max(-p.size*.25,Math.min(tableH-p.size*.75,p.y))}
 function pushVisibleToBoard(){
