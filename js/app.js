@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.9.5";
+const APP_VERSION = "v3.9.6";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -150,13 +150,75 @@ function layoutPuzzle(initial=false){
 }
 function normalizeLooseGroups(){if(!puzzleState?.metrics)return;const groups=new Map();puzzleState.pieces.filter(p=>p.location==="table"&&!p.locked).forEach(p=>{if(!groups.has(p.groupId))groups.set(p.groupId,[]);groups.get(p.groupId).push(p)});groups.forEach(g=>{if(g.length<2)return;const a=g[0],cell=puzzleState.metrics.cell;g.slice(1).forEach(p=>{p.x=a.x+(p.col-a.col)*cell;p.y=a.y+(p.row-a.row)*cell})})}
 function computeCoverRect(imageRatio,boardW,boardH){const boardRatio=boardW/boardH;if(imageRatio>boardRatio){const h=boardH,w=h*imageRatio;return{w,h,x:(boardW-w)/2,y:0}}const w=boardW,h=w/imageRatio;return{w,h,x:0,y:(boardH-h)/2}}
-function svgPuzzleImageMarkup(p){const src=puzzleState.imageSrc;return `<image href="${src}" xlink:href="${src}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/>`}
-function pieceSvgMarkup(p){const id=`${p.id}-clip`;return`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${p.size} ${p.size}" width="${p.size}" height="${p.size}"><defs><clipPath id="${id}"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${id})">${svgPuzzleImageMarkup(p)}</g><path class="piece-hit" d="${p.path}"/></svg>`}
-function ensurePieceElement(p){if(!p.el){const el=document.createElement("div");el.className="piece";el.dataset.id=p.id;el.addEventListener("pointerdown",e=>startDragFromTable(p,e));p.el=el;els.piecesLayer.appendChild(el);p.dirty=true}if(p.dirty){p.el.innerHTML=pieceSvgMarkup(p);p.el.style.width=`${p.size}px`;p.el.style.height=`${p.size}px`;p.dirty=false}}
+function pieceMaskUrl(p){
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.size} ${p.size}"><path d="${p.path}" fill="black"/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+function pieceHitMarkup(p){
+  return `<svg viewBox="0 0 ${p.size} ${p.size}" width="${p.size}" height="${p.size}" aria-hidden="true"><path class="piece-hit" d="${p.path}"/></svg>`;
+}
+function applyPieceTexture(el,p,scale=1){
+  const mask=pieceMaskUrl(p);
+  const src=puzzleState.imageSrc;
+  el.style.width=`${p.size*scale}px`;
+  el.style.height=`${p.size*scale}px`;
+  el.style.backgroundImage=`url("${src}")`;
+  el.style.backgroundRepeat="no-repeat";
+  el.style.backgroundSize=`${p.imgW*scale}px ${p.imgH*scale}px`;
+  el.style.backgroundPosition=`${p.imgX*scale}px ${p.imgY*scale}px`;
+  el.style.webkitMaskImage=mask;
+  el.style.maskImage=mask;
+  el.style.webkitMaskRepeat="no-repeat";
+  el.style.maskRepeat="no-repeat";
+  el.style.webkitMaskSize="100% 100%";
+  el.style.maskSize="100% 100%";
+  el.style.webkitMaskPosition="0 0";
+  el.style.maskPosition="0 0";
+}
+function ensurePieceElement(p){
+  if(!p.el){
+    const el=document.createElement("div");
+    el.className="piece";
+    el.dataset.id=p.id;
+    el.addEventListener("pointerdown",e=>startDragFromTable(p,e));
+    p.el=el;
+    els.piecesLayer.appendChild(el);
+    p.dirty=true;
+  }
+  if(p.dirty){
+    p.el.innerHTML=pieceHitMarkup(p);
+    applyPieceTexture(p.el,p,1);
+    p.dirty=false;
+  }
+}
 function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);p.el.classList.toggle("locked",p.locked);p.el.classList.toggle("connected",!p.locked&&groupMembers(p).length>1);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`})}
 function renderBoardCutlines(){if(!puzzleState)return;const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(1.6,cell*.032),col="rgba(27,39,54,.34)";els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);const out=[`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`];for(let row=0;row<puzzleState.rows;row++)for(let boundary=0;boundary<puzzleState.cols-1;boundary++){const edge=puzzleState.verticalCuts[row][boundary],x=(boundary+1)*cell,y0=row*cell,y1=(row+1)*cell;out.push(`<path d="${sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}for(let boundary=0;boundary<puzzleState.rows-1;boundary++)for(let colIndex=0;colIndex<puzzleState.cols;colIndex++){const edge=puzzleState.horizontalCuts[boundary][colIndex],y=(boundary+1)*cell,x0=colIndex*cell,x1=(colIndex+1)*cell;out.push(`<path d="${sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}els.boardCutlines.innerHTML=out.join("")}
 function groupMembers(p){return puzzleState?puzzleState.pieces.filter(q=>q.location==="table"&&q.groupId===p.groupId):[]}
-function renderTray(){if(!puzzleState)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.className="tray-piece";const thumb=Math.max(58,puzzleState.metrics.cell*.72);b.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)">${svgPuzzleImageMarkup(p)}</g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
+function renderTray(){
+  if(!puzzleState)return;
+  els.trayPieces.innerHTML="";
+  const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);
+  if(!list.length){
+    els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';
+  }else{
+    list.forEach(p=>{
+      const b=document.createElement("button");
+      b.className="tray-piece";
+      b.type="button";
+      const thumb=Math.max(58,puzzleState.metrics.cell*.72);
+      const scale=thumb/p.size;
+      const visual=document.createElement("div");
+      visual.className="tray-piece-visual";
+      applyPieceTexture(visual,p,scale);
+      b.style.width=`${thumb}px`;
+      b.style.height=`${thumb}px`;
+      b.appendChild(visual);
+      b.addEventListener("pointerdown",e=>startDragFromTray(p,e));
+      els.trayPieces.appendChild(b);
+    });
+  }
+  updatePuzzleMeta();
+}
 function updateToolLabels(){els.allModeBtn?.classList.toggle("selected",trayMode==="all");els.edgesModeBtn?.classList.toggle("selected",trayMode==="edges");els.pushModeBtn?.classList.toggle("selected",boardActionMode==="push");els.pullModeBtn?.classList.toggle("selected",boardActionMode==="pull");els.trayModeNote.textContent=trayMode==="edges"?"Showing edge pieces":"Showing all pieces";els.previewBtn.classList.toggle("selected",Boolean(puzzleState?.previewOn))}
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=`Level ${puzzleState.fish.number}`;els.puzzleInfo.textContent=`${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;updateToolLabels()}
 function setTrayMode(mode){trayMode=mode;renderTray();updateToolLabels()}
