@@ -172,3 +172,31 @@ body.puzzle-mode .tray-pieces{padding-bottom:7px}
 body.puzzle-mode .tray-piece{position:relative;z-index:2}
 /* Never place game controls inside the OS-owned bottom safety strip. */
 body.puzzle-mode .play-shell::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--aj-system-gesture-safe);pointer-events:none;background:linear-gradient(180deg,rgba(4,20,30,0),rgba(4,20,30,.38))}
+
+
+/* v3.10.6 — persistent environment themes, robust toolbar actions, and visible tray scrollbar. */
+.environment-theme-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:cover;transition:opacity .55s ease,filter .55s ease}
+.environment-theme-layer.theme-deep-ocean{background:radial-gradient(75% 45% at 50% 6%,rgba(78,153,202,.30),rgba(9,55,88,.06) 55%,transparent 76%),linear-gradient(180deg,#12627d 0%,#0a4263 38%,#062a49 68%,#031a35 100%)}
+.environment-theme-layer.theme-coral-reef{background-image:linear-gradient(180deg,rgba(5,49,68,.42),rgba(2,23,42,.62)),url('../assets/themes/coral-reef.png');background-position:center,bottom center;background-size:cover,cover}
+.environment-theme-layer.theme-pirate-ship{background-image:linear-gradient(180deg,rgba(4,42,63,.38),rgba(2,20,37,.62)),url('../assets/themes/sunken-pirate-ship.png');background-position:center,bottom center;background-size:cover,cover}
+/* Let the selected environment read through the app instead of replacing it. */
+body{background:#031a35}
+.play-table{background:linear-gradient(rgba(8,43,82,.36),rgba(2,16,43,.52))}
+.panel{background:linear-gradient(rgba(6,35,49,.76),rgba(4,24,35,.88))}
+.species-more-expanded{display:grid;grid-template-columns:1fr;gap:4px;padding:14px 16px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.035)}
+.species-more-expanded h3{margin:8px 0 2px;color:#7bd6e0;text-transform:uppercase;letter-spacing:.1em;font-size:.75rem}
+.species-more-expanded p{margin:0 0 6px}
+.single-row-toolbar button{touch-action:manipulation;-webkit-touch-callout:none}
+.segment-btn.working{filter:brightness(1.18);box-shadow:0 0 0 2px rgba(126,221,205,.42),0 0 18px rgba(75,190,174,.45)}
+/* Keep the tray at the established fixed height while reserving an always-visible control below the thumbnails. */
+.tray-bar{display:grid;grid-template-rows:28px minmax(0,1fr) 12px}
+.simple-tray-header{height:28px;min-height:28px}
+.tray-pieces{height:auto;min-height:0;max-height:none;padding:2px 2px 1px;scrollbar-width:thin;scrollbar-color:rgba(110,207,194,.75) rgba(255,255,255,.08)}
+.tray-pieces::-webkit-scrollbar{height:6px}.tray-pieces::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:999px}.tray-pieces::-webkit-scrollbar-thumb{background:rgba(110,207,194,.72);border-radius:999px}
+.tray-scrollbar-wrap{height:12px;display:flex;align-items:center;padding:0 2px;transition:opacity .2s ease}
+.tray-scrollbar-wrap.is-hidden{opacity:.22;pointer-events:none}
+.tray-scrollbar{width:100%;height:12px;margin:0;accent-color:#65c8b9;touch-action:pan-x}
+.tray-scrollbar::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:rgba(255,255,255,.12)}
+.tray-scrollbar::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:10px;margin-top:-2.5px;border:0;border-radius:999px;background:#65c8b9;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+.tray-scrollbar::-moz-range-track{height:5px;border-radius:999px;background:rgba(255,255,255,.12)}
+.tray-scrollbar::-moz-range-thumb{width:24px;height:10px;border:0;border-radius:999px;background:#65c8b9}
