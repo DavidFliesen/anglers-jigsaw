@@ -152,3 +152,10 @@ body.immersive.puzzle-mode .puzzle-screen{height:100svh}
 .tray-pieces{height:68px;min-height:68px;max-height:68px;padding:5px 2px 4px;align-items:center;overflow-x:auto;overflow-y:hidden}
 .tray-piece{width:var(--aj-tray-thumb);height:var(--aj-tray-thumb);min-width:var(--aj-tray-thumb);min-height:var(--aj-tray-thumb);max-width:var(--aj-tray-thumb);max-height:var(--aj-tray-thumb)}
 .tray-piece svg{width:var(--aj-tray-thumb)!important;height:var(--aj-tray-thumb)!important}
+
+
+/* v3.10.2 — tray drag reliability.
+   Keep the fixed 58px thumbnail layout from v3.10.1, but ensure Safari treats
+   an actual thumbnail gesture as a piece drag rather than a tray pan. */
+.tray-piece{touch-action:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+.tray-piece svg{pointer-events:none}
