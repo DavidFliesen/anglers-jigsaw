@@ -1,18 +1,35 @@
-# Angler's Jigsaw v3.9.7
+# Angler's Jigsaw v3.9.8
 
-Rendering recovery release.
+Runtime recovery release after a complete review of v3.9.7.
 
-This version intentionally restores the entire last-known-good v3.9.1 puzzle rendering subsystem after v3.9.2-v3.9.6 regressions made pieces and cutlines disappear.
+## Root cause fixed
+The previous code called four geometry helpers that had been accidentally deleted during an earlier deduplication pass:
+- `ribbonProfile()`
+- `buildPieceShape()`
+- `edgeSegment()`
+- `sharedCutPath()`
 
-It retains newer progression/navigation controls while restoring the known-good board sizing, SVG piece rendering, tray thumbnails, image cover calculations, board cutlines, board border, and Trace visibility.
+Because those names are valid JavaScript references, syntax checks passed. The app then failed only when `layoutPuzzle()` ran. That produced the exact symptom seen on iPad: the outer board rectangle appeared, but no shaped board cutlines, tray thumbnails, or puzzle pieces were rendered.
 
-Piece-count choices now start the level immediately.
+## v3.9.8 changes
+- restores the complete original deep circular tab/blank geometry helper set exactly once
+- keeps the v3.9.1 SVG puzzle-piece renderer rather than introducing another rendering method
+- keeps magnetic piece-to-piece grouping and board snapping
+- keeps numerical fish progression
+- keeps single-row puzzle controls
+- piece-count cards start the level directly and ignore double-clicks while startup is in progress
+- retains the stronger known-good Trace and board-outline visibility for this recovery release
+- bumps the PWA cache to v3.9.8
 
-Changed files:
-- index.html
-- css/styles.css
-- js/app.js
-- manifest.json
-- sw.js
-- README.md
-- CODE-REVIEW-v3.9.7.txt
+## Validation performed
+- JavaScript syntax check
+- duplicate function-definition audit
+- DOM ID/reference audit
+- all 15 swimming-image and 15 puzzle-image path audit
+- Chromium runtime test
+- browser runtime test in Chromium, plus direct review of the standards-based SVG geometry used by Safari/Chrome
+- 12-piece and 48-piece startup tests
+- tray thumbnails / table piece / board cutline visibility checks
+- PUSH/PULL and ALL/EDGES control checks
+- Trace toggle check
+- ZIP integrity check

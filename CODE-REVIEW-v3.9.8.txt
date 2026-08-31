@@ -1,0 +1,29 @@
+Angler's Jigsaw v3.9.8 — Complete Code Review
+
+PRIMARY FAILURE
+`layoutPuzzle()` in v3.9.7 called buildPieceShape(), which depended on ribbonProfile() and edgeSegment(). renderBoardCutlines() also called sharedCutPath(). All four helper functions had been removed from app.js during the v3.9.4 duplicate-function cleanup.
+
+WHY PRIOR CHECKS MISSED IT
+`node --check` validates syntax only. An undefined function name is not a syntax error. The ReferenceError occurs only after a puzzle starts and layoutPuzzle() executes.
+
+VISIBLE EFFECT
+1. boardShell width/height/border were set before the failing call, so the rectangular frame appeared;
+2. piece size/path geometry was never calculated;
+3. renderBoardCutlines() never ran;
+4. renderTray() never built visible thumbnails;
+5. table pieces could not render.
+This exactly matches the supplied screenshots.
+
+REVIEW RESULTS
+- Geometry helpers restored exactly once.
+- Core layout/render functions exist exactly once in v3.9.8.
+- All HTML IDs referenced by app.js exist.
+- All 30 canonical fish image paths exist.
+- Progression is explicitly sorted by species number.
+- Piece-count selection starts immediately.
+- PUSH/PULL uses piece location/lock/group state and does not alter geometry.
+- Trace uses the known-good original preview opacity for recovery.
+- Service worker has a new cache name.
+
+TEST POLICY
+Do not reduce Trace or outline opacity in the same release as any geometry/render changes. After v3.9.8 is verified on the user's iPad, those are safe isolated CSS/JS visual adjustments.

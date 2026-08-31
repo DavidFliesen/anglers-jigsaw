@@ -1,4 +1,4 @@
-const CACHE_NAME = "anglers-jigsaw-v3-9-7";
+const CACHE_NAME = "anglers-jigsaw-v3-9-8";
 const SHELL = ["./","./index.html","./manifest.json","./css/styles.css","./js/app.js","./js/data.js"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
