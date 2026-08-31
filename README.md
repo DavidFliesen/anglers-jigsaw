@@ -1,31 +1,15 @@
-# Angler's Jigsaw v3.10.5
+# Angler's Jigsaw v3.10.6
 
-## Puzzle-size update
-
-This release replaces the 108- and 192-piece choices with more practical puzzle sizes for iPad and phone play.
-
-Available puzzle sizes are now:
-
-- **12 pieces — Easy — 4 × 3**
-- **24 pieces — Casual — 6 × 4**
-- **48 pieces — Angler — 8 × 6**
-- **72 pieces — Challenge — 9 × 8**
-
-The player still chooses a puzzle size before every level. Selecting a size starts the level immediately.
-
-## Preserved from v3.10.4
-
-- Tap a Tackle Tray piece to stage it beside the board.
-- Tap a loose table piece to return it to the tray.
-- Drag remains available.
-- Magnetic connected-piece snapping remains unchanged.
-- Fixed 58px Tackle Tray thumbnails and fixed tray height remain unchanged.
-- ARTEZIQ audio and UI modules remain unchanged.
-- Fish progression, Fish Caught, themes, and artwork remain unchanged.
+## Changes
+- Species profile pages now show all educational information immediately; there is no “More about this fish” disclosure.
+- Added three environment themes: Deep Open Ocean, Sunken Pirate Ship, and Coral Reef. A theme is selected randomly when a new puzzle starts and remains unchanged while moving between Home, Fish Caught, species details, and the active game.
+- PUSH/PULL toolbar input now responds on pointer-up (with keyboard click fallback) and renders high-count operations after the control has painted. PUSH uses the safe side-staging system, improving 72-piece reliability.
+- Added a persistent horizontal Tackle Tray scrollbar/slider suitable for iPad. It is excluded from keyboard/input focus with `tabindex=-1` and `inputmode=none`.
+- Service worker updated to v3.10.6 and now precaches both theme images.
 
 ## Changed files
-
-- `index.html`
-- `js/app.js`
-- `sw.js`
-- `README.md`
+- index.html
+- css/styles.css
+- js/app.js
+- sw.js
+- README.md

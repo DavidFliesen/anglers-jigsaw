@@ -8,9 +8,10 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
   <link rel="stylesheet" href="arteziq-ui.css" />
-  <link rel="stylesheet" href="css/styles.css?v=3.10.5" />
+  <link rel="stylesheet" href="css/styles.css?v=3.10.6" />
 </head>
 <body>
+  <div class="environment-theme-layer theme-deep-ocean" id="environmentThemeLayer" aria-hidden="true"></div>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
   <div class="ambient-fish-layer" id="ambientFishLayer" aria-hidden="true"></div>
   <div class="toast hidden" id="toast" aria-live="polite"></div>
@@ -26,7 +27,7 @@
       <div class="home-shell">
         <div class="home-main">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.10.5" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.10.6" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
@@ -103,6 +104,9 @@
             <span class="tray-mode-note" id="trayModeNote">Showing all pieces</span>
           </div>
           <div class="tray-pieces" id="trayPieces"></div>
+          <div class="tray-scrollbar-wrap" id="trayScrollbarWrap">
+            <input class="tray-scrollbar" id="trayScrollbar" type="range" min="0" max="1000" value="0" step="1" tabindex="-1" inputmode="none" aria-label="Scroll Tackle Tray" />
+          </div>
         </div>
       </div>
       <div class="puzzle-drag-layer" id="dragLayer" aria-hidden="true"></div>
@@ -120,11 +124,11 @@
             <p id="completeIdentification"></p>
           </div>
           <p id="completeDescription" class="species-description"></p>
-          <details class="species-more"><summary>More about this fish</summary>
+          <div class="species-more species-more-expanded">
             <h3>Typical Habitat</h3><p id="completeHabitat"></p>
             <h3>Species Notes</h3><p id="completeHistory"></p>
             <h3>Reference</h3><p id="completeSource"></p>
-          </details>
+          </div>
           <div class="button-row species-actions">
             <button type="button" class="secondary-btn" id="fishAgainBtn">Replay</button>
             <button type="button" class="secondary-btn" id="openFishCaughtBtn">Fish Caught</button>
@@ -155,13 +159,13 @@
 
   <footer class="app-footer app-chrome">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.10.5</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.10.6</span>
   </footer>
 
   <script src="arteziq-audio.js"></script>
   <script src="arteziq-ui.js"></script>
-  <script src="js/data.js?v=3.10.5"></script>
-  <script src="js/app.js?v=3.10.5"></script>
+  <script src="js/data.js?v=3.10.6"></script>
+  <script src="js/app.js?v=3.10.6"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>

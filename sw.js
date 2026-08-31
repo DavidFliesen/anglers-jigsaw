@@ -1,8 +1,9 @@
-const CACHE_NAME = "anglers-jigsaw-v3-10-5";
+const CACHE_NAME = "anglers-jigsaw-v3-10-6";
 const SHELL = [
   "./","./index.html","./manifest.json","./css/styles.css","./js/app.js","./js/data.js",
   "./arteziq-audio.js","./arteziq-ui.js","./arteziq-ui.css",
-  "./assets/audio/menu.mp3","./assets/audio/play-freshwater.mp3","./assets/audio/play-deep.mp3","./assets/audio/reveal-sting.mp3"
+  "./assets/audio/menu.mp3","./assets/audio/play-freshwater.mp3","./assets/audio/play-deep.mp3","./assets/audio/reveal-sting.mp3",
+  "./assets/themes/coral-reef.png","./assets/themes/sunken-pirate-ship.png"
 ];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

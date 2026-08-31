@@ -1,0 +1,8 @@
+Angler's Jigsaw v3.10.6 review
+
+Targeted review areas:
+1. Species profile disclosure: removed DETAILS/SUMMARY and left all habitat, notes, and source information visible.
+2. Theme lifecycle: theme state exists outside screen routing; showScreen() does not change it. chooseEnvironmentTheme() is called only at initialization and startPuzzle(), so navigation does not reset the environment.
+3. 72-piece PUSH/PULL: actions are handled on pointerup for iPad reliability, have a re-entry guard, and defer the heavy DOM update by one animation frame. PUSH now uses left/right staging rather than repeated random search around an almost full-size board. PULL retains group-aware behavior and returns only unconnected/unlocked pieces.
+4. Tray scrolling: native horizontal scrolling remains, with a synchronized visible range control for iPad where scrollbars are normally hidden. Range control is removed from focus/input path.
+5. Shared ARTEZIQ audio and UI module files were not modified.
