@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.6";
+const APP_VERSION = "v3.10.7";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -20,7 +20,7 @@ const els = {
   completeKicker:$("completeKicker"), completeImage:$("completeImage"), completeTitle:$("completeTitle"), completeScientific:$("completeScientific"),
   completeDescription:$("completeDescription"), completeIdentification:$("completeIdentification"), completeHabitat:$("completeHabitat"), completeHistory:$("completeHistory"), completeSource:$("completeSource"),
   fishAgainBtn:$("fishAgainBtn"), openFishCaughtBtn:$("openFishCaughtBtn"), nextFishBtn:$("nextFishBtn"),
-  caughtGrid:$("caughtGrid"), caughtCountChip:$("caughtCountChip"), caughtPlayBtn:$("caughtPlayBtn"), caughtReturnGameBtn:$("caughtReturnGameBtn"), resetFishBtn:$("resetFishBtn"),
+  caughtGrid:$("caughtGrid"), caughtCountChip:$("caughtCountChip"), caughtReturnGameBtn:$("caughtReturnGameBtn"), resetFishBtn:$("resetFishBtn"),
   toast:$("toast"), globalVersion:$("globalVersion")
 };
 let caught = safeJson(STORAGE_KEY,{});
@@ -161,12 +161,11 @@ function bindUI(){
   bindPress(els.homeReturnGameBtn,returnToActiveGame);
   bindPress(els.howStartBtn,openNextLevel);
   bindPress(els.howToPlayBtn,()=>showScreen("how"));
-  bindPress(els.caughtPlayBtn,openNextLevel);
-  bindPress(els.caughtReturnGameBtn,returnToActiveGame);
+  bindPress(els.caughtReturnGameBtn,continueFishing);
   els.playToolbar?.addEventListener("pointerup",handlePuzzleToolbarPointerUp);
   els.playToolbar?.addEventListener("click",handlePuzzleToolbarClick);
   bindPress(els.fishAgainBtn,replayDetailFish);
-  bindPress(els.nextFishBtn,openNextLevel);
+  bindPress(els.nextFishBtn,continueFishing);
   bindPress(els.resetFishBtn,resetAllFish);
   document.querySelectorAll("[data-back-home=true]").forEach(button=>bindPress(button,()=>showScreen("home")));
   els.trayPieces?.addEventListener("scroll",updateTrayScrollbar,{passive:true});
@@ -239,8 +238,9 @@ function handlePuzzleToolbarClick(event){
 }
 
 function hasActiveGame(){return Boolean(puzzleState&&!puzzleState.completeShown)}
-function updateReturnToGameButtons(){const active=hasActiveGame();els.homeReturnGameBtn?.classList.toggle("hidden",!active);els.caughtReturnGameBtn?.classList.toggle("hidden",!active)}
+function updateReturnToGameButtons(){const active=hasActiveGame();els.homeReturnGameBtn?.classList.toggle("hidden",!active);els.caughtReturnGameBtn?.classList.remove("hidden")}
 function returnToActiveGame(){if(!hasActiveGame())return;showScreen("puzzle")}
+function continueFishing(){if(hasActiveGame())return returnToActiveGame();openNextLevel()}
 function showScreen(name){Object.entries(screens).forEach(([k,v])=>v.classList.toggle("active",k===name));currentScreen=name;const playing=name==="puzzle";els.body.classList.toggle("puzzle-mode",playing);updateReturnToGameButtons();syncMusicForScreen(name);if(playing&&puzzleState)schedulePuzzleLayout(false)}
 function showToast(msg){els.toast.textContent=msg;els.toast.classList.remove("hidden");clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.add("hidden"),1700)}
 function openNextLevel(){if(!currentLevelFish()){renderCaught();showScreen("caught");showToast("You caught every fish in the current collection!");return}renderLevelSelect();showScreen("select")}
@@ -257,7 +257,7 @@ function renderCaught(){
   })
 }
 function shortIdentification(text){const s=(text||"").split(/[.;]/).filter(Boolean).slice(0,2).join(" • ");return s||"Complete the level to study this species."}
-function populateFishInfo(fish,fromCaught=false){detailFish=fish;detailFromCaught=Boolean(fromCaught);els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=fromCaught;els.fishAgainBtn.textContent="Replay"}
+function populateFishInfo(fish,fromCaught=false){detailFish=fish;detailFromCaught=Boolean(fromCaught);els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=false;els.fishAgainBtn.textContent="Replay"}
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
 function resetAllFish(){if(!confirm("Reset all Fish Caught progress and return to Level 1? This cannot be undone."))return;caught={};progress={nextLevel:1};saveCaught();saveProgress();renderCaught();renderLevelSelect();showToast("Fish Caught reset. Level 1 is ready.")}
 async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();chooseEnvironmentTheme();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,environmentTheme:currentEnvironmentTheme,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
