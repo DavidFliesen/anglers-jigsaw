@@ -1,11 +1,11 @@
-const APP_VERSION = "v3.10.4";
+const APP_VERSION = "v3.10.5";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
   {id:"easy",label:"Easy",pieces:12,cols:4,rows:3},
+  {id:"casual",label:"Casual",pieces:24,cols:6,rows:4},
   {id:"angler",label:"Angler",pieces:48,cols:8,rows:6},
-  {id:"guide",label:"Guide",pieces:108,cols:12,rows:9},
-  {id:"captain",label:"Captain",pieces:192,cols:16,rows:12}
+  {id:"challenge",label:"Challenge",pieces:72,cols:9,rows:8}
 ];
 const $ = id => document.getElementById(id);
 const screens = {home:$("screen-home"),select:$("screen-select"),how:$("screen-how"),puzzle:$("screen-puzzle"),complete:$("screen-complete"),caught:$("screen-caught")};
