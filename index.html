@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#082b3e" />
+  <title>Angler's Jigsaw</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="css/styles.css?v=3.9.1" />
+</head>
+<body>
+  <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
+  <div class="ambient-fish-layer" id="ambientFishLayer" aria-hidden="true"></div>
+  <div class="toast hidden" id="toast" aria-live="polite"></div>
+
+  <header class="app-header">
+    <button class="header-btn" id="homeBtn">Home</button>
+    <div class="header-title game-name-brand">Angler's Jigsaw</div>
+    <button class="header-btn" id="fishCaughtBtn">Fish Caught</button>
+  </header>
+
+  <main class="app-shell">
+    <section class="screen active" id="screen-home">
+      <div class="home-shell">
+        <div class="home-main">
+          <div class="home-art-wrap">
+            <img src="assets/images/logo.png?v=3.9.1" alt="Angler's Jigsaw logo" class="home-logo" />
+          </div>
+          <div class="home-copy">
+            <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
+            <h1 class="home-title game-name-brand">Angler's Jigsaw</h1>
+            <p class="home-tagline">Piece together the catch.</p>
+            <div class="home-actions">
+              <button class="home-action" id="startFishingBtn"><strong>Start Fishing</strong><span>Start the next level and choose a puzzle size</span></button>
+              <button class="home-action" id="howToPlayBtn"><strong>How to Play</strong><span>Learn the board, tray, and controls</span></button>
+              <button class="home-action" id="homeFishCaughtBtn"><strong>Fish Caught</strong><span>See the species you have completed</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-select">
+      <div class="panel select-panel level-start-panel">
+        <div class="screen-heading">
+          <div><p class="eyebrow">Next Challenge</p><h2 id="levelSelectTitle">Level 1</h2><p id="levelSelectSubtitle">Choose how many pieces you want for this puzzle.</p></div>
+        </div>
+        <div class="difficulty-strip" id="difficultyStrip"></div>
+        <div class="button-row">
+          <button class="primary-btn" id="startLevelBtn">Start Level</button>
+          <button class="secondary-btn" data-back-home="true">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-how">
+      <div class="panel how-panel">
+        <p class="eyebrow">Quick guide</p>
+        <h2>How to Play</h2>
+        <ol class="how-steps">
+          <li><strong>Start at Level 1.</strong> Before each level, choose 12, 48, 108, or 192 pieces.</li>
+          <li><strong>Build anywhere.</strong> Correct neighboring pieces magnetically snap together and move as a connected group.</li>
+          <li><strong>Use the simple controls.</strong> ALL/EDGE changes the tray view, To Board sends visible tray pieces to the table, Pull Loose returns only unconnected pieces, and Trace shows the reference image.</li>
+          <li><strong>Finish the fish.</strong> A correctly assembled piece or group snaps into its board position. Complete the puzzle to identify the species and unlock the next level.</li>
+        </ol>
+        <div class="button-row">
+          <button class="primary-btn" id="howStartBtn">Continue Fishing</button>
+          <button class="secondary-btn" data-back-home="true">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen puzzle-screen" id="screen-puzzle">
+      <div class="play-shell">
+        <div class="play-toolbar">
+          <div class="play-status"><strong id="puzzleTitle">Angler's Jigsaw</strong><span id="puzzleInfo"></span></div>
+          <div class="play-toolbar-actions compact-tools">
+            <button class="tool-btn mode-tool selected" id="edgesToTableBtn">ALL</button>
+            <button class="tool-btn scatter-tool" id="allTableBtn">To Board</button>
+            <button class="tool-btn" id="newPuzzleBtn">Pull Loose</button>
+            <button class="tool-btn" id="previewBtn">Trace</button>
+          </div>
+          <div class="piece-count" id="pieceCounterChip">0/0 locked</div>
+        </div>
+        <div class="play-table" id="playTable">
+          <div class="board-shell" id="boardShell">
+            <div class="board-preview"><img id="boardPreviewImage" alt="Puzzle preview" /></div>
+            <svg class="board-cutlines" id="boardCutlines" aria-hidden="true"></svg>
+          </div>
+          <div class="pieces-layer" id="piecesLayer"></div>
+        </div>
+        <div class="tray-bar" id="trayBar">
+          <div class="tray-header simple-tray-header">
+            <div class="tray-title"><strong>Tackle Tray</strong><span id="trayCount">0 pieces</span></div>
+            <span class="tray-mode-note" id="trayModeNote">Showing all pieces</span>
+          </div>
+          <div class="tray-pieces" id="trayPieces"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-complete">
+      <div class="species-result-wrap">
+        <div class="species-cutout-stage"><img id="completeImage" alt="Identified fish" /></div>
+        <div class="species-result-card">
+          <div class="complete-kicker" id="completeKicker">Species Identified</div>
+          <h2 id="completeTitle"></h2>
+          <p class="scientific" id="completeScientific"></p>
+          <div class="species-facts">
+            <h3>How to Know It</h3>
+            <p id="completeIdentification"></p>
+          </div>
+          <p id="completeDescription" class="species-description"></p>
+          <details class="species-more"><summary>More about this fish</summary>
+            <h3>Typical Habitat</h3><p id="completeHabitat"></p>
+            <h3>Species Notes</h3><p id="completeHistory"></p>
+            <h3>Reference</h3><p id="completeSource"></p>
+          </details>
+          <div class="button-row species-actions">
+            <button class="secondary-btn" id="fishAgainBtn">Replay</button>
+            <button class="secondary-btn" id="openFishCaughtBtn">Fish Caught</button>
+            <button class="primary-btn" id="nextFishBtn">Next Fish</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-caught">
+      <div class="panel caught-panel">
+        <div class="screen-heading">
+          <div><p class="eyebrow">Species Collection</p><h2>Fish Caught</h2><p>Catch a fish by completing its level. Tap a caught species to study it.</p></div>
+          <div class="piece-count" id="caughtCountChip">0 caught</div>
+        </div>
+        <div class="caught-list" id="caughtGrid"></div>
+        <div class="button-row caught-actions">
+          <button class="primary-btn" id="caughtPlayBtn">Continue Fishing</button>
+          <button class="secondary-btn" data-back-home="true">Back</button>
+          <button class="danger-btn" id="resetFishBtn">Reset All Fish</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.9.1</span>
+  </footer>
+
+  <script src="js/data.js?v=3.9.1"></script>
+  <script src="js/app.js?v=3.9.1"></script>
+  <script>
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  </script>
+</body>
+</html>
