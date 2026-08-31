@@ -1,33 +1,39 @@
-# Angler's Jigsaw v3.9.9
+# Angler's Jigsaw v3.10.0
 
-Structural interaction-stability release based on the working v3.9.8 puzzle renderer.
+## ARTEZIQ shared audio + UI integration
 
-## Changes
-- maximizes the 4:3 puzzle board inside the available play-table area with only a very small safety inset
-- keeps the v3.9.8 SVG puzzle renderer, geometry, magnetic grouping, and board snapping unchanged
-- isolates toolbar, play table, board, pieces, tray, drag preview, and ambient background into explicit stacking layers
-- routes every in-game toolbar button through one delegated handler using `data-puzzle-action`, preventing stale/overlapping button bindings
-- adds drag cleanup on blur, visibility changes, pointer cancel, and normal release
-- changes tray dragging so a tray piece stays in the tray while the finger is below the board and follows the finger as a drag preview
-- converts the tray piece to a real board piece only when the pointer actually crosses into the play table, eliminating the initial jump/clamp to the bottom edge
-- preserves ALL/EDGES, PUSH/PULL, Trace, magnetic piece groups, Return to Game, numerical fish progression, and iPad viewport protections
-- bumps the service-worker and asset cache version to v3.9.9
+This release starts from the v3.9.9 structural interaction baseline and wires in the provided ARTEZIQ modules without rewriting them.
 
-## Changed files
-- `index.html`
-- `css/styles.css`
-- `js/app.js`
-- `sw.js`
-- `README.md`
-- `CODE-REVIEW-v3.9.9.txt`
+### Added as-is
+- `arteziq-audio.js` — exact file from the supplied kit
+- `arteziq-ui.js` — exact file from the supplied kit
+- `arteziq-ui.css` — exact file from the supplied kit
 
-## Validation
-- JavaScript syntax check
-- duplicate core-function audit
-- DOM ID/reference audit
-- browser runtime startup at 12, 48, 108, and 192 pieces
-- toolbar ALL/EDGES and PUSH/PULL click tests
-- Trace toggle test
-- tray-to-table continuous drag test
-- board-size utilization check
-- ZIP integrity check
+### Added audio
+- `assets/audio/menu.mp3`
+- `assets/audio/play-freshwater.mp3`
+- `assets/audio/play-deep.mp3`
+- `assets/audio/reveal-sting.mp3`
+
+### Jigsaw wiring
+- Both `AUDIO.init()` and `UIKIT.init()` use storage prefix **`aj_`**.
+- Menu/home/selection/How to Play/Fish Caught use the menu bed.
+- Puzzle levels alternate the two provided gameplay beds for variety: odd levels use `freshwater`, even levels use `deep`.
+- Puzzle completion plays `AUDIO.sting()`, which fully ducks the gameplay bed under the supplied reveal sting.
+- Board lock -> `sfx("lock")`.
+- Non-locking piece drop -> `sfx("place")`.
+- Push/Pull -> `sfx("shuffle")`.
+- No-op Push/Pull -> `sfx("wrong")`.
+- Generic app buttons -> `sfx("tap")`.
+- Optional `sfx-*.mp3` files are not included; the supplied engine treats them as silent no-ops until they are added.
+
+### UI kit
+- Adds fullscreen, sound and settings buttons at the true top-right.
+- Settings panel provides persisted music volume, SFX volume and fullscreen lock.
+- `UIKIT.applyFSLock()` is called at puzzle start.
+- The normal app header/footer carry `app-chrome`; iOS immersive fallback can hide them without hiding puzzle controls.
+- Range slider `tabindex="-1" inputmode="none"` and blur behavior come from the supplied UI module unchanged.
+- No new `keydown` audio-unlock handling was added.
+
+### Service worker
+Cache bumped to `anglers-jigsaw-v3-10-0`; shared modules and the four supplied audio files are precached.

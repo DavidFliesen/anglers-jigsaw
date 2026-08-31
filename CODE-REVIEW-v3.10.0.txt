@@ -1,0 +1,41 @@
+Angler's Jigsaw v3.10.0 integration review
+
+BASELINE
+- Started from complete v3.9.9 site.
+- Puzzle renderer, magnetics, drag architecture and delegated puzzle toolbar were not replaced.
+
+PROVIDED MODULE INTEGRITY
+- arteziq-audio.js copied byte-for-byte from uploaded kit.
+- arteziq-ui.js copied byte-for-byte from uploaded kit.
+- arteziq-ui.css copied byte-for-byte from uploaded kit.
+
+STORAGE ISOLATION
+- AUDIO.init prefix: aj_
+- UIKIT.init prefix: aj_
+- Does not use aa_ or ajig_.
+
+IOS SAFETY
+- No keydown listener added for audio unlocking.
+- Provided audio module retains its pointerdown/touchstart-only unlock behavior.
+- Provided UI module retains slider tabindex=-1/inputmode=none and blur helper.
+
+AUDIO MAPPING
+- menu -> menu screen bed.
+- freshwater/deep -> alternating puzzle-level music beds.
+- sting -> completed jigsaw.
+- place -> ordinary piece drop.
+- lock -> snap to correct board location.
+- shuffle -> successful Push/Pull.
+- wrong -> Push/Pull with nothing eligible.
+- tap -> normal app controls.
+- Frequent piece sounds never call duckFor().
+
+FULLSCREEN/UI
+- Shared three-button corner UI initialized once.
+- applyFSLock called synchronously at puzzle start before the first await.
+- header/footer are app-chrome for iOS immersive fallback.
+- gameplay toolbar is deliberately NOT app-chrome, so puzzle controls remain available.
+
+CACHING
+- Service worker cache bumped.
+- All shared module and supplied audio files are precached.

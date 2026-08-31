@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#031736",
   "theme_color": "#082b3e",
-  "description": "A fishing-inspired progressive jigsaw PWA with magnetic piece grouping, Fish Caught species discovery, and iPad-friendly touch play.",
+  "description": "A fishing-inspired jigsaw puzzle PWA with magnetic puzzle pieces, species progression, Fish Caught collection, music, sound and display settings.",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
