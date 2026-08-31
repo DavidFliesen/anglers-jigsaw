@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.5";
+const APP_VERSION = "v3.10.6";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -10,13 +10,13 @@ const difficulties = [
 const $ = id => document.getElementById(id);
 const screens = {home:$("screen-home"),select:$("screen-select"),how:$("screen-how"),puzzle:$("screen-puzzle"),complete:$("screen-complete"),caught:$("screen-caught")};
 const els = {
-  body:document.body, homeBtn:$("homeBtn"), fishCaughtBtn:$("fishCaughtBtn"), startFishingBtn:$("startFishingBtn"),
+  body:document.body, environmentThemeLayer:$("environmentThemeLayer"), homeBtn:$("homeBtn"), fishCaughtBtn:$("fishCaughtBtn"), startFishingBtn:$("startFishingBtn"),
   howToPlayBtn:$("howToPlayBtn"), homeFishCaughtBtn:$("homeFishCaughtBtn"), homeReturnGameBtn:$("homeReturnGameBtn"), howStartBtn:$("howStartBtn"),
   difficultyStrip:$("difficultyStrip"), levelSelectTitle:$("levelSelectTitle"), levelSelectSubtitle:$("levelSelectSubtitle"),
   puzzleTitle:$("puzzleTitle"), puzzleInfo:$("puzzleInfo"), pieceCounterChip:$("pieceCounterChip"),
   allModeBtn:$("allModeBtn"), edgesModeBtn:$("edgesModeBtn"), pushModeBtn:$("pushModeBtn"), pullModeBtn:$("pullModeBtn"), previewBtn:$("previewBtn"), puzzleHomeBtn:$("puzzleHomeBtn"), puzzleFishCaughtBtn:$("puzzleFishCaughtBtn"), playToolbar:$("playToolbar"),
   playTable:$("playTable"), boardShell:$("boardShell"), boardPreviewImage:$("boardPreviewImage"), boardCutlines:$("boardCutlines"), piecesLayer:$("piecesLayer"), dragLayer:$("dragLayer"),
-  trayBar:$("trayBar"), trayPieces:$("trayPieces"), trayCount:$("trayCount"), trayModeNote:$("trayModeNote"),
+  trayBar:$("trayBar"), trayPieces:$("trayPieces"), trayCount:$("trayCount"), trayModeNote:$("trayModeNote"), trayScrollbar:$("trayScrollbar"), trayScrollbarWrap:$("trayScrollbarWrap"),
   completeKicker:$("completeKicker"), completeImage:$("completeImage"), completeTitle:$("completeTitle"), completeScientific:$("completeScientific"),
   completeDescription:$("completeDescription"), completeIdentification:$("completeIdentification"), completeHabitat:$("completeHabitat"), completeHistory:$("completeHistory"), completeSource:$("completeSource"),
   fishAgainBtn:$("fishAgainBtn"), openFishCaughtBtn:$("openFishCaughtBtn"), nextFishBtn:$("nextFishBtn"),
@@ -36,6 +36,10 @@ const TAP_MOVE_THRESHOLD=14;
 const FULLSCREEN_DEFAULT_MIGRATION_KEY=`${ARTEZIQ_STORAGE_PREFIX}fullscreen-default-v3101`;
 let detailFromCaught=false;
 let tapStageSideCounter=0;
+let boardActionBusy=false;
+let lastToolbarPointerActionAt=0;
+let currentEnvironmentTheme=null;
+const ENVIRONMENT_THEMES=["deep-ocean","pirate-ship","coral-reef"];
 
 function audioSfx(name){try{window.AUDIO?.sfx?.(name)}catch{}}
 function gameplayMusicKey(fish){return ((Number(fish?.number)||1)%2===0)?"deep":"freshwater"}
@@ -84,6 +88,34 @@ function testImageUrl(url){return new Promise(resolve=>{const image=new Image();
 async function resolveFishAsset(fish,kind){const key=`${fish.id}:${kind}`;if(fishAssetCache.has(key))return fishAssetCache.get(key);const promise=testImageUrl(kind==="swim"?fish.swimImage:fish.puzzleImage);fishAssetCache.set(key,promise);return promise}
 async function setFishImage(element,fish,kind){const resolved=await resolveFishAsset(fish,kind);if(!resolved){element.removeAttribute("src");element.hidden=true;return null}element.src=resolved;element.hidden=false;return resolved}
 
+function applyEnvironmentTheme(theme){
+  if(!ENVIRONMENT_THEMES.includes(theme))theme="deep-ocean";
+  currentEnvironmentTheme=theme;
+  if(els.environmentThemeLayer){
+    els.environmentThemeLayer.className=`environment-theme-layer theme-${theme}`;
+  }
+  document.body.dataset.environmentTheme=theme;
+}
+function chooseEnvironmentTheme(){
+  const choices=ENVIRONMENT_THEMES.filter(theme=>theme!==currentEnvironmentTheme);
+  const pool=choices.length?choices:ENVIRONMENT_THEMES;
+  const theme=pool[Math.floor(Math.random()*pool.length)];
+  applyEnvironmentTheme(theme);
+  return theme;
+}
+function updateTrayScrollbar(){
+  if(!els.trayPieces||!els.trayScrollbar||!els.trayScrollbarWrap)return;
+  const maxScroll=Math.max(0,els.trayPieces.scrollWidth-els.trayPieces.clientWidth);
+  els.trayScrollbarWrap.classList.toggle("is-hidden",maxScroll<2);
+  const value=maxScroll?Math.round((els.trayPieces.scrollLeft/maxScroll)*1000):0;
+  if(document.activeElement!==els.trayScrollbar)els.trayScrollbar.value=String(value);
+}
+function setTrayScrollFromControl(){
+  if(!els.trayPieces||!els.trayScrollbar)return;
+  const maxScroll=Math.max(0,els.trayPieces.scrollWidth-els.trayPieces.clientWidth);
+  els.trayPieces.scrollLeft=maxScroll*(Number(els.trayScrollbar.value||0)/1000);
+}
+
 function verifyCriticalUI(){
   const critical=["playTable","playToolbar","allModeBtn","edgesModeBtn","pushModeBtn","pullModeBtn","previewBtn","caughtReturnGameBtn","dragLayer"];
   const missing=critical.filter(key=>!els[key]);
@@ -92,7 +124,7 @@ function verifyCriticalUI(){
 }
 
 initialize();
-function initialize(){els.globalVersion.textContent=APP_VERSION;normalizeProgress();verifyCriticalUI();initArteziqKits();bindUI();buildWaterBubbles();renderLevelSelect();renderCaught();showScreen("home");spawnAmbientLoop()}
+function initialize(){els.globalVersion.textContent=APP_VERSION;normalizeProgress();verifyCriticalUI();initArteziqKits();chooseEnvironmentTheme();bindUI();buildWaterBubbles();renderLevelSelect();renderCaught();showScreen("home");spawnAmbientLoop()}
 function normalizeProgress(){
   const ordered=speciesList();
   const caughtNumbers=ordered.filter(f=>caught[f.id]).map(f=>f.number);
@@ -131,11 +163,16 @@ function bindUI(){
   bindPress(els.howToPlayBtn,()=>showScreen("how"));
   bindPress(els.caughtPlayBtn,openNextLevel);
   bindPress(els.caughtReturnGameBtn,returnToActiveGame);
+  els.playToolbar?.addEventListener("pointerup",handlePuzzleToolbarPointerUp);
   els.playToolbar?.addEventListener("click",handlePuzzleToolbarClick);
   bindPress(els.fishAgainBtn,replayDetailFish);
   bindPress(els.nextFishBtn,openNextLevel);
   bindPress(els.resetFishBtn,resetAllFish);
   document.querySelectorAll("[data-back-home=true]").forEach(button=>bindPress(button,()=>showScreen("home")));
+  els.trayPieces?.addEventListener("scroll",updateTrayScrollbar,{passive:true});
+  els.trayScrollbar?.addEventListener("input",setTrayScrollFromControl,{passive:true});
+  els.trayScrollbar?.addEventListener("change",()=>els.trayScrollbar.blur());
+  els.trayScrollbar?.addEventListener("pointerup",()=>els.trayScrollbar.blur());
   window.addEventListener("resize",()=>requestViewportRelayout(false),{passive:true});
   window.addEventListener("orientationchange",()=>{if(dragState.active){pendingViewportRelayout=true;return}setTimeout(()=>requestViewportRelayout(true),180)},{passive:true});
   els.playTable?.addEventListener("touchmove",event=>{if(dragState.active)event.preventDefault()},{passive:false});
@@ -164,11 +201,10 @@ function recoverInteractionState(){
   document.body.classList.remove("aj-system-interrupted");
 }
 
-function handlePuzzleToolbarClick(event){
-  const button=event.target.closest("[data-puzzle-action]");
+function invokePuzzleToolbarAction(button,event){
   if(!button||!els.playToolbar?.contains(button))return;
-  event.preventDefault();
-  event.stopPropagation();
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
   if(dragState.active)cancelDrag();
   const action=button.dataset.puzzleAction;
   if(action!=="push"&&action!=="pull")audioSfx("tap");
@@ -182,9 +218,24 @@ function handlePuzzleToolbarClick(event){
     else if(action==="trace")togglePreview();
   }catch(error){
     console.error("Angler's Jigsaw toolbar action failed:",action,error);
+    boardActionBusy=false;
     showToast("Control recovered. Try again.");
     schedulePuzzleLayout(false);
   }
+}
+function handlePuzzleToolbarPointerUp(event){
+  if(event.button!==undefined&&event.button!==0)return;
+  const button=event.target.closest("[data-puzzle-action]");
+  if(!button||!els.playToolbar?.contains(button))return;
+  lastToolbarPointerActionAt=performance.now();
+  invokePuzzleToolbarAction(button,event);
+}
+function handlePuzzleToolbarClick(event){
+  // Pointer devices are handled on pointerup because iPad Safari can suppress
+  // a synthetic click after a complex puzzle gesture. Keep click for keyboard.
+  if(performance.now()-lastToolbarPointerActionAt<450)return;
+  const button=event.target.closest("[data-puzzle-action]");
+  invokePuzzleToolbarAction(button,event);
 }
 
 function hasActiveGame(){return Boolean(puzzleState&&!puzzleState.completeShown)}
@@ -209,7 +260,7 @@ function shortIdentification(text){const s=(text||"").split(/[.;]/).filter(Boole
 function populateFishInfo(fish,fromCaught=false){detailFish=fish;detailFromCaught=Boolean(fromCaught);els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=fromCaught;els.fishAgainBtn.textContent="Replay"}
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
 function resetAllFish(){if(!confirm("Reset all Fish Caught progress and return to Level 1? This cannot be undone."))return;caught={};progress={nextLevel:1};saveCaught();saveProgress();renderCaught();renderLevelSelect();showToast("Fish Caught reset. Level 1 is ready.")}
-async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
+async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();chooseEnvironmentTheme();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,environmentTheme:currentEnvironmentTheme,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
 function clearPuzzle(){cancelDrag();puzzleState=null;els.piecesLayer.innerHTML="";els.trayPieces.innerHTML="";els.boardCutlines.innerHTML="";els.boardPreviewImage.removeAttribute("src");els.boardShell.classList.remove("show-preview")}
 function buildPieces(){const {rows,cols}=puzzleState,grid=generateEdgeGrid(rows,cols);puzzleState.horizontalCuts=grid.horizontal;puzzleState.verticalCuts=grid.vertical;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const idx=r*cols+c,e=grid.pieces[idx],tabs=outwardTabInfo(e),id=`piece-${r}-${c}`;puzzleState.pieces.push({id,groupId:id,row:r,col:c,edges:e,tabs,isEdge:r===0||c===0||r===rows-1||c===cols-1,isCorner:(r===0||r===rows-1)&&(c===0||c===cols-1),location:"tray",locked:false,x:0,y:0,z:1,size:0,margin:0,path:"",el:null,targetX:0,targetY:0,imgX:0,imgY:0,imgW:0,imgH:0,trayOrder:Math.random(),dirty:true})}}
 
@@ -244,17 +295,29 @@ function ensurePieceElement(p){if(!p.el){const el=document.createElement("div");
 function syncLoosePieces(){if(!puzzleState)return;puzzleState.pieces.forEach(p=>{if(p.location==="tray"){if(p.el){p.el.remove();p.el=null}return}ensurePieceElement(p);const members=groupMembers(p);p.el.classList.toggle("locked",p.locked);p.el.classList.toggle("connected",!p.locked&&members.length>1);p.el.classList.remove("dragging");p.el.style.zIndex=p.locked?"1":String(p.z||2);p.el.style.transform=`translate(${p.x}px,${p.y}px)`;p.el.title=p.locked?"Locked to puzzle":members.length>1?"Connected pieces move together":"Tap to return to Tackle Tray, or drag to move"})}
 function renderBoardCutlines(){if(!puzzleState)return;const {boardW,boardH,cell}=puzzleState.metrics,stroke=Math.max(2.2,cell*.045),col="rgba(27,39,54,.70)";els.boardCutlines.setAttribute("viewBox",`0 0 ${boardW} ${boardH}`);const out=[`<rect x="1" y="1" width="${boardW-2}" height="${boardH-2}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`];for(let row=0;row<puzzleState.rows;row++)for(let boundary=0;boundary<puzzleState.cols-1;boundary++){const edge=puzzleState.verticalCuts[row][boundary],x=(boundary+1)*cell,y0=row*cell,y1=(row+1)*cell;out.push(`<path d="${sharedCutPath({x,y:y0},{x,y:y1},{x:1,y:0},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}for(let boundary=0;boundary<puzzleState.rows-1;boundary++)for(let colIndex=0;colIndex<puzzleState.cols;colIndex++){const edge=puzzleState.horizontalCuts[boundary][colIndex],y=(boundary+1)*cell,x0=colIndex*cell,x1=(colIndex+1)*cell;out.push(`<path d="${sharedCutPath({x:x0,y},{x:x1,y},{x:0,y:1},edge,cell)}" fill="none" stroke="${col}" stroke-width="${stroke}"/>`)}els.boardCutlines.innerHTML=out.join("")}
 function groupMembers(p){return puzzleState?puzzleState.pieces.filter(q=>q.location==="table"&&q.groupId===p.groupId):[]}
-function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="tray-piece";b.setAttribute("aria-label","Puzzle piece. Tap to place it beside the puzzle, or drag it onto the table.");b.title="Tap to place beside the puzzle, or drag to move";const thumb=TRAY_THUMB_SIZE;b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta()}
+function renderTray(){if(!puzzleState||!puzzleState.metrics)return;els.trayPieces.innerHTML="";const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge)).sort((a,b)=>a.trayOrder-b.trayOrder);if(!list.length)els.trayPieces.innerHTML='<div class="tray-empty">No matching pieces in the tray.</div>';else list.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="tray-piece";b.setAttribute("aria-label","Puzzle piece. Tap to place it beside the puzzle, or drag it onto the table.");b.title="Tap to place beside the puzzle, or drag to move";const thumb=TRAY_THUMB_SIZE;b.innerHTML=`<svg viewBox="0 0 ${p.size} ${p.size}" width="${thumb}" height="${thumb}"><defs><clipPath id="${p.id}-t"><path d="${p.path}"/></clipPath></defs><g clip-path="url(#${p.id}-t)"><image href="${puzzleState.imageSrc}" x="${p.imgX}" y="${p.imgY}" width="${p.imgW}" height="${p.imgH}" preserveAspectRatio="xMidYMid slice"/></g></svg>`;b.addEventListener("pointerdown",e=>startDragFromTray(p,e));els.trayPieces.appendChild(b)});updatePuzzleMeta();requestAnimationFrame(updateTrayScrollbar)}
 function updateToolLabels(){els.allModeBtn?.classList.toggle("selected",trayMode==="all");els.edgesModeBtn?.classList.toggle("selected",trayMode==="edges");els.pushModeBtn?.classList.toggle("selected",boardActionMode==="push");els.pullModeBtn?.classList.toggle("selected",boardActionMode==="pull");els.trayModeNote.textContent=trayMode==="edges"?"Showing edge pieces":"Showing all pieces";els.previewBtn.classList.toggle("selected",Boolean(puzzleState?.previewOn))}
 function updatePuzzleMeta(){if(!puzzleState)return;const locked=puzzleState.pieces.filter(p=>p.locked).length,tray=puzzleState.pieces.filter(p=>p.location==="tray").length;els.puzzleTitle.textContent=`Level ${puzzleState.fish.number}`;els.puzzleInfo.textContent=`${puzzleState.difficulty.pieces} pieces • ${puzzleState.cols} × ${puzzleState.rows}`;els.pieceCounterChip.textContent=`${locked}/${puzzleState.pieces.length} locked`;els.trayCount.textContent=`${tray} pieces`;updateToolLabels()}
 function setTrayMode(mode){trayMode=mode;if(!puzzleState?.metrics){updateToolLabels();schedulePuzzleLayout(false);return}renderTray();updateToolLabels()}
 function runBoardAction(mode){
-  if(!puzzleState)return;
+  if(!puzzleState||boardActionBusy)return;
   if(!puzzleState.metrics){showToast("Board is still loading.");schedulePuzzleLayout(false);return;}
   boardActionMode=mode;
   updateToolLabels();
-  if(mode==="push")pushVisibleToBoard();
-  else if(mode==="pull")pullLoosePieces();
+  boardActionBusy=true;
+  els.pushModeBtn?.classList.toggle("working",mode==="push");
+  els.pullModeBtn?.classList.toggle("working",mode==="pull");
+  // Let iPad paint the selected control before moving/rendering up to 72 pieces.
+  requestAnimationFrame(()=>{
+    try{
+      if(mode==="push")pushVisibleToBoard();
+      else if(mode==="pull")pullLoosePieces();
+    }finally{
+      boardActionBusy=false;
+      els.pushModeBtn?.classList.remove("working");
+      els.pullModeBtn?.classList.remove("working");
+    }
+  });
 }
 function createDragGhost(p,e){
   if(!els.dragLayer)return;
@@ -398,13 +461,16 @@ function placePieceInSideStagingArea(p){
 }
 function clampPieceToTable(p){if(!puzzleState?.metrics)return;const {tableW,tableH}=puzzleState.metrics;p.x=Math.max(-p.size*.25,Math.min(tableW-p.size*.75,p.x));p.y=Math.max(-p.size*.25,Math.min(tableH-p.size*.75,p.y))}
 function pushVisibleToBoard(){
-  if(!puzzleState)return;
+  if(!puzzleState)return 0;
   const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge));
   if(!list.length){audioSfx("wrong");showToast(trayMode==="edges"?"No edge pieces left in the tray.":"Tray is empty.");return 0}
-  list.forEach(piece=>{piece.groupId=piece.id;scatterPiece(piece)});
+  // Use the same safe left/right staging system as tap placement. This remains
+  // predictable at 72 pieces and never depends on finding random space inside
+  // the almost-full central board footprint. Overlap is allowed when needed.
+  list.forEach(piece=>{piece.groupId=piece.id;piece.location="table";piece.locked=false;piece.z=++zCounter;placePieceInSideStagingArea(piece)});
   syncLoosePieces();renderTray();updatePuzzleMeta();
   audioSfx("shuffle");
-  showToast(`${list.length} piece${list.length===1?"":"s"} pushed to board`);
+  showToast(`${list.length} piece${list.length===1?"":"s"} pushed beside the board`);
   return list.length;
 }
 function pullLoosePieces(){
