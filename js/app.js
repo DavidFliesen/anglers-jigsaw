@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.1";
+const APP_VERSION = "v3.10.2";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -56,9 +56,10 @@ function initArteziqKits(){
     window.AUDIO?.bindVisibility?.(()=>musicKeyForScreen(currentScreen));
   }catch(error){console.warn("ARTEZIQ audio integration unavailable",error)}
   try{
-    // v3.10.1: fullscreen lock defaults ON once for this migration. After that,
-    // the user's setting is respected. A true browser fullscreen request may
-    // require a user gesture, so apply immediately and retry on the first tap.
+    // Fullscreen Lock remains defaulted ON from v3.10.1. Apply the kit's
+    // passive/immersive state at startup, but do NOT install a document-level
+    // pointerdown retry: that can steal/cancel a tray drag on iPad/Safari.
+    // True fullscreen is requested again from the explicit level-start tap.
     try{
       if(localStorage.getItem(FULLSCREEN_DEFAULT_MIGRATION_KEY)!=="1"){
         localStorage.setItem(`${ARTEZIQ_STORAGE_PREFIX}fslock`,"1");
@@ -67,21 +68,7 @@ function initArteziqKits(){
     }catch{}
     window.UIKIT?.init?.({prefix:ARTEZIQ_STORAGE_PREFIX,extraSettingsHTML:""});
     window.UIKIT?.applyFSLock?.();
-    armFullscreenOnFirstGesture();
   }catch(error){console.warn("ARTEZIQ UI integration unavailable",error)}
-}
-
-function fullscreenActive(){
-  return Boolean(document.fullscreenElement||document.webkitFullscreenElement||document.body.classList.contains("immersive"));
-}
-function armFullscreenOnFirstGesture(){
-  if(!window.UIKIT?.isFsLockOn?.()||fullscreenActive())return;
-  const attempt=()=>{
-    if(!window.UIKIT?.isFsLockOn?.()){document.removeEventListener("pointerdown",attempt,true);return}
-    try{window.UIKIT?.applyFSLock?.()}catch{}
-    if(fullscreenActive())document.removeEventListener("pointerdown",attempt,true);
-  };
-  document.addEventListener("pointerdown",attempt,{capture:true,passive:true});
 }
 
 function safeJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return structuredClone(fallback)}}
@@ -268,14 +255,22 @@ function releaseDragCapture(){const cap=dragState.captureEl,id=dragState.pointer
 function startDragFromTray(p,e){
   if(!puzzleState?.metrics||dragState.active)return;
   e.preventDefault();e.stopPropagation();
-  const cap=e.currentTarget,rect=els.playTable.getBoundingClientRect();
-  dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin="tray";dragState.captureEl=cap;dragState.tableRect=rect;dragState.group=[p];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.offsetX=p.size/2;dragState.offsetY=p.size/2;
+  const cap=e.currentTarget;
+  dragState.active=true;dragState.piece=p;dragState.pointerId=e.pointerId;dragState.origin="tray";dragState.captureEl=cap;dragState.tableRect=els.playTable.getBoundingClientRect();dragState.group=[p];dragState.startPositions=new Map();dragState.enteredTable=false;dragState.offsetX=p.size/2;dragState.offsetY=p.size/2;
   cap.classList.add("drag-source-active");
-  try{cap.setPointerCapture(e.pointerId)}catch{}
+  // Do not capture the pointer on tray thumbnails. iPad/Safari can cancel a
+  // captured pointer when leaving a horizontally scrollable tray or when the
+  // fullscreen viewport settles. Window-level pointer listeners already keep
+  // this drag continuous across the tray/table boundary.
   createDragGhost(p,e);
 }
 function activateTrayPieceOnTable(e){
-  const p=dragState.piece,r=dragState.tableRect;if(!p||!r)return;
+  const p=dragState.piece;if(!p)return;
+  // Re-read the table rectangle at the handoff moment. Fullscreen/immersive
+  // layout can change after pointerdown, so a cached rectangle can make the
+  // table impossible to enter.
+  const r=els.playTable.getBoundingClientRect();
+  dragState.tableRect=r;
   p.location="table";p.locked=false;p.groupId=p.id;p.z=++zCounter;
   p.x=e.clientX-r.left-p.size/2;p.y=e.clientY-r.top-p.size/2;clampPieceToTable(p);
   dragState.enteredTable=true;dragState.group=[p];dragState.startPositions=new Map([[p.id,{x:p.x,y:p.y}]]);
@@ -289,7 +284,11 @@ function onPointerMove(e){
   e.preventDefault();
   if(dragState.origin==="tray"&&!dragState.enteredTable){
     positionDragGhost(e.clientX,e.clientY,dragState.piece.size);
-    if(pointInRect(e.clientX,e.clientY,dragState.tableRect))activateTrayPieceOnTable(e);
+    // The table can move when fullscreen/immersive mode settles. Use the live
+    // rectangle until the piece actually crosses onto the play area.
+    const liveRect=els.playTable.getBoundingClientRect();
+    dragState.tableRect=liveRect;
+    if(pointInRect(e.clientX,e.clientY,liveRect))activateTrayPieceOnTable(e);
     return;
   }
   const p=dragState.piece,r=dragState.tableRect,desiredX=e.clientX-r.left-dragState.offsetX,desiredY=e.clientY-r.top-dragState.offsetY;let {dx,dy}=boundedGroupDelta(dragState.group,desiredX-p.x,desiredY-p.y);dragState.group.forEach(q=>{q.x+=dx;q.y+=dy;if(q.el)q.el.style.transform=`translate(${q.x}px,${q.y}px)`});
