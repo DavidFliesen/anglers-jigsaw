@@ -142,3 +142,13 @@ body.immersive.puzzle-mode .puzzle-screen{height:100svh}
 
 /* Keep shared UI above every game/drag layer. */
 .ui-corner,.ui-overlay{isolation:isolate}
+
+
+/* v3.10.1 — fixed-height Tackle Tray and uniform thumbnails.
+   Tray pieces are display thumbnails only; puzzle-piece geometry stays unchanged. */
+:root{--aj-tray-thumb:58px;--aj-tray-height:116px}
+.tray-bar{height:var(--aj-tray-height);min-height:var(--aj-tray-height);max-height:var(--aj-tray-height);overflow:hidden}
+.simple-tray-header{height:32px;min-height:32px}
+.tray-pieces{height:68px;min-height:68px;max-height:68px;padding:5px 2px 4px;align-items:center;overflow-x:auto;overflow-y:hidden}
+.tray-piece{width:var(--aj-tray-thumb);height:var(--aj-tray-thumb);min-width:var(--aj-tray-thumb);min-height:var(--aj-tray-thumb);max-width:var(--aj-tray-thumb);max-height:var(--aj-tray-thumb)}
+.tray-piece svg{width:var(--aj-tray-thumb)!important;height:var(--aj-tray-thumb)!important}
