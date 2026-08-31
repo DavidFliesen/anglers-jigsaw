@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.9.9";
+const APP_VERSION = "v3.10.0";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -30,6 +30,32 @@ let lastLayoutW=0,lastLayoutH=0,resizeTimer=null,pendingViewportRelayout=false;
 const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map(),ghost:null,enteredTable:false};
 const fishAssetCache=new Map();
 
+const ARTEZIQ_STORAGE_PREFIX="aj_";
+let detailFromCaught=false;
+
+function audioSfx(name){try{window.AUDIO?.sfx?.(name)}catch{}}
+function gameplayMusicKey(fish){return ((Number(fish?.number)||1)%2===0)?"deep":"freshwater"}
+function musicKeyForScreen(name=currentScreen){
+  if(name==="puzzle"&&puzzleState)return puzzleState.musicKey||gameplayMusicKey(puzzleState.fish);
+  if(name==="complete"&&!detailFromCaught&&puzzleState)return puzzleState.musicKey||gameplayMusicKey(puzzleState.fish);
+  return "menu";
+}
+function syncMusicForScreen(name=currentScreen){try{window.AUDIO?.music?.(musicKeyForScreen(name))}catch{}}
+function initArteziqKits(){
+  try{
+    window.AUDIO?.init?.({
+      dir:"assets/audio/",
+      prefix:ARTEZIQ_STORAGE_PREFIX,
+      sting:"reveal-sting.mp3",
+      music:{menu:"menu.mp3",freshwater:"play-freshwater.mp3",deep:"play-deep.mp3"},
+      sfx:{tap:"sfx-tap.mp3",place:"sfx-place.mp3",lock:"sfx-lock.mp3",wrong:"sfx-wrong.mp3",win:"sfx-win.mp3",open:"sfx-open.mp3",close:"sfx-close.mp3",shuffle:"sfx-shuffle.mp3"}
+    });
+    window.AUDIO?.music?.("menu");
+    window.AUDIO?.bindVisibility?.(()=>musicKeyForScreen(currentScreen));
+  }catch(error){console.warn("ARTEZIQ audio integration unavailable",error)}
+  try{window.UIKIT?.init?.({prefix:ARTEZIQ_STORAGE_PREFIX,extraSettingsHTML:""})}catch(error){console.warn("ARTEZIQ UI integration unavailable",error)}
+}
+
 function safeJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return structuredClone(fallback)}}
 function speciesList(){return Object.values(speciesData).sort((a,b)=>a.number-b.number)}
 function maxLevel(){return speciesList().length}
@@ -49,7 +75,7 @@ function verifyCriticalUI(){
 }
 
 initialize();
-function initialize(){els.globalVersion.textContent=APP_VERSION;normalizeProgress();verifyCriticalUI();bindUI();buildWaterBubbles();renderLevelSelect();renderCaught();showScreen("home");spawnAmbientLoop()}
+function initialize(){els.globalVersion.textContent=APP_VERSION;normalizeProgress();verifyCriticalUI();initArteziqKits();bindUI();buildWaterBubbles();renderLevelSelect();renderCaught();showScreen("home");spawnAmbientLoop()}
 function normalizeProgress(){
   const ordered=speciesList();
   const caughtNumbers=ordered.filter(f=>caught[f.id]).map(f=>f.number);
@@ -73,6 +99,7 @@ function bindPress(element,handler){
   element.addEventListener("click",event=>{
     event.preventDefault();
     event.stopPropagation();
+    audioSfx("tap");
     handler(event);
   });
 }
@@ -110,6 +137,7 @@ function handlePuzzleToolbarClick(event){
   event.stopPropagation();
   if(dragState.active)cancelDrag();
   const action=button.dataset.puzzleAction;
+  if(action!=="push"&&action!=="pull")audioSfx("tap");
   try{
     if(action==="home")showScreen("home");
     else if(action==="caught")openCaught();
@@ -128,10 +156,10 @@ function handlePuzzleToolbarClick(event){
 function hasActiveGame(){return Boolean(puzzleState&&!puzzleState.completeShown)}
 function updateReturnToGameButtons(){const active=hasActiveGame();els.homeReturnGameBtn?.classList.toggle("hidden",!active);els.caughtReturnGameBtn?.classList.toggle("hidden",!active)}
 function returnToActiveGame(){if(!hasActiveGame())return;showScreen("puzzle")}
-function showScreen(name){Object.entries(screens).forEach(([k,v])=>v.classList.toggle("active",k===name));currentScreen=name;const playing=name==="puzzle";els.body.classList.toggle("puzzle-mode",playing);updateReturnToGameButtons();if(playing&&puzzleState)schedulePuzzleLayout(false)}
+function showScreen(name){Object.entries(screens).forEach(([k,v])=>v.classList.toggle("active",k===name));currentScreen=name;const playing=name==="puzzle";els.body.classList.toggle("puzzle-mode",playing);updateReturnToGameButtons();syncMusicForScreen(name);if(playing&&puzzleState)schedulePuzzleLayout(false)}
 function showToast(msg){els.toast.textContent=msg;els.toast.classList.remove("hidden");clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.add("hidden"),1700)}
 function openNextLevel(){if(!currentLevelFish()){renderCaught();showScreen("caught");showToast("You caught every fish in the current collection!");return}renderLevelSelect();showScreen("select")}
-function renderLevelSelect(){const level=currentLevelNumber();els.levelSelectTitle.textContent=level>maxLevel()?"Collection Complete":`Level ${level}`;els.levelSelectSubtitle.textContent=level>maxLevel()?"You have caught every fish currently available.":"Choose how many pieces you want. The level starts immediately.";els.difficultyStrip.innerHTML="";difficulties.forEach(d=>{const b=document.createElement("button");b.className="difficulty-choice";b.innerHTML=`<strong>${d.pieces}</strong><span>${d.label} • ${d.cols} × ${d.rows}</span>`;b.onclick=async()=>{if(puzzleStarting)return;puzzleStarting=true;b.classList.add("selected");currentDifficulty=d;try{await startCurrentLevel()}finally{puzzleStarting=false}};els.difficultyStrip.appendChild(b)})}
+function renderLevelSelect(){const level=currentLevelNumber();els.levelSelectTitle.textContent=level>maxLevel()?"Collection Complete":`Level ${level}`;els.levelSelectSubtitle.textContent=level>maxLevel()?"You have caught every fish currently available.":"Choose how many pieces you want. The level starts immediately.";els.difficultyStrip.innerHTML="";difficulties.forEach(d=>{const b=document.createElement("button");b.className="difficulty-choice";b.innerHTML=`<strong>${d.pieces}</strong><span>${d.label} • ${d.cols} × ${d.rows}</span>`;b.onclick=async()=>{if(puzzleStarting)return;audioSfx("tap");puzzleStarting=true;b.classList.add("selected");currentDifficulty=d;try{await startCurrentLevel()}finally{puzzleStarting=false}};els.difficultyStrip.appendChild(b)})}
 function startCurrentLevel(){const fish=currentLevelFish();return fish?startPuzzle(fish,currentDifficulty,false):Promise.resolve()}
 function replayDetailFish(){if(detailFish)startPuzzle(detailFish,currentDifficulty,true)}
 function openCaught(){renderCaught();showScreen("caught")}
@@ -144,10 +172,10 @@ function renderCaught(){
   })
 }
 function shortIdentification(text){const s=(text||"").split(/[.;]/).filter(Boolean).slice(0,2).join(" • ");return s||"Complete the level to study this species."}
-function populateFishInfo(fish,fromCaught=false){detailFish=fish;els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=fromCaught;els.fishAgainBtn.textContent="Replay"}
+function populateFishInfo(fish,fromCaught=false){detailFish=fish;detailFromCaught=Boolean(fromCaught);els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=fromCaught;els.fishAgainBtn.textContent="Replay"}
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
 function resetAllFish(){if(!confirm("Reset all Fish Caught progress and return to Level 1? This cannot be undone."))return;caught={};progress={nextLevel:1};saveCaught();saveProgress();renderCaught();renderLevelSelect();showToast("Fish Caught reset. Level 1 is ready.")}
-async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
+async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
 function clearPuzzle(){cancelDrag();puzzleState=null;els.piecesLayer.innerHTML="";els.trayPieces.innerHTML="";els.boardCutlines.innerHTML="";els.boardPreviewImage.removeAttribute("src");els.boardShell.classList.remove("show-preview")}
 function buildPieces(){const {rows,cols}=puzzleState,grid=generateEdgeGrid(rows,cols);puzzleState.horizontalCuts=grid.horizontal;puzzleState.verticalCuts=grid.vertical;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const idx=r*cols+c,e=grid.pieces[idx],tabs=outwardTabInfo(e),id=`piece-${r}-${c}`;puzzleState.pieces.push({id,groupId:id,row:r,col:c,edges:e,tabs,isEdge:r===0||c===0||r===rows-1||c===cols-1,isCorner:(r===0||r===rows-1)&&(c===0||c===cols-1),location:"tray",locked:false,x:0,y:0,z:1,size:0,margin:0,path:"",el:null,targetX:0,targetY:0,imgX:0,imgY:0,imgW:0,imgH:0,trayOrder:Math.random(),dirty:true})}}
 
@@ -249,8 +277,8 @@ function onPointerUp(e){
   }
   finishDrag();
 }
-function finishDrag(){if(!dragState.active)return;let group=[...dragState.group];if(!trySnapGroupToBoard(group)){let merges=0;while(merges<8){const result=trySnapGroupToNeighbor(group);if(!result)break;group=result;merges++}trySnapGroupToBoard(group)}resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();checkComplete();if(pendingViewportRelayout)requestViewportRelayout(true)}
-function trySnapGroupToBoard(group){if(!group.length)return false;let best=null;for(const p of group){const d=Math.hypot(p.x-p.targetX,p.y-p.targetY);if(!best||d<best.d)best={p,d}}if(!best||best.d>puzzleState.metrics.snapDistance)return false;moveGroupBy(group,best.p.targetX-best.p.x,best.p.targetY-best.p.y);group.forEach(p=>{p.locked=true;p.x=p.targetX;p.y=p.targetY});showToast(group.length>1?`${group.length} pieces locked!`:"Snap!");return true}
+function finishDrag(){if(!dragState.active)return;let group=[...dragState.group],locked=trySnapGroupToBoard(group);if(!locked){let merges=0;while(merges<8){const result=trySnapGroupToNeighbor(group);if(!result)break;group=result;merges++}locked=trySnapGroupToBoard(group)}if(!locked)audioSfx("place");resetDrag();syncLoosePieces();renderTray();updatePuzzleMeta();checkComplete();if(pendingViewportRelayout)requestViewportRelayout(true)}
+function trySnapGroupToBoard(group){if(!group.length)return false;let best=null;for(const p of group){const d=Math.hypot(p.x-p.targetX,p.y-p.targetY);if(!best||d<best.d)best={p,d}}if(!best||best.d>puzzleState.metrics.snapDistance)return false;moveGroupBy(group,best.p.targetX-best.p.x,best.p.targetY-best.p.y);group.forEach(p=>{p.locked=true;p.x=p.targetX;p.y=p.targetY});audioSfx("lock");showToast(group.length>1?`${group.length} pieces locked!`:"Snap!");return true}
 function adjacentPieces(p){return puzzleState.pieces.filter(q=>q.location==="table"&&q.groupId!==p.groupId&&Math.abs(q.row-p.row)+Math.abs(q.col-p.col)===1)}
 function trySnapGroupToNeighbor(group){const cell=puzzleState.metrics.cell,threshold=puzzleState.metrics.magnetDistance;let best=null;for(const p of group){for(const n of adjacentPieces(p)){const ex=n.x+(p.col-n.col)*cell,ey=n.y+(p.row-n.row)*cell,d=Math.hypot(p.x-ex,p.y-ey);if(d<=threshold&&(!best||d<best.d))best={p,n,ex,ey,d}}}if(!best)return null;moveGroupBy(group,best.ex-best.p.x,best.ey-best.p.y);const targetId=best.n.groupId;group.forEach(p=>p.groupId=targetId);const merged=puzzleState.pieces.filter(p=>p.location==="table"&&p.groupId===targetId);if(best.n.locked){merged.forEach(p=>{p.locked=true;p.x=p.targetX;p.y=p.targetY})}showToast(`${merged.length} pieces connected`);return merged}
 function moveGroupBy(group,dx,dy){group.forEach(p=>{p.x+=dx;p.y+=dy})}
@@ -262,9 +290,10 @@ function clampPieceToTable(p){if(!puzzleState?.metrics)return;const {tableW,tabl
 function pushVisibleToBoard(){
   if(!puzzleState)return;
   const list=puzzleState.pieces.filter(p=>p.location==="tray"&&(trayMode==="all"||p.isEdge));
-  if(!list.length){showToast(trayMode==="edges"?"No edge pieces left in the tray.":"Tray is empty.");return 0}
+  if(!list.length){audioSfx("wrong");showToast(trayMode==="edges"?"No edge pieces left in the tray.":"Tray is empty.");return 0}
   list.forEach(piece=>{piece.groupId=piece.id;scatterPiece(piece)});
   syncLoosePieces();renderTray();updatePuzzleMeta();
+  audioSfx("shuffle");
   showToast(`${list.length} piece${list.length===1?"":"s"} pushed to board`);
   return list.length;
 }
@@ -274,15 +303,16 @@ function pullLoosePieces(){
   const counts=new Map();
   tablePieces.forEach(p=>counts.set(p.groupId,(counts.get(p.groupId)||0)+1));
   const loose=tablePieces.filter(p=>(counts.get(p.groupId)||0)===1);
-  if(!loose.length){showToast("No loose pieces to pull back.");return 0}
+  if(!loose.length){audioSfx("wrong");showToast("No loose pieces to pull back.");return 0}
   loose.forEach(movePieceToTray);
   syncLoosePieces();renderTray();updatePuzzleMeta();
+  audioSfx("shuffle");
   showToast(`${loose.length} loose piece${loose.length===1?"":"s"} returned to tray`);
   return loose.length;
 }
 function scatterPiece(p){const m=puzzleState.metrics;p.location="table";p.locked=false;p.groupId=p.id;p.z=++zCounter;let tries=0;do{p.x=Math.random()*(m.tableW-p.size);p.y=Math.random()*(m.tableH-p.size);tries++}while(tries<12&&p.x>m.boardLeft-p.size*.5&&p.x<m.boardLeft+m.boardW&&p.y>m.boardTop-p.size*.5&&p.y<m.boardTop+m.boardH);clampPieceToTable(p)}
 function togglePreview(){if(!puzzleState)return;puzzleState.previewOn=!puzzleState.previewOn;els.boardShell.classList.toggle("show-preview",puzzleState.previewOn);updateToolLabels()}
-function checkComplete(){if(!puzzleState||puzzleState.completeShown||!puzzleState.pieces.every(p=>p.locked))return;puzzleState.completeShown=true;const f=puzzleState.fish;const wasCaught=Boolean(caught[f.id]);caught[f.id]=caught[f.id]||{firstCompletedAt:new Date().toISOString(),completions:0,bestPieces:0};caught[f.id].completions++;caught[f.id].bestPieces=Math.max(caught[f.id].bestPieces,puzzleState.difficulty.pieces);saveCaught();if(!puzzleState.replay&&!wasCaught&&f.number===currentLevelNumber()){progress.nextLevel=Math.min(f.number+1,maxLevel()+1);saveProgress()}populateFishInfo(f,false);setTimeout(()=>showScreen("complete"),250)}
+function checkComplete(){if(!puzzleState||puzzleState.completeShown||!puzzleState.pieces.every(p=>p.locked))return;puzzleState.completeShown=true;try{window.AUDIO?.sting?.()}catch{}const f=puzzleState.fish;const wasCaught=Boolean(caught[f.id]);caught[f.id]=caught[f.id]||{firstCompletedAt:new Date().toISOString(),completions:0,bestPieces:0};caught[f.id].completions++;caught[f.id].bestPieces=Math.max(caught[f.id].bestPieces,puzzleState.difficulty.pieces);saveCaught();if(!puzzleState.replay&&!wasCaught&&f.number===currentLevelNumber()){progress.nextLevel=Math.min(f.number+1,maxLevel()+1);saveProgress()}populateFishInfo(f,false);setTimeout(()=>showScreen("complete"),250)}
 function confirmLeavePuzzle(){if(!puzzleState){showScreen("home");return}if(confirm("Leave this puzzle? Your unfinished layout will not be saved.")){clearPuzzle();showScreen("home")}}
 function buildWaterBubbles(){const host=$("waterBubbles");for(let i=0;i<22;i++){const b=document.createElement("div");b.className="bubble";const s=5+Math.random()*18;b.style.width=b.style.height=s+"px";b.style.left=Math.random()*100+"%";b.style.setProperty("--drift",Math.random()*56-28+"px");b.style.animationDuration=10+Math.random()*18+"s";b.style.animationDelay=-Math.random()*26+"s";host.appendChild(b)}}
 function spawnAmbientLoop(){const host=$("ambientFishLayer"),fish=speciesList();async function spawn(){if(document.hidden){setTimeout(spawn,2500);return}if(host.childElementCount>=8){setTimeout(spawn,2200);return}const f=fish[Math.floor(Math.random()*fish.length)],src=await resolveFishAsset(f,"swim");if(!src){setTimeout(spawn,900);return}const box=document.createElement("div"),img=document.createElement("img"),travelDirection=Math.random()<.5?"left":"right",sourceFacing=(f.facing||"right").toLowerCase(),flip=sourceFacing===travelDirection?1:-1,w=95+Math.random()*120,y=innerHeight*(.12+Math.random()*.68);box.className=`ambient-fish swim-${travelDirection}`;box.style.width=w+"px";box.style.zIndex=String(Math.round(w));box.style.setProperty("--y0",y+"px");box.style.setProperty("--y1",y+(Math.random()*70-35)+"px");box.style.setProperty("--dur",32+Math.random()*18+"s");img.alt="";img.src=src;img.style.setProperty("--fish-flip",String(flip));box.appendChild(img);host.appendChild(box);box.addEventListener("animationend",()=>box.remove(),{once:true});setTimeout(()=>{if(box.isConnected)box.remove()},55000);setTimeout(spawn,2500+Math.random()*4500)}setTimeout(spawn,900)}
