@@ -1,35 +1,33 @@
-# Angler's Jigsaw v3.9.8
+# Angler's Jigsaw v3.9.9
 
-Runtime recovery release after a complete review of v3.9.7.
+Structural interaction-stability release based on the working v3.9.8 puzzle renderer.
 
-## Root cause fixed
-The previous code called four geometry helpers that had been accidentally deleted during an earlier deduplication pass:
-- `ribbonProfile()`
-- `buildPieceShape()`
-- `edgeSegment()`
-- `sharedCutPath()`
+## Changes
+- maximizes the 4:3 puzzle board inside the available play-table area with only a very small safety inset
+- keeps the v3.9.8 SVG puzzle renderer, geometry, magnetic grouping, and board snapping unchanged
+- isolates toolbar, play table, board, pieces, tray, drag preview, and ambient background into explicit stacking layers
+- routes every in-game toolbar button through one delegated handler using `data-puzzle-action`, preventing stale/overlapping button bindings
+- adds drag cleanup on blur, visibility changes, pointer cancel, and normal release
+- changes tray dragging so a tray piece stays in the tray while the finger is below the board and follows the finger as a drag preview
+- converts the tray piece to a real board piece only when the pointer actually crosses into the play table, eliminating the initial jump/clamp to the bottom edge
+- preserves ALL/EDGES, PUSH/PULL, Trace, magnetic piece groups, Return to Game, numerical fish progression, and iPad viewport protections
+- bumps the service-worker and asset cache version to v3.9.9
 
-Because those names are valid JavaScript references, syntax checks passed. The app then failed only when `layoutPuzzle()` ran. That produced the exact symptom seen on iPad: the outer board rectangle appeared, but no shaped board cutlines, tray thumbnails, or puzzle pieces were rendered.
+## Changed files
+- `index.html`
+- `css/styles.css`
+- `js/app.js`
+- `sw.js`
+- `README.md`
+- `CODE-REVIEW-v3.9.9.txt`
 
-## v3.9.8 changes
-- restores the complete original deep circular tab/blank geometry helper set exactly once
-- keeps the v3.9.1 SVG puzzle-piece renderer rather than introducing another rendering method
-- keeps magnetic piece-to-piece grouping and board snapping
-- keeps numerical fish progression
-- keeps single-row puzzle controls
-- piece-count cards start the level directly and ignore double-clicks while startup is in progress
-- retains the stronger known-good Trace and board-outline visibility for this recovery release
-- bumps the PWA cache to v3.9.8
-
-## Validation performed
+## Validation
 - JavaScript syntax check
-- duplicate function-definition audit
+- duplicate core-function audit
 - DOM ID/reference audit
-- all 15 swimming-image and 15 puzzle-image path audit
-- Chromium runtime test
-- browser runtime test in Chromium, plus direct review of the standards-based SVG geometry used by Safari/Chrome
-- 12-piece and 48-piece startup tests
-- tray thumbnails / table piece / board cutline visibility checks
-- PUSH/PULL and ALL/EDGES control checks
-- Trace toggle check
+- browser runtime startup at 12, 48, 108, and 192 pieces
+- toolbar ALL/EDGES and PUSH/PULL click tests
+- Trace toggle test
+- tray-to-table continuous drag test
+- board-size utilization check
 - ZIP integrity check

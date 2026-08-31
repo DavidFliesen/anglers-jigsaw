@@ -1,0 +1,16 @@
+Angler's Jigsaw v3.9.9 — interaction and layering review
+
+Observed problems in v3.9.8
+1. The 4:3 puzzle board was deliberately inset by a large gutter and an additional 94% scale, leaving avoidable water above/below the board.
+2. Puzzle toolbar buttons had independent bindings while draggable pieces and other visual layers evolved across releases. Although the toolbar sits above the table visually, repeated binding/layer patches made the interaction architecture brittle.
+3. A tray drag immediately changed a piece from tray state to table state while the pointer was still physically below the play table. The resulting y-coordinate was outside the table and `clampPieceToTable()` forced the piece to the bottom edge. The next pointer move then appeared to be a second drag/movement.
+4. Pointer capture cleanup was not centralized for every interruption path.
+
+v3.9.9 corrections
+- Board layout now derives the largest integral cell size that fits the play table, using only a 3–8 px safety inset.
+- The puzzle screen is an isolated stacking context. Ambient visuals remain below application UI. The play table, tray, toolbar, and drag preview have explicit z-order responsibilities.
+- The toolbar is always above the drag layer and uses a single delegated click handler keyed by `data-puzzle-action`.
+- The drag preview layer is pointer-events:none, so it can never block toolbar/tray controls.
+- Tray pointer capture remains on the source tray button during the gesture. The real puzzle piece is not moved into table state until the pointer enters the play-table rectangle.
+- Pointer capture is explicitly released on normal finish, cancel, blur, and document visibility change.
+- The v3.9.8 geometry/rendering functions were intentionally not rewritten.

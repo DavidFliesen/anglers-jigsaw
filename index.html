@@ -7,7 +7,7 @@
   <title>Angler's Jigsaw</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
-  <link rel="stylesheet" href="css/styles.css?v=3.9.8" />
+  <link rel="stylesheet" href="css/styles.css?v=3.9.9" />
 </head>
 <body>
   <div class="water-bubbles" id="waterBubbles" aria-hidden="true"></div>
@@ -25,7 +25,7 @@
       <div class="home-shell">
         <div class="home-main">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.9.8" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.9.9" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
@@ -73,20 +73,20 @@
 
     <section class="screen puzzle-screen" id="screen-puzzle">
       <div class="play-shell">
-        <div class="play-toolbar single-row-toolbar">
-          <button type="button" class="tool-btn nav-tool" id="puzzleHomeBtn">Home</button>
+        <div class="play-toolbar single-row-toolbar" id="playToolbar">
+          <button type="button" class="tool-btn nav-tool" id="puzzleHomeBtn" data-puzzle-action="home">Home</button>
           <div class="play-status inline-status"><strong id="puzzleTitle">Level 1</strong><span id="puzzleInfo">48 pieces • 8 × 6</span></div>
           <div class="segmented-control" id="trayModeControl" aria-label="Tray pieces">
-            <button type="button" class="segment-btn selected" id="allModeBtn">ALL</button>
-            <button type="button" class="segment-btn" id="edgesModeBtn">EDGES</button>
+            <button type="button" class="segment-btn selected" id="allModeBtn" data-puzzle-action="all">ALL</button>
+            <button type="button" class="segment-btn" id="edgesModeBtn" data-puzzle-action="edges">EDGES</button>
           </div>
           <div class="segmented-control" id="boardActionControl" aria-label="Board piece movement">
-            <button type="button" class="segment-btn" id="pullModeBtn">PULL</button>
-            <button type="button" class="segment-btn selected" id="pushModeBtn">PUSH</button>
+            <button type="button" class="segment-btn" id="pullModeBtn" data-puzzle-action="pull">PULL</button>
+            <button type="button" class="segment-btn selected" id="pushModeBtn" data-puzzle-action="push">PUSH</button>
           </div>
-          <button type="button" class="tool-btn" id="previewBtn">Trace</button>
+          <button type="button" class="tool-btn" id="previewBtn" data-puzzle-action="trace">Trace</button>
           <div class="piece-count" id="pieceCounterChip">0/0 locked</div>
-          <button type="button" class="tool-btn nav-tool" id="puzzleFishCaughtBtn">Fish Caught</button>
+          <button type="button" class="tool-btn nav-tool" id="puzzleFishCaughtBtn" data-puzzle-action="caught">Fish Caught</button>
         </div>
         <div class="play-table" id="playTable">
           <div class="board-shell" id="boardShell">
@@ -103,6 +103,7 @@
           <div class="tray-pieces" id="trayPieces"></div>
         </div>
       </div>
+      <div class="puzzle-drag-layer" id="dragLayer" aria-hidden="true"></div>
     </section>
 
     <section class="screen" id="screen-complete">
@@ -152,11 +153,11 @@
 
   <footer class="app-footer">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.9.8</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.9.9</span>
   </footer>
 
-  <script src="js/data.js?v=3.9.8"></script>
-  <script src="js/app.js?v=3.9.8"></script>
+  <script src="js/data.js?v=3.9.9"></script>
+  <script src="js/app.js?v=3.9.9"></script>
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>
