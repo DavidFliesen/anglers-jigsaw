@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.9.7";
+const APP_VERSION = "v3.9.8";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -12,7 +12,7 @@ const screens = {home:$("screen-home"),select:$("screen-select"),how:$("screen-h
 const els = {
   body:document.body, homeBtn:$("homeBtn"), fishCaughtBtn:$("fishCaughtBtn"), startFishingBtn:$("startFishingBtn"),
   howToPlayBtn:$("howToPlayBtn"), homeFishCaughtBtn:$("homeFishCaughtBtn"), homeReturnGameBtn:$("homeReturnGameBtn"), howStartBtn:$("howStartBtn"),
-  difficultyStrip:$("difficultyStrip"), levelSelectTitle:$("levelSelectTitle"), levelSelectSubtitle:$("levelSelectSubtitle"), startLevelBtn:$("startLevelBtn"),
+  difficultyStrip:$("difficultyStrip"), levelSelectTitle:$("levelSelectTitle"), levelSelectSubtitle:$("levelSelectSubtitle"),
   puzzleTitle:$("puzzleTitle"), puzzleInfo:$("puzzleInfo"), pieceCounterChip:$("pieceCounterChip"),
   allModeBtn:$("allModeBtn"), edgesModeBtn:$("edgesModeBtn"), pushModeBtn:$("pushModeBtn"), pullModeBtn:$("pullModeBtn"), previewBtn:$("previewBtn"), puzzleHomeBtn:$("puzzleHomeBtn"), puzzleFishCaughtBtn:$("puzzleFishCaughtBtn"),
   playTable:$("playTable"), boardShell:$("boardShell"), boardPreviewImage:$("boardPreviewImage"), boardCutlines:$("boardCutlines"), piecesLayer:$("piecesLayer"),
@@ -25,7 +25,7 @@ const els = {
 };
 let caught = safeJson(STORAGE_KEY,{});
 let progress = safeJson(PROGRESS_KEY,{nextLevel:1});
-let currentDifficulty=difficulties[1], puzzleState=null, currentScreen="home", zCounter=20, detailFish=null, trayMode="all", boardActionMode="push";
+let currentDifficulty=difficulties[1], puzzleState=null, currentScreen="home", zCounter=20, detailFish=null, trayMode="all", boardActionMode="push", puzzleStarting=false;
 let lastLayoutW=0,lastLayoutH=0,resizeTimer=null,pendingViewportRelayout=false;
 const dragState={active:false,piece:null,pointerId:null,offsetX:0,offsetY:0,origin:"table",captureEl:null,tableRect:null,group:[],startPositions:new Map()};
 const fishAssetCache=new Map();
@@ -85,7 +85,6 @@ function bindUI(){
   bindPress(els.homeReturnGameBtn,returnToActiveGame);
   bindPress(els.howStartBtn,openNextLevel);
   bindPress(els.howToPlayBtn,()=>showScreen("how"));
-  bindPress(els.startLevelBtn,startCurrentLevel);
   bindPress(els.caughtPlayBtn,openNextLevel);
   bindPress(els.caughtReturnGameBtn,returnToActiveGame);
   bindPress(els.allModeBtn,()=>setTrayMode("all"));
@@ -114,8 +113,8 @@ function returnToActiveGame(){if(!hasActiveGame())return;showScreen("puzzle")}
 function showScreen(name){Object.entries(screens).forEach(([k,v])=>v.classList.toggle("active",k===name));currentScreen=name;const playing=name==="puzzle";els.body.classList.toggle("puzzle-mode",playing);updateReturnToGameButtons();if(playing&&puzzleState)schedulePuzzleLayout(false)}
 function showToast(msg){els.toast.textContent=msg;els.toast.classList.remove("hidden");clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.add("hidden"),1700)}
 function openNextLevel(){if(!currentLevelFish()){renderCaught();showScreen("caught");showToast("You caught every fish in the current collection!");return}renderLevelSelect();showScreen("select")}
-function renderLevelSelect(){const level=currentLevelNumber();els.levelSelectTitle.textContent=level>maxLevel()?"Collection Complete":`Level ${level}`;els.levelSelectSubtitle.textContent=level>maxLevel()?"You have caught every fish currently available.":"Choose how many pieces you want. The level starts immediately.";els.difficultyStrip.innerHTML="";difficulties.forEach(d=>{const b=document.createElement("button");b.className="difficulty-choice";b.innerHTML=`<strong>${d.pieces}</strong><span>${d.label} • ${d.cols} × ${d.rows}</span>`;b.onclick=()=>{currentDifficulty=d;startCurrentLevel()};els.difficultyStrip.appendChild(b)})}
-function startCurrentLevel(){const fish=currentLevelFish();if(fish)startPuzzle(fish,currentDifficulty,false)}
+function renderLevelSelect(){const level=currentLevelNumber();els.levelSelectTitle.textContent=level>maxLevel()?"Collection Complete":`Level ${level}`;els.levelSelectSubtitle.textContent=level>maxLevel()?"You have caught every fish currently available.":"Choose how many pieces you want. The level starts immediately.";els.difficultyStrip.innerHTML="";difficulties.forEach(d=>{const b=document.createElement("button");b.className="difficulty-choice";b.innerHTML=`<strong>${d.pieces}</strong><span>${d.label} • ${d.cols} × ${d.rows}</span>`;b.onclick=async()=>{if(puzzleStarting)return;puzzleStarting=true;b.classList.add("selected");currentDifficulty=d;try{await startCurrentLevel()}finally{puzzleStarting=false}};els.difficultyStrip.appendChild(b)})}
+function startCurrentLevel(){const fish=currentLevelFish();return fish?startPuzzle(fish,currentDifficulty,false):Promise.resolve()}
 function replayDetailFish(){if(detailFish)startPuzzle(detailFish,currentDifficulty,true)}
 function openCaught(){renderCaught();showScreen("caught")}
 function renderCaught(){
@@ -141,6 +140,15 @@ function generateEdgeGrid(rows,cols){
   const pieces=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)pieces.push({top:r===0?0:-horizontal[r-1][c],right:c===cols-1?0:vertical[r][c],bottom:r===rows-1?0:horizontal[r][c],left:c===0?0:-vertical[r][c-1]});return{pieces,horizontal,vertical}
 }
 function outwardTabInfo(e){const d=[];if(e.top===1)d.push("up");if(e.right===1)d.push("right");if(e.bottom===1)d.push("down");if(e.left===1)d.push("left");return{count:d.length,directions:d}}
+function ribbonProfile(s){return{neck:s*.075,r:s*.125,depth:s*.235,shoulder:s*.025,k:.5522847498}}
+function buildPieceShape(s,m,e){const x0=m,y0=m,x1=m+s,y1=m+s,p=ribbonProfile(s);let d=`M ${x0} ${y0}`;d+=edgeSegment({x:x0,y:y0},{x:x1,y:y0},{x:0,y:-1},e.top,s,p);d+=edgeSegment({x:x1,y:y0},{x:x1,y:y1},{x:1,y:0},e.right,s,p);d+=edgeSegment({x:x1,y:y1},{x:x0,y:y1},{x:0,y:1},e.bottom,s,p);d+=edgeSegment({x:x0,y:y1},{x:x0,y:y0},{x:-1,y:0},e.left,s,p);return{path:d+" Z",size:s+m*2,margin:m}}
+function edgeSegment(a,b,n,edge,s,p){
+  if(edge===0)return` L ${b.x} ${b.y}`;
+  const tx=(b.x-a.x)/s,ty=(b.y-a.y)/s,dir=edge===1?1:-1,nx=n.x*dir,ny=n.y*dir,mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  const A={x:mx-tx*p.neck,y:my-ty*p.neck},B={x:mx+tx*p.neck,y:my+ty*p.neck},cx=mx+nx*(p.depth-p.r),cy=my+ny*(p.depth-p.r),CA={x:cx-tx*p.r,y:cy-ty*p.r},CB={x:cx+tx*p.r,y:cy+ty*p.r},F={x:cx+nx*p.r,y:cy+ny*p.r};
+  return` L ${A.x} ${A.y} C ${A.x+nx*p.shoulder} ${A.y+ny*p.shoulder}, ${CA.x-nx*p.shoulder} ${CA.y-ny*p.shoulder}, ${CA.x} ${CA.y} C ${CA.x+nx*p.k*p.r} ${CA.y+ny*p.k*p.r}, ${F.x-tx*p.k*p.r} ${F.y-ty*p.k*p.r}, ${F.x} ${F.y} C ${F.x+tx*p.k*p.r} ${F.y+ty*p.k*p.r}, ${CB.x+nx*p.k*p.r} ${CB.y+ny*p.k*p.r}, ${CB.x} ${CB.y} C ${CB.x-nx*p.shoulder} ${CB.y-ny*p.shoulder}, ${B.x+nx*p.shoulder} ${B.y+ny*p.shoulder}, ${B.x} ${B.y} L ${b.x} ${b.y}`
+}
+function sharedCutPath(a,b,n,edge,s){return`M ${a.x} ${a.y}`+edgeSegment(a,b,n,edge,s,ribbonProfile(s))}
 function requestViewportRelayout(force=false){if(currentScreen!=="puzzle"||!puzzleState)return;const w=Math.round(innerWidth||0),h=Math.round(visualViewport?.height||innerHeight||0);if(!force&&w===lastLayoutW&&Math.abs(h-lastLayoutH)<120)return;if(dragState.active){pendingViewportRelayout=true;return}clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(dragState.active||currentScreen!=="puzzle"||!puzzleState){pendingViewportRelayout=true;return}lastLayoutW=w;lastLayoutH=h;pendingViewportRelayout=false;schedulePuzzleLayout(false)},150)}
 function schedulePuzzleLayout(initial=false){if(!puzzleState||currentScreen!=="puzzle")return;if(dragState.active){pendingViewportRelayout=true;return}(initial?[0,100,260]:[0]).forEach((delay,index)=>setTimeout(()=>{if(!puzzleState||currentScreen!=="puzzle"||dragState.active)return;requestAnimationFrame(()=>layoutPuzzle(initial&&index===0))},delay))}
 function layoutPuzzle(initial=false){
