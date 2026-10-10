@@ -1,6 +1,6 @@
 {
   "name": "Angler's Jigsaw",
-  "short_name": "AnglerJigsaw",
+  "short_name": "Angler's Jigsaw",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#031736",
