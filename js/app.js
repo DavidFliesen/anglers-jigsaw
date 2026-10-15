@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.11.0";
+const APP_VERSION = "v3.11.1";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
