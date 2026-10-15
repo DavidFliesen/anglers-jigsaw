@@ -1,4 +1,4 @@
-const APP_VERSION = "v3.10.9";
+const APP_VERSION = "v3.11.0";
 const STORAGE_KEY = "anglers-jigsaw-cooler-v3"; // retained so existing catches survive the rebuild
 const PROGRESS_KEY = "anglers-jigsaw-progress-v1";
 const difficulties = [
@@ -41,6 +41,16 @@ let pendingBoardAction=null;
 let lastToolbarPointerActionAt=0;
 let currentEnvironmentTheme=null;
 const ENVIRONMENT_THEMES=["deep-ocean","pirate-ship","coral-reef"];
+
+function feedbackTrack(name,data={}){
+  try{window.anTrack?.(name,{type:"workflow",data});}catch{}
+}
+window.anFeedbackContext=function(){
+  const names={home:"Home",select:"Choose Pieces",how:"How to Play",puzzle:"Puzzle",complete:detailFromCaught?"Species Profile":"Species Identified",caught:"Fish Caught"};
+  let screen=names[currentScreen]||"App";
+  if(currentScreen==="puzzle"&&puzzleState)screen=`Puzzle · Level ${puzzleState.fish.number} · ${puzzleState.difficulty.pieces} pieces`;
+  return {appVersion:APP_VERSION.replace(/^v/,""),buildNumber:APP_VERSION,screen};
+};
 
 function audioSfx(name){try{window.AUDIO?.sfx?.(name)}catch{}}
 function gameplayMusicKey(fish){return ((Number(fish?.number)||1)%2===0)?"deep":"freshwater"}
@@ -269,8 +279,8 @@ function renderCaught(){
 function shortIdentification(text){const s=(text||"").split(/[.;]/).filter(Boolean).slice(0,2).join(" • ");return s||"Complete the level to study this species."}
 function populateFishInfo(fish,fromCaught=false){detailFish=fish;detailFromCaught=Boolean(fromCaught);els.completeKicker.textContent=fromCaught?"Species Profile":"Species Identified";els.completeTitle.textContent=fish.commonName;els.completeScientific.textContent=fish.scientificName;els.completeDescription.textContent=fish.description;els.completeIdentification.textContent=fish.identification;els.completeHabitat.textContent=fish.habitat;els.completeHistory.textContent=fish.history;els.completeSource.textContent=fish.source;setFishImage(els.completeImage,fish,"swim");els.nextFishBtn.hidden=false;els.fishAgainBtn.textContent="Replay"}
 function showFishDetails(f){populateFishInfo(f,true);showScreen("complete")}
-function resetAllFish(){if(!confirm("Reset all Fish Caught progress and return to Level 1? This cannot be undone."))return;caught={};progress={nextLevel:1};saveCaught();saveProgress();renderCaught();renderLevelSelect();showToast("Fish Caught reset. Level 1 is ready.")}
-async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();chooseEnvironmentTheme();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,environmentTheme:currentEnvironmentTheme,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
+function resetAllFish(){if(!confirm("Reset all Fish Caught progress and return to Level 1? This cannot be undone."))return;feedbackTrack("progress_reset",{caughtCount:Object.keys(caught).length});caught={};progress={nextLevel:1};saveCaught();saveProgress();renderCaught();renderLevelSelect();showToast("Fish Caught reset. Level 1 is ready.")}
+async function startPuzzle(fish,difficulty,replay=false){if(!fish||!difficulty)return;try{window.UIKIT?.applyFSLock?.()}catch{}const imageSrc=await resolveFishAsset(fish,"puzzle");if(!imageSrc){showToast("Puzzle artwork is missing.");return}clearPuzzle();chooseEnvironmentTheme();trayMode="all";boardActionMode="push";puzzleState={fish,difficulty,imageSrc,replay,environmentTheme:currentEnvironmentTheme,musicKey:gameplayMusicKey(fish),ratio:4/3,rows:difficulty.rows,cols:difficulty.cols,pieces:[],previewOn:false,metrics:null,completeShown:false};feedbackTrack("puzzle_started",{level:fish.number,pieces:difficulty.pieces,replay:Boolean(replay),theme:currentEnvironmentTheme});buildPieces();updatePuzzleMeta();updateToolLabels();showScreen("puzzle");schedulePuzzleLayout(true);setTimeout(()=>schedulePuzzleLayout(false),550)}
 function clearPuzzle(){cancelDrag();puzzleState=null;els.piecesLayer.innerHTML="";els.trayPieces.innerHTML="";els.boardCutlines.innerHTML="";els.boardPreviewImage.removeAttribute("src");els.boardShell.classList.remove("show-preview")}
 function buildPieces(){const {rows,cols}=puzzleState,grid=generateEdgeGrid(rows,cols);puzzleState.horizontalCuts=grid.horizontal;puzzleState.verticalCuts=grid.vertical;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const idx=r*cols+c,e=grid.pieces[idx],tabs=outwardTabInfo(e),id=`piece-${r}-${c}`;puzzleState.pieces.push({id,groupId:id,row:r,col:c,edges:e,tabs,isEdge:r===0||c===0||r===rows-1||c===cols-1,isCorner:(r===0||r===rows-1)&&(c===0||c===cols-1),location:"tray",locked:false,x:0,y:0,z:1,size:0,margin:0,path:"",el:null,targetX:0,targetY:0,imgX:0,imgY:0,imgW:0,imgH:0,trayOrder:Math.random(),dirty:true})}}
 
@@ -499,6 +509,7 @@ function pushVisibleToBoard(){
   syncLoosePieces();renderTray();updatePuzzleMeta();
   audioSfx("shuffle");
   showToast(`${list.length} piece${list.length===1?"":"s"} pushed beside the board`);
+  feedbackTrack("pieces_pushed",{count:list.length,view:trayMode});
   return list.length;
 }
 function pullLoosePieces(){
@@ -512,11 +523,12 @@ function pullLoosePieces(){
   syncLoosePieces();renderTray();updatePuzzleMeta();
   audioSfx("shuffle");
   showToast(`${loose.length} loose piece${loose.length===1?"":"s"} returned to tray`);
+  feedbackTrack("pieces_pulled",{count:loose.length});
   return loose.length;
 }
 function scatterPiece(p){const m=puzzleState.metrics;p.location="table";p.locked=false;p.groupId=p.id;p.z=++zCounter;let tries=0;do{p.x=Math.random()*(m.tableW-p.size);p.y=Math.random()*(m.tableH-p.size);tries++}while(tries<12&&p.x>m.boardLeft-p.size*.5&&p.x<m.boardLeft+m.boardW&&p.y>m.boardTop-p.size*.5&&p.y<m.boardTop+m.boardH);clampPieceToTable(p)}
-function togglePreview(){if(!puzzleState)return;puzzleState.previewOn=!puzzleState.previewOn;els.boardShell.classList.toggle("show-preview",puzzleState.previewOn);updateToolLabels()}
-function checkComplete(){if(!puzzleState||puzzleState.completeShown||!puzzleState.pieces.every(p=>p.locked))return;puzzleState.completeShown=true;try{window.AUDIO?.sting?.()}catch{}const f=puzzleState.fish;const wasCaught=Boolean(caught[f.id]);caught[f.id]=caught[f.id]||{firstCompletedAt:new Date().toISOString(),completions:0,bestPieces:0};caught[f.id].completions++;caught[f.id].bestPieces=Math.max(caught[f.id].bestPieces,puzzleState.difficulty.pieces);saveCaught();if(!puzzleState.replay&&!wasCaught&&f.number===currentLevelNumber()){progress.nextLevel=Math.min(f.number+1,maxLevel()+1);saveProgress()}populateFishInfo(f,false);setTimeout(()=>showScreen("complete"),250)}
+function togglePreview(){if(!puzzleState)return;puzzleState.previewOn=!puzzleState.previewOn;els.boardShell.classList.toggle("show-preview",puzzleState.previewOn);updateToolLabels();feedbackTrack("trace_toggled",{enabled:Boolean(puzzleState.previewOn)})}
+function checkComplete(){if(!puzzleState||puzzleState.completeShown||!puzzleState.pieces.every(p=>p.locked))return;puzzleState.completeShown=true;try{window.AUDIO?.sting?.()}catch{}const f=puzzleState.fish;const wasCaught=Boolean(caught[f.id]);caught[f.id]=caught[f.id]||{firstCompletedAt:new Date().toISOString(),completions:0,bestPieces:0};caught[f.id].completions++;caught[f.id].bestPieces=Math.max(caught[f.id].bestPieces,puzzleState.difficulty.pieces);saveCaught();feedbackTrack("puzzle_completed",{level:f.number,pieces:puzzleState.difficulty.pieces,replay:Boolean(puzzleState.replay)});if(!puzzleState.replay&&!wasCaught&&f.number===currentLevelNumber()){progress.nextLevel=Math.min(f.number+1,maxLevel()+1);saveProgress()}populateFishInfo(f,false);setTimeout(()=>showScreen("complete"),250)}
 function confirmLeavePuzzle(){if(!puzzleState){showScreen("home");return}if(confirm("Leave this puzzle? Your unfinished layout will not be saved.")){clearPuzzle();showScreen("home")}}
 function buildWaterBubbles(){const host=$("waterBubbles");for(let i=0;i<22;i++){const b=document.createElement("div");b.className="bubble";const s=5+Math.random()*18;b.style.width=b.style.height=s+"px";b.style.left=Math.random()*100+"%";b.style.setProperty("--drift",Math.random()*56-28+"px");b.style.animationDuration=10+Math.random()*18+"s";b.style.animationDelay=-Math.random()*26+"s";host.appendChild(b)}}
 function spawnAmbientLoop(){const host=$("ambientFishLayer"),fish=speciesList();async function spawn(){if(document.hidden){setTimeout(spawn,2500);return}if(host.childElementCount>=8){setTimeout(spawn,2200);return}const f=fish[Math.floor(Math.random()*fish.length)],src=await resolveFishAsset(f,"swim");if(!src){setTimeout(spawn,900);return}const box=document.createElement("div"),img=document.createElement("img"),travelDirection=Math.random()<.5?"left":"right",sourceFacing=(f.facing||"right").toLowerCase(),flip=sourceFacing===travelDirection?1:-1,w=95+Math.random()*120,y=innerHeight*(.12+Math.random()*.68);box.className=`ambient-fish swim-${travelDirection}`;box.style.width=w+"px";box.style.zIndex=String(Math.round(w));box.style.setProperty("--y0",y+"px");box.style.setProperty("--y1",y+(Math.random()*70-35)+"px");box.style.setProperty("--dur",32+Math.random()*18+"s");img.alt="";img.src=src;img.style.setProperty("--fish-flip",String(flip));box.appendChild(img);host.appendChild(box);box.addEventListener("animationend",()=>box.remove(),{once:true});setTimeout(()=>{if(box.isConnected)box.remove()},55000);setTimeout(spawn,2500+Math.random()*4500)}setTimeout(spawn,900)}
