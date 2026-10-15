@@ -230,3 +230,10 @@ body{background:#031a35}
 .play-table{z-index:10!important;}
 .tray-bar{z-index:40!important;}
 .puzzle-drag-layer{z-index:50!important;pointer-events:none!important;}
+
+
+/* v3.11.0 — ARTEZIQ Ladybug host integration. The connector keeps its own UI in Shadow DOM. */
+html{--tx:1}
+.has-ladybug .app-footer{padding-right:82px}
+[data-arteziq-ladybug]{isolation:isolate}
+@media(max-width:700px){.has-ladybug .app-footer{padding-right:74px}}
