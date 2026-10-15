@@ -1,0 +1,38 @@
+Angler's Jigsaw v3.11.0 — Ladybug integration review
+
+Base: v3.10.9 complete site.
+Reference: ARTEZIQ-Ladybug-shared-v0.2 + Angler's Navigator v066 wiring.
+
+Shared module integrity:
+- ladybug-auth.js unchanged: True
+- ladybug-feedback.js unchanged: True
+
+App-specific values:
+- appName: Angler's Jigsaw
+- slug: anglers-jigsaw
+- session prefix: AJ
+- Supabase URL: shared Feedback project URL
+- publishable key: placeholder, must be copied from Navigator's PUBLIC browser config
+- app public ingest key: placeholder, must be copied from the Angler's Jigsaw Feedback app record
+
+Privacy-safe telemetry hooks:
+- puzzle_started (level, pieces, replay boolean, theme enum)
+- pieces_pushed (count, tray view enum)
+- pieces_pulled (count)
+- trace_toggled (boolean)
+- puzzle_completed (level, pieces, replay boolean)
+- progress_reset (caught count)
+No GPS, place names, email, tokens, passwords, or report text are sent as telemetry.
+
+Screenshot privacy:
+- no map exists in Jigsaw, so mapSelectors is empty
+- password selectors are masked as a defensive default
+- screenshot remains tester-initiated and previewed before send
+
+PWA:
+- service-worker cache bumped to v3.11.0
+- shared Ladybug runtime/icon/html2canvas files precached
+- ladybug-config.js is network-first and intentionally not precached so public config changes are not trapped behind an old service-worker copy
+
+Viewport:
+- maximum-scale/user-scalable restriction removed to match the shared Ladybug accessibility standard

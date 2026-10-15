@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#082b3e" />
   <meta name="application-name" content="Angler's Jigsaw" />
   <meta name="apple-mobile-web-app-title" content="Angler's Jigsaw" />
@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
   <link rel="stylesheet" href="arteziq-ui.css" />
-  <link rel="stylesheet" href="css/styles.css?v=3.10.9" />
+  <link rel="stylesheet" href="css/styles.css?v=3.11.0" />
 </head>
 <body>
   <div class="environment-theme-layer theme-deep-ocean" id="environmentThemeLayer" aria-hidden="true"></div>
@@ -29,7 +29,7 @@
       <div class="home-shell">
         <div class="home-main">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.10.9" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.11.0" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
@@ -160,13 +160,65 @@
 
   <footer class="app-footer app-chrome">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.10.9</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.11.0</span>
   </footer>
+
+  <!-- ARTEZIQ Ladybug telemetry shim: privacy-safe queue until the feedback module loads. -->
+  <script>
+    window.__anTrackQ=window.__anTrackQ||[];
+    window.anTrack=window.anTrack||function(name,details){
+      try{if(window.__anTrackQ.length<50)window.__anTrackQ.push([name,details]);}catch(e){}
+    };
+  </script>
 
   <script src="arteziq-audio.js"></script>
   <script src="arteziq-ui.js"></script>
-  <script src="js/data.js?v=3.10.9"></script>
-  <script src="js/app.js?v=3.10.9"></script>
+  <script src="js/data.js?v=3.11.0"></script>
+  <script src="js/app.js?v=3.11.0"></script>
+  <!-- ARTEZIQ LADYBUG FEEDBACK — shared v0.2, same reporting UI as Angler's Navigator. -->
+  <script type="module">
+  const LB=document.documentElement;
+  let lbStep="ladybug/ladybug-config.js";
+  try{
+    const {LADYBUG_CONFIG:cfg,ladybugConfigured}=await import("./ladybug/ladybug-config.js");
+    if(!ladybugConfigured(cfg)){
+      LB.dataset.ladybug="unconfigured";
+      console.info("[Ladybug] Angler's Jigsaw feedback is wired but not configured — add the two public keys in ladybug/ladybug-config.js.");
+    }else{
+      lbStep="ladybug/ladybug-auth.js";
+      const {createFeedbackAuth}=await import("./ladybug/ladybug-auth.js");
+      lbStep="ladybug/ladybug-feedback.js";
+      const {createLadybugFeedback}=await import("./ladybug/ladybug-feedback.js");
+      lbStep="mounting the launcher";
+      const auth=createFeedbackAuth({supabaseUrl:cfg.supabaseUrl,publishableKey:cfg.publishableKey});
+      const ladybug=createLadybugFeedback({
+        supabaseUrl:cfg.supabaseUrl,publishableKey:cfg.publishableKey,appKey:cfg.appKey,slug:cfg.slug,
+        appName:"Angler's Jigsaw",sessionIdPrefix:"AJ",iconUrl:cfg.iconUrl,bottomOffsetPx:cfg.bottomOffsetPx,bottomOffsetPhonePx:cfg.bottomOffsetPhonePx,
+        auth,getAccessToken:(force)=>auth.getAccessToken(force),
+        getContext:()=>window.anFeedbackContext?.()||{appVersion:"3.11.0",buildNumber:"v3.11.0",screen:"App"},
+        maskSelectors:["input[type=password]"],mapSelectors:[],
+      });
+      ladybug.mount();
+      document.documentElement.classList.add("has-ladybug");
+      const queued=window.__anTrackQ||[];
+      window.anTrack=(name,details)=>{try{ladybug.track(name,details);}catch(e){}};
+      queued.forEach(([n,d])=>window.anTrack(n,d));
+      window.__anTrackQ=[];
+      window.ArteziqFeedback=ladybug;
+      LB.dataset.ladybug="ready";
+    }
+  }catch(e){
+    LB.dataset.ladybug="error:"+lbStep;
+    console.warn("[Ladybug] feedback did not load ("+lbStep+"); the app continues without it.",e&&e.message);
+    if(/[?&]ladybug=debug\b/.test(location.search)){
+      const c=document.createElement("div");
+      c.textContent="Ladybug failed: "+lbStep+(e&&e.message?" — "+e.message:"");
+      c.style.cssText="position:fixed;right:12px;bottom:12px;max-width:80vw;z-index:2147483000;background:#7a1212;color:#fff;font:12px/1.4 system-ui,sans-serif;padding:8px 10px;border-radius:8px;box-shadow:0 4px 14px #0008";
+      document.body.appendChild(c);
+    }
+  }
+  </script>
+
   <script>
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>
