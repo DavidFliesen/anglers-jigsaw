@@ -1,0 +1,26 @@
+Angler's Jigsaw v3.11.1 — Ladybug activation review
+
+Scope
+- Public-key/configuration activation only.
+- No puzzle mechanics, audio engine, UI kit, fish assets, themes, or gameplay controls changed.
+
+Configured
+- Supabase public URL: present.
+- Supabase publishable browser key: present.
+- Angler's Jigsaw public ingest key: present.
+- App slug: anglers-jigsaw.
+- Report/session prefix: AJ (set by the Ladybug integration in index.html).
+
+Cache behavior
+- App cache bumped to v3.11.1.
+- ladybug-config.js remains network-first in sw.js.
+- Dynamic config import has ?v=3.11.1 to prevent a stale ES-module response from hiding the launcher after deployment.
+
+Security
+- Only public browser values were added.
+- No service-role key, PAT, password, or server secret is present.
+
+Expected result
+- ladybugConfigured() returns true.
+- The shared Ladybug module mounts its floating launcher.
+- Development-mode access is still enforced by the centralized Feedback backend/dashboard.

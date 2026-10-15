@@ -1,4 +1,4 @@
-# Angler's Jigsaw v3.11.0
+# Angler's Jigsaw v3.11.1
 
 ## ARTEZIQ Ladybug feedback integration
 
@@ -41,3 +41,13 @@ Changes:
 - Bumped application/service-worker version to v3.10.9 so the updated manifest/meta refreshes cleanly.
 
 No gameplay, audio, UI, fish, puzzle, tray, or theme logic changed.
+
+## v3.11.1 — Ladybug activation
+
+- Configured the public Supabase publishable key used by the ARTEZIQ Feedback system.
+- Configured Angler's Jigsaw public ingest key from the Feedback Dashboard.
+- Ladybug launcher is now eligible to mount instead of remaining intentionally hidden as unconfigured.
+- Slug remains `anglers-jigsaw`; report prefix remains `AJ`.
+- Feedback app remains in Development access mode as configured in the central dashboard.
+- Ladybug config is imported with a version query to avoid stale browser/module caches.
+- No puzzle mechanics, graphics, audio, or navigation logic changed.

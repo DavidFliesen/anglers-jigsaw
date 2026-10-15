@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
   <link rel="stylesheet" href="arteziq-ui.css" />
-  <link rel="stylesheet" href="css/styles.css?v=3.11.0" />
+  <link rel="stylesheet" href="css/styles.css?v=3.11.1" />
 </head>
 <body>
   <div class="environment-theme-layer theme-deep-ocean" id="environmentThemeLayer" aria-hidden="true"></div>
@@ -29,7 +29,7 @@
       <div class="home-shell">
         <div class="home-main">
           <div class="home-art-wrap">
-            <img src="assets/images/logo.png?v=3.11.0" alt="Angler's Jigsaw logo" class="home-logo" />
+            <img src="assets/images/logo.png?v=3.11.1" alt="Angler's Jigsaw logo" class="home-logo" />
           </div>
           <div class="home-copy">
             <p class="home-kicker">Fishing • Jigsaw Puzzles • Species Discovery</p>
@@ -160,7 +160,7 @@
 
   <footer class="app-footer app-chrome">
     <span class="footer-wordmark">ART<span>EZ</span>IQ</span>
-    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.11.0</span>
+    <span>•</span><span>Angler's Jigsaw</span><span>•</span><span id="globalVersion">v3.11.1</span>
   </footer>
 
   <!-- ARTEZIQ Ladybug telemetry shim: privacy-safe queue until the feedback module loads. -->
@@ -173,14 +173,14 @@
 
   <script src="arteziq-audio.js"></script>
   <script src="arteziq-ui.js"></script>
-  <script src="js/data.js?v=3.11.0"></script>
-  <script src="js/app.js?v=3.11.0"></script>
+  <script src="js/data.js?v=3.11.1"></script>
+  <script src="js/app.js?v=3.11.1"></script>
   <!-- ARTEZIQ LADYBUG FEEDBACK — shared v0.2, same reporting UI as Angler's Navigator. -->
   <script type="module">
   const LB=document.documentElement;
   let lbStep="ladybug/ladybug-config.js";
   try{
-    const {LADYBUG_CONFIG:cfg,ladybugConfigured}=await import("./ladybug/ladybug-config.js");
+    const {LADYBUG_CONFIG:cfg,ladybugConfigured}=await import("./ladybug/ladybug-config.js?v=3.11.1");
     if(!ladybugConfigured(cfg)){
       LB.dataset.ladybug="unconfigured";
       console.info("[Ladybug] Angler's Jigsaw feedback is wired but not configured — add the two public keys in ladybug/ladybug-config.js.");
@@ -195,7 +195,7 @@
         supabaseUrl:cfg.supabaseUrl,publishableKey:cfg.publishableKey,appKey:cfg.appKey,slug:cfg.slug,
         appName:"Angler's Jigsaw",sessionIdPrefix:"AJ",iconUrl:cfg.iconUrl,bottomOffsetPx:cfg.bottomOffsetPx,bottomOffsetPhonePx:cfg.bottomOffsetPhonePx,
         auth,getAccessToken:(force)=>auth.getAccessToken(force),
-        getContext:()=>window.anFeedbackContext?.()||{appVersion:"3.11.0",buildNumber:"v3.11.0",screen:"App"},
+        getContext:()=>window.anFeedbackContext?.()||{appVersion:"3.11.1",buildNumber:"v3.11.1",screen:"App"},
         maskSelectors:["input[type=password]"],mapSelectors:[],
       });
       ladybug.mount();
