@@ -2,14 +2,14 @@
  * ARTEZIQ Feedback — Angler's Jigsaw PUBLIC browser configuration.
  * Only public values belong here. Never paste a service-role key, PAT, password, or other secret.
  *
- * The Ladybug stays hidden until publishableKey and appKey are filled in.
+ * The Ladybug launcher is enabled when these public browser values pass validation.
  * publishableKey: use the same Supabase public publishable key as Angler's Navigator.
  * appKey: use the Angler's Jigsaw Public ingest key from the Feedback Dashboard app record.
  */
 export const LADYBUG_CONFIG = {
   supabaseUrl: 'https://mehsjriwijsyquhmrzkh.supabase.co',
-  publishableKey: 'REPLACE_WITH_SUPABASE_PUBLISHABLE_KEY',
-  appKey: 'REPLACE_WITH_ANGLERS_JIGSAW_PUBLIC_INGEST_KEY',
+  publishableKey: 'sb_publishable_GJzFbU63AAgok24gxPrnSA_FL0H3kfu',
+  appKey: 'b3678140-3b41-44bb-b8e8-6915e97957e3',
   slug: 'anglers-jigsaw',
   iconUrl: 'ladybug/assets/ladybug-feedback-icon-256.png',
   bottomOffsetPx: 16,
